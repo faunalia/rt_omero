@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>589</width>
+    <height>371</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout_5">
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_6">
+     <property name="text">
+      <string>N. piani interrati</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QSpinBox" name="INTERR_NPIANI">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QLabel" name="label_5">
+     <property name="text">
+      <string>N. piani fuori terra</string>
+     </property>
+     <property name="indent">
+      <number>40</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Morfologia della copertura</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2" colspan="3">
+    <widget class="QComboBox" name="ZZ_MORFOLOGIA_COPERTURAID">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="sizeAdjustPolicy">
+      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="5">
+    <widget class="GrpMantoCoperturaUnitaVolumetrica" name="MANTO_COPERTURA_UNITA_VOLUMETRICAID">
+     <property name="title">
+      <string>Manto di copertura</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="5">
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Strutture orizzontali - Copertura</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_4">
+      <item row="0" column="0">
+       <widget class="QRadioButton" name="edificioOrdinarioRadio">
+        <property name="text">
+         <string>Edificio ordinario</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QRadioButton" name="edificioGrandiLuciRadio">
+        <property name="text">
+         <string>Edificio con grandi luci (capannoni, palestre, piscine, etc.)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="2">
+       <widget class="QStackedWidget" name="tipoEdificiStacked">
+        <widget class="WdgStruttureOrizzontaliCoperturaEdificiOrdinari" name="STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID"/>
+        <widget class="WdgStruttureOrizzontaliCoperturaEdificiGrandiLuci" name="STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_GRANDI_LUCIID"/>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="6" column="0" colspan="2">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="0" column="0" colspan="5">
+    <widget class="QLineEdit" name="debugInfo">
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="3">
+    <widget class="QSpinBox" name="FUORITERR_NPIANI"/>
+   </item>
+   <item row="7" column="0" colspan="5">
+    <widget class="QLineEdit" name="SCHEDA_EDIFICIOID"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GrpMantoCoperturaUnitaVolumetrica</class>
+   <extends>QGroupBox</extends>
+   <header>..GrpMantoCoperturaUnitaVolumetrica</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgStruttureOrizzontaliCoperturaEdificiOrdinari</class>
+   <extends>QWidget</extends>
+   <header>..WdgStruttureOrizzontaliCoperturaEdificiOrdinari</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgStruttureOrizzontaliCoperturaEdificiGrandiLuci</class>
+   <extends>QWidget</extends>
+   <header>..WdgStruttureOrizzontaliCoperturaEdificiGrandiLuci</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

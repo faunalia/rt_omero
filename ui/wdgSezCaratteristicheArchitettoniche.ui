@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>507</width>
+    <height>172</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Prospetto prevalente</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QComboBox" name="ZZ_PROSPETTO_PREVALENTEID">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="sizeAdjustPolicy">
+      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="WdgCaratteristicheArchitettonicheParamenti" name="PARAMENTIID">
+      <attribute name="title">
+       <string>Paramenti</string>
+      </attribute>
+     </widget>
+     <widget class="WdgCaratteristicheArchitettonicheBalconi" name="BALCONIID">
+      <attribute name="title">
+       <string>Balconi</string>
+      </attribute>
+     </widget>
+     <widget class="WdgCaratteristicheArchitettonicheInfissi" name="INFISSIID">
+      <attribute name="title">
+       <string>Infissi</string>
+      </attribute>
+     </widget>
+     <widget class="WdgCaratteristicheArchitettonicheOscuramenti" name="OSCURAMENTIID">
+      <attribute name="title">
+       <string>Oscuramenti</string>
+      </attribute>
+     </widget>
+     <widget class="WdgCaratteristicheArchitettonicheGronda" name="GRONDAID">
+      <attribute name="title">
+       <string>Gronda</string>
+      </attribute>
+     </widget>
+     <widget class="WdgCaratteristicheArchitettonicheElemDecorativi" name="ELEMENTI_DECORATIVIID">
+      <attribute name="title">
+       <string>Elem. decorativi</string>
+      </attribute>
+     </widget>
+     <widget class="WdgCaratteristicheArchitettonicheSuperfetazioni" name="SUPERFETAZIONI_INCONGRUENZEID">
+      <attribute name="title">
+       <string>Superfetazioni ed incongruenze</string>
+      </attribute>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>WdgCaratteristicheArchitettonicheInfissi</class>
+   <extends>QWidget</extends>
+   <header>..WdgCaratteristicheArchitettonicheInfissi</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgCaratteristicheArchitettonicheParamenti</class>
+   <extends>QWidget</extends>
+   <header>..WdgCaratteristicheArchitettonicheParamenti</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgCaratteristicheArchitettonicheBalconi</class>
+   <extends>QWidget</extends>
+   <header>..WdgCaratteristicheArchitettonicheBalconi</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgCaratteristicheArchitettonicheOscuramenti</class>
+   <extends>QWidget</extends>
+   <header>..WdgCaratteristicheArchitettonicheOscuramenti</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgCaratteristicheArchitettonicheGronda</class>
+   <extends>QWidget</extends>
+   <header>..WdgCaratteristicheArchitettonicheGronda</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgCaratteristicheArchitettonicheElemDecorativi</class>
+   <extends>QWidget</extends>
+   <header>..WdgCaratteristicheArchitettonicheElemDecorativi</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>WdgCaratteristicheArchitettonicheSuperfetazioni</class>
+   <extends>QWidget</extends>
+   <header>..WdgCaratteristicheArchitettonicheSuperfetazioni</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

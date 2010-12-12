@@ -1,0 +1,77 @@
+
+# -*- coding: utf-8 -*-
+
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
+import qgis.gui
+import qgis.core
+
+from ui.wdgCaratteristicheArchitettonicheChild_ui import Ui_Form
+from MultipleChoiseCheckList import MultipleChoiseCheckList
+from AutomagicallyUpdater import *
+
+class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
+
+	def __init__(self, parent=None, table=None, pk=None, zzTipoParams=None):
+		QWidget.__init__(self, parent)
+		MappingOne2One.__init__(self, table, pk)
+		self.setupUi(self)
+
+		if zzTipoParams != None:
+			self.setupMultiCheckList(*zzTipoParams)
+
+		# carica i widget multivalore con i valori delle relative tabelle
+		tablesDict = {
+			self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID: AutomagicallyUpdater.ZZTable( "ZZ_STATO_CONSERVAZIONE_ARCHITETTONICO" )
+		}
+		self.setupTablesUpdater(tablesDict)
+		self.loadTables()
+
+		# mappa i widget con i campi delle tabelle
+		childrenList = [
+			(self.ALTRO, AutomagicallyUpdater.OPTIONAL), 
+			#self.PRESENZA_INCONGRUENZE, 
+			#(self.DESCRIZIONI_INCONGRUENZE, AutomagicallyUpdater.OPTIONAL), 
+			self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID, 
+			self.ZZ_TIPO
+		]
+		self.setupValuesUpdater(childrenList)
+
+		self.showOtherInfos(True)
+
+		self.connect(self.ZZ_TIPO, SIGNAL("selectionChanged()"), self.abilitaAltroTipo)
+		self.abilitaAltroTipo()
+
+	def abilitaAltroTipo(self):
+		enabler = self.ZZ_TIPO.isSelected("Altro", Qt.MatchEndsWith)
+		self.ALTRO.setEnabled(enabler)
+
+
+	def showOtherInfos(self, show=True):
+		self.incongruenzeInfo.setVisible(show)
+		if show:
+			self.addChildRef(self.PRESENZA_INCONGRUENZE)
+			self.addChildRef(self.DESCRIZIONI_INCONGRUENZE, AutomagicallyUpdater.OPTIONAL)
+		else:
+			self.delChildRef(self.PRESENZA_INCONGRUENZE)
+			self.delChildRef(self.DESCRIZIONI_INCONGRUENZE)
+			
+
+	def setupMultiCheckList(self, table=None, pk=None, parentPk=None, tableWithValues=None):
+		oldZZ_TIPO = self.ZZ_TIPO
+		parent = oldZZ_TIPO.parent()
+		self.ZZ_TIPO = MultipleChoiseCheckList(parent, table, pk, parentPk, tableWithValues)
+		gridLayout = parent.layout()
+		index = gridLayout.indexOf(oldZZ_TIPO)
+		info = gridLayout.getItemPosition(index)
+		gridLayout.addWidget(self.ZZ_TIPO, *info)
+		#gridLayout.removeWidget(oldZZ_TIPO)
+
+	def _saveValue(self, name2valueDict, table, pk, ID=None):
+		key = self.DESCRIZIONI_INCONGRUENZE.objectName()
+		if name2valueDict.has_key( key ):
+			value = name2valueDict[ key ]
+			name2valueDict[ key ] = value if value != None else ''
+
+		return AutomagicallyUpdater._saveValue(name2valueDict, table, pk, ID)

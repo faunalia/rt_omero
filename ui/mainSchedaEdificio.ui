@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SchedaEdificio</class>
+ <widget class="QMainWindow" name="SchedaEdificio">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>868</width>
+    <height>524</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Scheda Edificio</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="font">
+           <font>
+            <weight>75</weight>
+            <bold>true</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Sezioni</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="sectionsList">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>2</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="currentRow">
+           <number>0</number>
+          </property>
+          <item>
+           <property name="text">
+            <string>A1 - Sezione Principale</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>A2 - Localizzazione edificio</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>A3 - Unità volumetriche</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>A4 - Interventi strutturali</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>A5 - Stato e utilizzo</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>A6 - Caratteristiche strutturali</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>A7 - Caratteristiche architettoniche</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>A8 - Foto e immagini</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QStackedWidget" name="sectionsStacked">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>5</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <widget class="SezPrincipale" name="PRINCIPALE"/>
+       <widget class="SezLocalizzazione" name="LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ"/>
+       <widget class="SezUnitaVolumetriche" name="UNITA_VOLUMETRICHE"/>
+       <widget class="SezInterventi" name="INTERVENTI"/>
+       <widget class="SezStatoUtilizzo" name="STATO_UTILIZZO_EDIFICIOID"/>
+       <widget class="SezCaratteristicheStrutturali" name="CARATTERISTICHE_STRUTTURALI"/>
+       <widget class="SezCaratteristicheArchitettoniche" name="CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID"/>
+       <widget class="QWidget" name="FOTO_IMMAGINI"/>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>868</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SezLocalizzazione</class>
+   <extends>QWidget</extends>
+   <header>..SezLocalizzazione</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SezInterventi</class>
+   <extends>QWidget</extends>
+   <header>..SezInterventi</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SezUnitaVolumetriche</class>
+   <extends>QWidget</extends>
+   <header>..SezUnitaVolumetriche</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SezPrincipale</class>
+   <extends>QWidget</extends>
+   <header>..SezPrincipale</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SezStatoUtilizzo</class>
+   <extends>QWidget</extends>
+   <header>..SezStatoUtilizzo</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SezCaratteristicheStrutturali</class>
+   <extends>QWidget</extends>
+   <header>..SezCaratteristicheStrutturali</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SezCaratteristicheArchitettoniche</class>
+   <extends>QWidget</extends>
+   <header>..SezCaratteristicheArchitettoniche</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
