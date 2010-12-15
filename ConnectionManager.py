@@ -121,11 +121,14 @@ class ConnectionManager:
 
 	class AbortedException(Exception):
 		def __init__(self, msg):
-			self.msg = QString(msg)
-			Exception(self, self.msg)
+			Exception(self, msg)
+			self.msg = msg
+
+		def __str__(self):
+			return unicode(self.msg).encode("utf-8")
 
 		def toString(self):
-			return self.msg
+			return QString(self.msg)
 
 
 class PySLDatabase:

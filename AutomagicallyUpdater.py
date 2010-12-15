@@ -648,8 +648,8 @@ class AutomagicallyUpdater:
 	@classmethod
 	def _onQueryError(self, query, error, widget=None):
 		msg = u"ERROR executing a query:\n\tquery: %s\n\terror: %s\n\twidget: %s" % (query, error, widget)
-		if not self.DEBUG:
-			print msg.encode('ascii', 'replace')
+		if self.DEBUG:
+			print msg.encode('utf-8')
 		else:
 			ConnectionManager.abortTransaction( msg )
 

@@ -329,7 +329,7 @@ class ManagerWindow(QDockWidget):
 
 		except Exception, e:
 			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
+				QMessageBox.critical(None, "Errore", e.toString())
 				return
 			raise
 
