@@ -69,7 +69,7 @@ class AutomagicallyUpdater:
 				return
 			query.prepare(self.query)
 			for p in self.params:
-				query.addBindValue( str(p) if p != None else QVariant() )
+				query.addBindValue( "%s" % p if p != None else QVariant() )
 
 			return query
 
@@ -385,7 +385,9 @@ class AutomagicallyUpdater:
 			return '1' if value else '0'
 		if value == None:
 			return "NULL"
-		return "'%s'" % str(value).replace("'","''")
+
+		value = "%s" % value
+		return "'%s'" % value.replace("'","''")
 
 
 	@classmethod
