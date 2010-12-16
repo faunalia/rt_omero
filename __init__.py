@@ -28,7 +28,7 @@ def description():
 	return "RT Omero"
 
 def version():
-	return "Version 0.1.0"
+	return "Version 0.1.2"
 
 def qgisMinimumVersion():
 	return "1.6.0"

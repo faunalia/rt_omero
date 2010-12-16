@@ -18,6 +18,8 @@ class ManagerWindow(QDockWidget):
 	VLID_GEOM_ORIG = ''
 	VLID_GEOM_MODIF = ''
 
+	RLID_WMS = {}
+
 	iface = None
 	scheda = None
 	uvScheda = None
@@ -513,7 +515,42 @@ class ManagerWindow(QDockWidget):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.canvas.setRenderFlag( False )
 
-		# carica il layer con le geometrie originali in sola lettura
+		# carica i layer WMS
+		loadedWMS = QStringList()
+		for order, rlid in ManagerWindow.RLID_WMS.iteritems():
+			if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
+				loadedWMS << "'%s'" % order
+		loadedWMS = loadedWMS.join( "," )
+
+		query = AutomagicallyUpdater.Query( 'SELECT * FROM ZZ_WMS WHERE "ORDER" NOT IN (%s) ORDER BY "ORDER" ASC' % loadedWMS )
+		query = query.getQuery()
+		if not query.exec_():
+			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
+		else:
+			while query.next():
+				order = query.value(0).toString()
+				title = query.value(1).toString()
+				url = query.value(2).toString()
+				layers = query.value(3).toString()
+				crs = query.value(4).toString()
+				format = query.value(5).toString()
+				transparent = query.value(6).toString()
+				version = query.value(7).toString()
+
+				layers = layers.split(",")
+				styles = [ 'pseudo' ] * len(layers)
+				format = "image/%s" % format.toLower()
+
+				rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
+				if not rl.isValid():
+					self.canvas.setRenderFlag( prevRenderFlag )
+					QApplication.restoreOverrideCursor()
+					return False
+
+				ManagerWindow.RLID_WMS[order] = str(rl.getLayerID())
+				QgsMapLayerRegistry.instance().addMapLayer(rl)
+
+		# carica il layer con le geometrie originali
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG ) == None:
 			ManagerWindow.VLID_GEOM_ORIG = ''
 
@@ -557,10 +594,19 @@ class ManagerWindow(QDockWidget):
 		prevRenderFlag = self.canvas.renderFlag()
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.canvas.setRenderFlag(False)
+
+		# rimuovi i layer WMS
+		for order, rlid in ManagerWindow.RLID_WMS.iteritems():
+			if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
+				QgsMapLayerRegistry.instance().removeMapLayer(rlid)
+		ManagerWindow.RLID_WMS = {}
+
+		# rimuovi i layer delle geometrie
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG ) != None:
 			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_ORIG)
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF ) != None:
 			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_MODIF)
+
 		self.canvas.setRenderFlag(prevRenderFlag)
 		QApplication.restoreOverrideCursor()
 		return True
