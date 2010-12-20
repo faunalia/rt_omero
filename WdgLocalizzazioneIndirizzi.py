@@ -86,8 +86,11 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		# aggiorna la visualizzazione
 		self.setValue(self.NUMERI_CIVICI, None)
 
+		if via == None:
+			return
+
 		# carica i civici dell'indirizzo selezionato
-		self.NUMERI_CIVICI.loadValues( AutomagicallyUpdater.Query( "SELECT IDNUMEROCIVICO, N_CIVICO, MOD_CIVICO FROM NUMERI_CIVICI WHERE INDIRIZZO_VIAID_INDIRIZZO = ?", [via] ) )
+		self.NUMERI_CIVICI.loadValues( AutomagicallyUpdater.Query( "SELECT IDNUMEROCIVICO, N_CIVICO, MOD_CIVICO FROM NUMERI_CIVICI WHERE INDIRIZZO_VIAID_INDIRIZZO = ? AND LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = ?", [via, self._parentRef._ID] ) )
 
 	def aggiornaTitoloScheda(self):
 		provincia = self.ZZ_PROVINCEISTATPROV.currentText()
@@ -186,6 +189,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 				value = self.getValue(widget)
 				if widget == self.VIA:
 					# non salvare duplicati: controlla che non esista già nella combo
+					# TODO: verifica che non sia presente in altri tab indirizzi
 					if value != None:
 						index = self.VIA.findData( value )
 						if index >= 0:

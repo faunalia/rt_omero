@@ -114,7 +114,7 @@ class AutomagicallyUpdater:
 
 	VALORE_NON_INSERITO = QString('-900099')
 
-	DEBUG = False
+	DEBUG = True
 
 	@classmethod
 	def _refreshWidgetColor(self, widget):
@@ -210,9 +210,7 @@ class AutomagicallyUpdater:
 		elif isinstance(widget, QComboBox):
 			index = widget.currentIndex()
 			text = widget.currentText()
-			if index < 0:
-				value = text
-			elif widget.itemText(index) == text:
+			if index >= 0 and widget.itemText(index) == text:
 				value = widget.itemData(index).toString()
 				value = self._getRealValue(value)
 				if value == None:
@@ -266,18 +264,18 @@ class AutomagicallyUpdater:
 			widget.setValues(value)
 
 		elif isinstance(widget, QComboBox):
-			value = value if value != None else ''
-
-			index = -1
 			if value != None:
 				index = widget.findData(value)
-
-			if index < 0 and widget.isEditable():
-				index = widget.findText(value)
-				if index < 0:
-					widget.setEditText(value)
-
-			widget.setCurrentIndex(index)
+				if index >= 0:
+					widget.setCurrentIndex(index)
+				else:
+					index = widget.findText(value)
+					if index >= 0:
+						widget.setCurrentIndex(index)
+					else:
+						widget.setEditText(value)
+			else:
+				widget.setCurrentIndex(-1)
 
 		elif isinstance(widget, QAbstractButton) or (isinstance(widget, QGroupBox) and widget.isCheckable()):
 			if isinstance(value, str) or isinstance(value, QString):
