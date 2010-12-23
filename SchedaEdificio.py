@@ -73,10 +73,11 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		except Exception, e:
 			if isinstance(e, ConnectionManager.AbortedException):
 				QMessageBox.critical(self, "Errore", e.toString())
-				return False
+				return
 			raise
 
 		finally:
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
 
+		return QMainWindow.closeEvent(self, event)

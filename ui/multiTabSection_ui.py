@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/multiTabSection.ui'
 #
-# Created: Wed Nov 24 15:49:41 2010
+# Created: Wed Dec 22 15:46:03 2010
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!

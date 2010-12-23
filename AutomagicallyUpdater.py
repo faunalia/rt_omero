@@ -114,7 +114,7 @@ class AutomagicallyUpdater:
 
 	VALORE_NON_INSERITO = QString('-900099')
 
-	DEBUG = True
+	DEBUG = False
 
 	@classmethod
 	def _refreshWidgetColor(self, widget):
