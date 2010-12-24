@@ -79,5 +79,3 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		finally:
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
-
-		return QMainWindow.closeEvent(self, event)

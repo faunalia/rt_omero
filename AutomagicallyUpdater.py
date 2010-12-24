@@ -54,9 +54,10 @@ class AutomagicallyUpdater:
 
 
 	class Query():
-		def __init__(self, query, params=None):
+		def __init__(self, query, params=None, conntype=0):
 			self.query = query
 			self.setParams(params)
+			self.connType = conntype
 
 		def setParams(self, params=None):
 			if params == None:
@@ -64,7 +65,7 @@ class AutomagicallyUpdater:
 			self.params = params
 
 		def getQuery(self):
-			query = ConnectionManager.getNewQuery()
+			query = ConnectionManager.getNewQuery(self.connType)
 			if query == None:
 				return
 			query.prepare(self.query)

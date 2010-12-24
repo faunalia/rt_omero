@@ -111,6 +111,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			index = self.VIA.findData( value )
 			if index >= 0:
 				return value
+			value = value.simplified()
 
 		index = self.VIA.findText( value if value != None else QString(), Qt.MatchFixedString )
 		if index >= 0:
@@ -188,15 +189,21 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			if not ( isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many) ):
 				value = self.getValue(widget)
 				if widget == self.VIA:
-					# non salvare duplicati: controlla che non esista già nella combo
-					# TODO: verifica che non sia presente in altri tab indirizzi
+					# non salvare duplicati: controlla che la via non esista già
 					if value != None:
 						index = self.VIA.findData( value )
 						if index >= 0:
 							ID = value
 							break
-					else:
+
+					if value == None:
 						value = ''
+
+					query = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s = ? AND %s = ?" % (self._pkColumn, self._tableName, self.ZZ_COMUNIISTATCOM.objectName(), self.VIA.objectName()), [self.getValue(self.ZZ_COMUNIISTATCOM), value], 1 )
+					ID = query.getFirstResult()
+					if ID != None:
+						break
+						
 
 				values[widget.objectName()] = value
 
