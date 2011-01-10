@@ -562,7 +562,7 @@ class AutomagicallyUpdater:
 		insertStr = "INSERT INTO GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE (ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, geometria)"
 
 		if wkb != None:
-			query.prepare( insertStr + " VALUES ( %s, ?, ?, GeomFromWKB(?) )" % IDGeometria )
+			query.prepare( insertStr + " VALUES ( %s, ?, ?, GeomFromWKB(?, 3003) )" % IDGeometria )
 			query.addBindValue( codice if codice != None else QVariant() )
 			query.addBindValue( stato if stato != None else self.VALORE_NON_INSERITO )
 			query.addBindValue( wkb )
@@ -604,7 +604,7 @@ class AutomagicallyUpdater:
 		if query == None:
 			return
 
-		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = GeomFromWkb(?) WHERE ID_UV_NEW = ?" )
+		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = GeomFromWkb(?, 3003) WHERE ID_UV_NEW = ?" )
 		query.addBindValue( wkb )
 		query.addBindValue( ID )
 

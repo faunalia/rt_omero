@@ -234,7 +234,7 @@ class ManagerWindow(QDockWidget):
 					return False
 
 			# recupera le geometrie modificate che intersecano la linea
-			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE Intersects(geometria, GeomFromWkb(?))" )
+			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE Intersects(geometria, GeomFromWkb(?, 3003))" )
 			query.addBindValue( QByteArray(line.asWkb()) )
 
 			if not query.exec_():
