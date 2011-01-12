@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgSezStatoUtilizzo.ui'
 #
-# Created: Wed Nov 24 15:49:43 2010
+# Created: Thu Jan 13 00:47:56 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -143,7 +143,7 @@ class Ui_Form(object):
         self.label_17.setText(QtGui.QApplication.translate("Form", "Tipologia edilizia", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Form", "Stato", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Form", "Fruizione temporale", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox.setTitle(QtGui.QApplication.translate("Form", "Descrizione visiva", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox.setTitle(QtGui.QApplication.translate("Form", "Descrizione visiva dello stato attuale", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Form", "Cat. uso prevalente", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("Form", "Cat.uso piano terra", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Form", "Cat. uso altri piani", None, QtGui.QApplication.UnicodeUTF8))

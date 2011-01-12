@@ -83,7 +83,7 @@
       </size>
      </property>
      <property name="title">
-      <string>Descrizione visiva</string>
+      <string>Descrizione visiva dello stato attuale</string>
      </property>
      <property name="checked">
       <bool>false</bool>
