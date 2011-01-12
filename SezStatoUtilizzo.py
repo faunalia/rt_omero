@@ -39,9 +39,9 @@ class SezStatoUtilizzo(QWidget, MappingOne2One, Ui_Form):
 		]
 		self.setupValuesUpdater(childrenList)
 
-		self.connect(self.CATEGORIA_USO_PREVALENTE, SIGNAL( "selectedValuesChanged()" ), self.aggiornaListaPrevalente)
-		self.connect(self.CATEGORIA_USO_PIANO_TERRA, SIGNAL( "selectedValuesChanged()" ), self.aggiornaListaPianoTerra)
-		self.connect(self.CATEGORIA_USO_ALTRI_PIANI, SIGNAL( "selectedValuesChanged()" ), self.aggiornaListaAltriPiani)
+		self.connect(self.CATEGORIA_USO_PREVALENTE, SIGNAL( "selectionChanged()" ), self.aggiornaListaPrevalente)
+		self.connect(self.CATEGORIA_USO_PIANO_TERRA, SIGNAL( "selectionChanged()" ), self.aggiornaListaPianoTerra)
+		self.connect(self.CATEGORIA_USO_ALTRI_PIANI, SIGNAL( "selectionChanged()" ), self.aggiornaListaAltriPiani)
 
 	def aggiornaListaPrevalente(self):
 		self.aggiornaListaRiepilogo(self.CATEGORIA_USO_PREVALENTE, self.catUsoPrevalenteList)

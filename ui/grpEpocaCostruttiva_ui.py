@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/grpEpocaCostruttiva.ui'
 #
-# Created: Wed Nov 24 15:49:41 2010
+# Created: Wed Jan 12 21:29:14 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_GroupBox(object):
     def setupUi(self, GroupBox):
         GroupBox.setObjectName("GroupBox")
-        GroupBox.resize(321, 95)
+        GroupBox.resize(515, 95)
         self.gridLayout = QtGui.QGridLayout(GroupBox)
         self.gridLayout.setObjectName("gridLayout")
         self.label_7 = QtGui.QLabel(GroupBox)
@@ -48,10 +48,10 @@ class Ui_GroupBox(object):
 
     def retranslateUi(self, GroupBox):
         GroupBox.setWindowTitle(QtGui.QApplication.translate("GroupBox", "GroupBox", None, QtGui.QApplication.UnicodeUTF8))
-        GroupBox.setTitle(QtGui.QApplication.translate("GroupBox", "Epoca Costruttiva", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_7.setText(QtGui.QApplication.translate("GroupBox", "Inizio", None, QtGui.QApplication.UnicodeUTF8))
+        GroupBox.setTitle(QtGui.QApplication.translate("GroupBox", "Periodo di impianto", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_7.setText(QtGui.QApplication.translate("GroupBox", "Inizio della costruzione", None, QtGui.QApplication.UnicodeUTF8))
         self.INIZIO_EPOCA_COSTRUTTIVA.setDisplayFormat(QtGui.QApplication.translate("GroupBox", "yyyy", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_8.setText(QtGui.QApplication.translate("GroupBox", "Fine", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_8.setText(QtGui.QApplication.translate("GroupBox", "Fine della costruzione", None, QtGui.QApplication.UnicodeUTF8))
         self.FINE_EPOCA_COSTRUTTIVA.setDisplayFormat(QtGui.QApplication.translate("GroupBox", "yyyy", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("GroupBox", "Qualità informazione", None, QtGui.QApplication.UnicodeUTF8))
 

@@ -8,6 +8,7 @@ from ConnectionManager import ConnectionManager
 
 class AutomagicallyUpdater:
 
+	DEBUG = False
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 
 	PROGRESSIVO_ID = -1
@@ -115,8 +116,6 @@ class AutomagicallyUpdater:
 
 	VALORE_NON_INSERITO = QString('-900099')
 
-	DEBUG = True
-
 	@classmethod
 	def _refreshWidgetColor(self, widget):
 		widget = self._getRealWidget(widget)
@@ -207,6 +206,9 @@ class AutomagicallyUpdater:
 
 		elif isinstance(widget, MappingMany2Many):
 			value = widget.getValues()
+
+		elif isinstance(widget, QWidget) and not widget.isEnabled():
+			pass
 
 		elif isinstance(widget, QComboBox):
 			index = widget.currentIndex()

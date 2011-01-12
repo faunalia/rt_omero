@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>321</width>
+    <width>515</width>
     <height>95</height>
    </rect>
   </property>
@@ -14,13 +14,13 @@
    <string>GroupBox</string>
   </property>
   <property name="title">
-   <string>Epoca Costruttiva</string>
+   <string>Periodo di impianto</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>Inizio</string>
+      <string>Inizio della costruzione</string>
      </property>
     </widget>
    </item>
@@ -34,7 +34,7 @@
    <item row="0" column="2">
     <widget class="QLabel" name="label_8">
      <property name="text">
-      <string>Fine</string>
+      <string>Fine della costruzione</string>
      </property>
      <property name="indent">
       <number>40</number>

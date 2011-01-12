@@ -35,6 +35,24 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 
 		self.aggiornaPulsanti()
 
+	def selectionChanged(self):
+		self.emit( SIGNAL("selectionChanged()") )
+
+	def isSelected(self, text, matchFlags):
+		row=0
+		model = self.selezionateList.model()
+		while model.hasIndex(row,0):
+			if not self.selezionateList.isRowHidden(row):
+				itemtext = model.record(row).value(1).toString()
+				if matchFlags == Qt.MatchStartsWith:
+					return itemtext.startsWith( text )
+				elif matchFlags == Qt.MatchEndsWith:
+					return itemtext.endsWith( text )
+				else:
+					raise RuntimeError( "Error in MultipleChoise2List: matchFlags %s NOT IMPLEMENTED YET!" % matchFlags )
+			row = row + 1
+		return False
+
 	def aggiornaPulsanti(self):
 		enabler = AutomagicallyUpdater.getValue(self.nonSelezionateList) != None
 		self.btnAdd.setEnabled( enabler )
@@ -69,7 +87,7 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 			row = row + 1
 
 		self.storedValues = values
-		self.emit( SIGNAL( "selectedValuesChanged()" ) )
+		self.selectionChanged()
 
 	def loadTablesAndInit(self):
 		MappingMany2Many.loadTables(self)
@@ -83,11 +101,11 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 
 	def aggiungiSelezionata(self):
 		self.moveItem(self.nonSelezionateList, self.selezionateList)
-		self.emit( SIGNAL( "selectedValuesChanged()" ) )
+		self.selectionChanged()
 
 	def eliminaSelezionata(self):
 		self.moveItem(self.selezionateList, self.nonSelezionateList)
-		self.emit( SIGNAL( "selectedValuesChanged()" ) )
+		self.selectionChanged()
 
 	def moveItem(self, fromList, toList):
 		selIndexes = fromList.selectedIndexes()

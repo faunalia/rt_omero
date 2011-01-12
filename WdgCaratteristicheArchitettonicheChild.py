@@ -31,8 +31,6 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		# mappa i widget con i campi delle tabelle
 		childrenList = [
 			(self.ALTRO, AutomagicallyUpdater.OPTIONAL), 
-			#self.PRESENZA_INCONGRUENZE, 
-			#(self.DESCRIZIONI_INCONGRUENZE, AutomagicallyUpdater.OPTIONAL), 
 			self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID, 
 			self.ZZ_TIPO
 		]
@@ -68,10 +66,3 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		gridLayout.addWidget(self.ZZ_TIPO, *info)
 		#gridLayout.removeWidget(oldZZ_TIPO)
 
-	def _saveValue(self, name2valueDict, table, pk, ID=None):
-		key = self.DESCRIZIONI_INCONGRUENZE.objectName()
-		if name2valueDict.has_key( key ):
-			value = name2valueDict[ key ]
-			name2valueDict[ key ] = value if value != None else ''
-
-		return AutomagicallyUpdater._saveValue(name2valueDict, table, pk, ID)

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgInterventi.ui'
 #
-# Created: Wed Nov 24 15:49:42 2010
+# Created: Wed Jan 12 21:35:15 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -102,7 +102,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         Form.setWindowTitle(QtGui.QApplication.translate("Form", "Form", None, QtGui.QApplication.UnicodeUTF8))
-        self.EPOCA_COSTRUTTIVA.setTitle(QtGui.QApplication.translate("Form", "Epoca costruttiva", None, QtGui.QApplication.UnicodeUTF8))
+        self.EPOCA_COSTRUTTIVA.setTitle(QtGui.QApplication.translate("Form", "Periodo di impianto", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Form", "Anno progettazione", None, QtGui.QApplication.UnicodeUTF8))
         self.ANNO_PROGETTAZIONE.setDisplayFormat(QtGui.QApplication.translate("Form", "yyyy", None, QtGui.QApplication.UnicodeUTF8))
         self.label_17.setText(QtGui.QApplication.translate("Form", "Qualità dell\'informazione", None, QtGui.QApplication.UnicodeUTF8))

@@ -17,7 +17,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="GrpEpocaCostruttiva" name="EPOCA_COSTRUTTIVA">
      <property name="title">
-      <string>Epoca costruttiva</string>
+      <string>Periodo di impianto</string>
      </property>
     </widget>
    </item>
