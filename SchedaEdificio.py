@@ -21,7 +21,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		self.sectionsStacked.setCurrentIndex(0)
 
 		# salva il titolo predefinito della finestra
-		self.title = self.windowTitle()
+		self.defaultTitle = self.windowTitle()
 
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
@@ -60,7 +60,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		if not title.isEmpty():
 			self.setWindowTitle( title )
 		else:
-			self.setWindowTitle( self.title )
+			self.setWindowTitle( self.defaultTitle )
 
 	def closeEvent(self, event):
 		try:

@@ -69,7 +69,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		self.dataChanged()
 
 	def rowToString(self, row=0):
-		string = ""
+		string = QString()
 
 		if self.table.rowCount() <= 0:
 			return string

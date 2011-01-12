@@ -53,6 +53,7 @@ class ManagerWindow(QDockWidget):
 		self.connect(self.btnSpezzaGeometriaEsistente, SIGNAL("clicked()"), self.spezzaGeometriaEsistente)
 		self.connect(self.btnCreaNuovaGeometria, SIGNAL("clicked()"), self.creaNuovaGeometria)
 		self.connect(self.btnRipulisciGeometrie, SIGNAL("clicked()"), self.ripulisciGeometrie)
+		self.connect(self.btnRiepilogoSchede, SIGNAL("clicked()"), self.riepilogoSchede)
 
 	def setupUi(self):
 		self.setObjectName( "rt_omero_dockwidget" )
@@ -89,7 +90,16 @@ class ManagerWindow(QDockWidget):
 		self.btnRipulisciGeometrie = QPushButton( text, self.child )
 		gridLayout.addWidget(self.btnRipulisciGeometrie, 5, 0, 1, 1)
 
+		text = QString.fromUtf8( "Riepilogo schede edificio" )
+		self.btnRiepilogoSchede = QPushButton( text, self.child )
+		gridLayout.addWidget(self.btnRiepilogoSchede, 6, 0, 1, 1)
+
 		self.setWidget(self.child)
+
+
+	def riepilogoSchede(self):
+		from DlgRiepilogoSchede import DlgRiepilogoSchede
+		return DlgRiepilogoSchede(self).exec_()
 
 
 	def identificaNuovaScheda(self, point=None, button=None):
@@ -388,26 +398,37 @@ class ManagerWindow(QDockWidget):
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
 
-
+	@classmethod
 	def apriScheda(self, uvID=None):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.chiudiSchedaAperta()
-
-		ManagerWindow.uvScheda = uvID
-		ManagerWindow.scheda = self.recuperaScheda( ManagerWindow.uvScheda )
+		ManagerWindow.scheda = self.recuperaScheda( uvID )
 		ManagerWindow.scheda.show()
-
 		QApplication.restoreOverrideCursor()
 
+	@classmethod
 	def recuperaScheda(self, uvID):
 		query = AutomagicallyUpdater.Query( "SELECT SCHEDA_EDIFICIOID FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [ uvID ] )
-		idScheda = query.getFirstResult()
+		schedaID = query.getFirstResult()
+
+		ManagerWindow.uvScheda = uvID
 
 		from SchedaEdificio import SchedaEdificio
-		scheda = SchedaEdificio(self, self.iface)
-		if idScheda != None:
-			scheda.setupLoader(idScheda)
+		parent = self if isinstance(self, ManagerWindow) else None
+		scheda = SchedaEdificio(parent, ManagerWindow.iface)
+		if schedaID != None:
+			scheda.setupLoader(schedaID)
 		return scheda
+
+	@classmethod
+	def chiudiSchedaAperta(self):
+		if ManagerWindow.scheda != None:
+			try:
+				ManagerWindow.scheda.close()
+			except RuntimeError:
+				pass
+			ManagerWindow.scheda = None
+
 
 	def eliminaScheda(self, codice=None):
 		if codice == None:
@@ -450,14 +471,6 @@ class ManagerWindow(QDockWidget):
 
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
-
-	def chiudiSchedaAperta(self):
-		if ManagerWindow.scheda != None:
-			try:
-				ManagerWindow.scheda.close()
-			except RuntimeError:
-				pass
-			ManagerWindow.scheda = None
 
 
 	def getPathToDB(self, forceDialog=False):

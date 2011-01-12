@@ -7,7 +7,6 @@ import qgis.gui
 import qgis.core
 
 from Wdg2FieldsTable import Wdg2FieldsTable
-from ConnectionManager import ConnectionManager
 from AutomagicallyUpdater import *
 
 class WdgNumeriCivici(Wdg2FieldsTable):
@@ -33,6 +32,15 @@ class WdgNumeriCivici(Wdg2FieldsTable):
 
 		name2valueDict[self._pkColumn] = self._ID[0]
 		name2valueDict[self._parentPkColumn] = self._ID[1]
+
+		# converti i valori nulli per civico e esponente in stringhe vuote
+		if name2valueDict.has_key( self.columnFields[0] ):
+			value = name2valueDict[self.columnFields[0]]
+			name2valueDict[self.columnFields[0]] = value if value != None else ''
+		if name2valueDict.has_key( self.columnFields[1] ):
+			value = name2valueDict[self.columnFields[1]]
+			name2valueDict[self.columnFields[1]] = value if value != None else ''
+
 		return Wdg2FieldsTable._saveValue(name2valueDict, table, pk, ID)
 
 	def _insertValue(self, name2valueDict, table, pk):

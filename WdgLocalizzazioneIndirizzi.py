@@ -13,6 +13,9 @@ from ManagerWindow import ManagerWindow
 
 class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
+	COMUNE_NON_VALIDO = 'INDIRIZZO NON VALIDO'
+	VIA_CIVICO_NON_VALIDO = '...'
+
 	def __init__(self, parent=None):
 		QWidget.__init__(self, parent)
 		MappingOne2One.__init__(self, "INDIRIZZO_VIA")
@@ -93,13 +96,24 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self.NUMERI_CIVICI.loadValues( AutomagicallyUpdater.Query( "SELECT IDNUMEROCIVICO, N_CIVICO, MOD_CIVICO FROM NUMERI_CIVICI WHERE INDIRIZZO_VIAID_INDIRIZZO = ? AND LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = ?", [via, self._parentRef._ID] ) )
 
 	def aggiornaTitoloScheda(self):
-		provincia = self.ZZ_PROVINCEISTATPROV.currentText()
-		comune = self.ZZ_COMUNIISTATCOM.currentText()
-		via = self.VIA.currentText()
-		civico = self.NUMERI_CIVICI.rowToString()
+		indirizzo = WdgLocalizzazioneIndirizzi.COMUNE_NON_VALIDO
 
-		indirizzo = "%s, %s - %s (%s)" % (via, civico, comune, provincia)
-		self.emit( SIGNAL("indirizzoChanged(const QString &)"), indirizzo )
+		comune = self.ZZ_COMUNIISTATCOM.currentText()
+		if not comune.isEmpty():
+			provincia = self.ZZ_PROVINCEISTATPROV.currentText()
+			comune = u"%s (%s)" % (comune, provincia)
+
+			via = self.VIA.currentText()
+			if via.isEmpty():
+				via = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
+
+			civico = self.NUMERI_CIVICI.rowToString()
+			if civico.isEmpty():
+				civico = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
+
+			indirizzo = u"%s, %s - %s" % (via, civico, comune)
+
+		self.emit( SIGNAL("indirizzoChanged(const QString &)"), QString(indirizzo) )
 
 	# gestisti a parte il caso del widget VIA così da effettuare un test CaseInsensitive
 	def getValue(self, widget):

@@ -62,7 +62,7 @@ class AutomagicallyUpdater:
 		def setParams(self, params=None):
 			if params == None:
 				params = []
-			self.params = params
+			self.params = params if hasattr(params, '__iter__') else [ params ]
 
 		def getQuery(self):
 			query = ConnectionManager.getNewQuery(self.connType)
@@ -115,7 +115,7 @@ class AutomagicallyUpdater:
 
 	VALORE_NON_INSERITO = QString('-900099')
 
-	DEBUG = False
+	DEBUG = True
 
 	@classmethod
 	def _refreshWidgetColor(self, widget):
@@ -237,7 +237,7 @@ class AutomagicallyUpdater:
 		elif isinstance(widget, QListWidget):
 			selItems = widget.selectedItems()
 			if len(selItems) > 0:
-				value = selItems[0].data(Qt.UserRole)
+				value = selItems[0].data(Qt.UserRole).toString()
 
 		elif isinstance(widget, QTableView) or isinstance(widget, QListView):
 			selIndexes = widget.selectedIndexes()
@@ -373,8 +373,10 @@ class AutomagicallyUpdater:
 		if value == "":
 			return
 
-		if isinstance(value, QVariant) and not value.isValid():
-			return
+		if isinstance(value, QVariant):
+			if not value.isValid():
+				return
+			return value.toString()
 
 		return value
 
