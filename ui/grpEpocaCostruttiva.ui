@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>515</width>
-    <height>95</height>
+    <height>97</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,7 +64,7 @@
      </property>
     </spacer>
    </item>
-   <item row="1" column="2" colspan="3">
+   <item row="1" column="1" colspan="4">
     <widget class="QComboBox" name="ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -77,7 +77,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
+   <item row="1" column="0">
     <widget class="QLabel" name="label">
      <property name="text">
       <string>Qualità informazione</string>

@@ -19,5 +19,5 @@ class MultiTabInterventi(MultiTabSection):
 	def setFirstTab(self):
 		self.firstTab = self.tabWidget.widget(0)
 		self.firstTab.showOtherInfos(True)
-		self.tabWidget.setTabText(0, "Generale")
+		self.tabWidget.setTabText(0, "Impianto")
 

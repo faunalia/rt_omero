@@ -7,13 +7,13 @@ from PyQt4.QtGui import *
 import qgis.gui
 import qgis.core
 
-from ui.grpMantoCoperturaUnitaVolumetrica_ui import Ui_GroupBox
+from ui.wdgMantoCoperturaUnitaVolumetrica_ui import Ui_Form
 from AutomagicallyUpdater import *
 
-class GrpMantoCoperturaUnitaVolumetrica(QGroupBox, MappingOne2One, Ui_GroupBox):
+class WdgMantoCoperturaUnitaVolumetrica(QWidget, MappingOne2One, Ui_Form):
 
 	def __init__(self, parent=None):
-		QGroupBox.__init__(self, parent)
+		QWidget.__init__(self, parent)
 		MappingOne2One.__init__(self, "MANTO_COPERTURA_UNITA_VOLUMETRICA")
 		self.setupUi(self)
 

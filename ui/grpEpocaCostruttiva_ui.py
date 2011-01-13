@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/grpEpocaCostruttiva.ui'
 #
-# Created: Wed Jan 12 21:29:14 2011
+# Created: Thu Jan 13 14:19:04 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_GroupBox(object):
     def setupUi(self, GroupBox):
         GroupBox.setObjectName("GroupBox")
-        GroupBox.resize(515, 95)
+        GroupBox.resize(515, 97)
         self.gridLayout = QtGui.QGridLayout(GroupBox)
         self.gridLayout.setObjectName("gridLayout")
         self.label_7 = QtGui.QLabel(GroupBox)
@@ -38,10 +38,10 @@ class Ui_GroupBox(object):
         self.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID.setSizePolicy(sizePolicy)
         self.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLength)
         self.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID.setObjectName("ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID")
-        self.gridLayout.addWidget(self.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID, 1, 2, 1, 3)
+        self.gridLayout.addWidget(self.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID, 1, 1, 1, 4)
         self.label = QtGui.QLabel(GroupBox)
         self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 1, 0, 1, 2)
+        self.gridLayout.addWidget(self.label, 1, 0, 1, 1)
 
         self.retranslateUi(GroupBox)
         QtCore.QMetaObject.connectSlotsByName(GroupBox)

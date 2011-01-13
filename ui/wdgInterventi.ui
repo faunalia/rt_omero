@@ -7,95 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>541</width>
-    <height>413</height>
+    <height>407</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
-   <item row="0" column="0" colspan="2">
-    <widget class="GrpEpocaCostruttiva" name="EPOCA_COSTRUTTIVA">
-     <property name="title">
-      <string>Periodo di impianto</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Anno progettazione</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QDateEdit" name="ANNO_PROGETTAZIONE">
-     <property name="displayFormat">
-      <string>yyyy</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="label_17">
-     <property name="text">
-      <string>Qualità dell'informazione</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QComboBox" name="ZZ_QUALITA_INFORMAZIONEID">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="sizeAdjustPolicy">
-      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Categoria di intervento</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QComboBox" name="ZZ_TIPO_INTERVENTOID">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="sizeAdjustPolicy">
-      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>Normativa sismica di riferimento</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QComboBox" name="ZZ_NORMATIVA_SISMICAID">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="sizeAdjustPolicy">
-      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="0">
+   <item row="15" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -108,10 +27,81 @@
      </property>
     </spacer>
    </item>
-   <item row="10" column="0" colspan="2">
+   <item row="16" column="0" colspan="2">
+    <widget class="QLineEdit" name="SCHEDA_EDIFICIOID"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Categoria di intervento</string>
+     </property>
+    </widget>
+   </item>
+   <item row="14" column="0" colspan="2">
+    <widget class="GrpEpocaCostruttiva" name="EPOCA_COSTRUTTIVA">
+     <property name="title">
+      <string>Epoca di impianto</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="ZZ_TIPO_INTERVENTOID">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="sizeAdjustPolicy">
+      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Normativa sismica di riferimento</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="ZZ_NORMATIVA_SISMICAID">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="sizeAdjustPolicy">
+      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Descrizione dell'intervento</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLineEdit" name="DESCRIZ_INTERV">
+     <property name="maxLength">
+      <number>2000</number>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QCheckBox" name="INTERVENTO_IN_CORSO">
+     <property name="text">
+      <string>Intervento in corso</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0" colspan="2">
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Permesso DIA</string>
+      <string>Titolo abilitativo</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
@@ -124,7 +114,7 @@
       <item row="0" column="1">
        <widget class="QLineEdit" name="TITOLO_ABILITATIVO">
         <property name="maxLength">
-         <number>2000</number>
+         <number>60</number>
         </property>
        </widget>
       </item>
@@ -158,28 +148,47 @@
      </layout>
     </widget>
    </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>Descrizione dell'intervento</string>
+   <item row="6" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox_2">
+     <property name="title">
+      <string>Anno presunto di progetto</string>
      </property>
-    </widget>
-   </item>
-   <item row="7" column="1">
-    <widget class="QLineEdit" name="DESCRIZ_INTERV">
-     <property name="maxLength">
-      <number>2000</number>
-     </property>
-    </widget>
-   </item>
-   <item row="12" column="0" colspan="2">
-    <widget class="QLineEdit" name="SCHEDA_EDIFICIOID"/>
-   </item>
-   <item row="8" column="0">
-    <widget class="QCheckBox" name="INTERVENTO_IN_CORSO">
-     <property name="text">
-      <string>Intervento in corso</string>
-     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Anno progettazione</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDateEdit" name="ANNO_PROGETTAZIONE">
+        <property name="displayFormat">
+         <string>yyyy</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_17">
+        <property name="text">
+         <string>Qualità dell'informazione</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QComboBox" name="ZZ_QUALITA_INFORMAZIONEID">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
