@@ -34,8 +34,8 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 			(self.ANNO_PROGETTAZIONE, AutomagicallyUpdater.OPTIONAL),
 			self.ZZ_QUALITA_INFORMAZIONEID,
 			(self.DESCRIZ_INTERV, AutomagicallyUpdater.OPTIONAL),
-			(self.DIA_N_PERMESSO, AutomagicallyUpdater.OPTIONAL),
-			(self.DIA_DATA_PERMESSO, AutomagicallyUpdater.OPTIONAL),
+			(self.TITOLO_ABILITATIVO, AutomagicallyUpdater.OPTIONAL),
+			(self.DATA_TITOLO_ABILITATIVO, AutomagicallyUpdater.OPTIONAL),
 			self.ZZ_TIPO_INTERVENTOID,
 			self.INTERVENTO_IN_CORSO, 
 			(self.ZZ_NORMATIVA_SISMICAID, AutomagicallyUpdater.OPTIONAL)

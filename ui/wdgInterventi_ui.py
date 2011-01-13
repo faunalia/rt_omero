@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgInterventi.ui'
 #
-# Created: Wed Jan 12 21:35:15 2011
+# Created: Thu Jan 13 02:00:18 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -69,19 +69,19 @@ class Ui_Form(object):
         self.label_5 = QtGui.QLabel(self.groupBox)
         self.label_5.setObjectName("label_5")
         self.gridLayout.addWidget(self.label_5, 0, 0, 1, 1)
-        self.DIA_N_PERMESSO = QtGui.QLineEdit(self.groupBox)
-        self.DIA_N_PERMESSO.setMaxLength(2000)
-        self.DIA_N_PERMESSO.setObjectName("DIA_N_PERMESSO")
-        self.gridLayout.addWidget(self.DIA_N_PERMESSO, 0, 1, 1, 1)
+        self.TITOLO_ABILITATIVO = QtGui.QLineEdit(self.groupBox)
+        self.TITOLO_ABILITATIVO.setMaxLength(2000)
+        self.TITOLO_ABILITATIVO.setObjectName("TITOLO_ABILITATIVO")
+        self.gridLayout.addWidget(self.TITOLO_ABILITATIVO, 0, 1, 1, 1)
         self.label_6 = QtGui.QLabel(self.groupBox)
         self.label_6.setIndent(40)
         self.label_6.setObjectName("label_6")
         self.gridLayout.addWidget(self.label_6, 0, 2, 1, 1)
-        self.DIA_DATA_PERMESSO = QtGui.QDateEdit(self.groupBox)
-        self.DIA_DATA_PERMESSO.setCalendarPopup(True)
-        self.DIA_DATA_PERMESSO.setDate(QtCore.QDate(2000, 9, 1))
-        self.DIA_DATA_PERMESSO.setObjectName("DIA_DATA_PERMESSO")
-        self.gridLayout.addWidget(self.DIA_DATA_PERMESSO, 0, 3, 1, 1)
+        self.DATA_TITOLO_ABILITATIVO = QtGui.QDateEdit(self.groupBox)
+        self.DATA_TITOLO_ABILITATIVO.setCalendarPopup(True)
+        self.DATA_TITOLO_ABILITATIVO.setDate(QtCore.QDate(2000, 9, 1))
+        self.DATA_TITOLO_ABILITATIVO.setObjectName("DATA_TITOLO_ABILITATIVO")
+        self.gridLayout.addWidget(self.DATA_TITOLO_ABILITATIVO, 0, 3, 1, 1)
         self.gridLayout_3.addWidget(self.groupBox, 10, 0, 1, 2)
         self.label_4 = QtGui.QLabel(Form)
         self.label_4.setObjectName("label_4")
@@ -111,7 +111,7 @@ class Ui_Form(object):
         self.groupBox.setTitle(QtGui.QApplication.translate("Form", "Permesso DIA", None, QtGui.QApplication.UnicodeUTF8))
         self.label_5.setText(QtGui.QApplication.translate("Form", "Num.", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("Form", "Data", None, QtGui.QApplication.UnicodeUTF8))
-        self.DIA_DATA_PERMESSO.setDisplayFormat(QtGui.QApplication.translate("Form", "dd/MM/yyyy", None, QtGui.QApplication.UnicodeUTF8))
+        self.DATA_TITOLO_ABILITATIVO.setDisplayFormat(QtGui.QApplication.translate("Form", "dd/MM/yyyy", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("Form", "Descrizione dell\'intervento", None, QtGui.QApplication.UnicodeUTF8))
         self.INTERVENTO_IN_CORSO.setText(QtGui.QApplication.translate("Form", "Intervento in corso", None, QtGui.QApplication.UnicodeUTF8))
 

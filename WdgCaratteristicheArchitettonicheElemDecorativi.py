@@ -15,7 +15,7 @@ class WdgCaratteristicheArchitettonicheElemDecorativi(WdgCaratteristicheArchitet
 	def __init__(self, parent=None):
 		multipleChoiseParams = ["ZZ_TIPO_ELEMENTI_DECORATIVI_ELEMENTI_DECORATIVI", "ZZ_TIPO_ELEMENTI_DECORATIVIID", "ELEMENTI_DECORATIVIID", "ZZ_TIPO_ELEMENTI_DECORATIVI"]
 		WdgCaratteristicheArchitettonicheChild.__init__(self, parent, "ELEMENTI_DECORATIVI", None, multipleChoiseParams)
-		self.showOtherInfos(False)
+		self.showOtherInfos(True)
 
 		# modifica il nome degli oggetti
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_ELEMENTI_DECORATIVI_ELEMENTI_DECORATIVI")

@@ -14,7 +14,7 @@ class WdgCaratteristicheArchitettonicheInfissi(WdgCaratteristicheArchitettoniche
 	def __init__(self, parent=None):
 		multipleChoiseParams = ["ZZ_TIPO_INFISSI_INFISSI", "ZZ_TIPO_INFISSIID", "INFISSIID", "ZZ_TIPO_INFISSI"]
 		WdgCaratteristicheArchitettonicheChild.__init__(self, parent, "INFISSI", None, multipleChoiseParams)
-		self.showOtherInfos(False)
+		self.showOtherInfos(True)
 
 		# modifica il nome degli oggetti
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_INFISSI_INFISSI")
