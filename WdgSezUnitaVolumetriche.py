@@ -18,7 +18,8 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 		MappingOne2One.__init__(self, "SCHEDA_UNITA_VOLUMETRICA")
 		self.setupUi(self)
 
-		self.SCHEDA_EDIFICIOID.hide()
+		if not AutomagicallyUpdater.DEBUG:
+			self.SCHEDA_EDIFICIOID.hide()
 
 		self.geomID = None
 		self.uvID = None
@@ -134,6 +135,9 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 
 	def delete(self):
 		MappingOne2One.delete(self)
+
+		# imposta la geometria come non abbinata a scheda
+		AutomagicallyUpdater._updateValue( { "ABBINATO_A_SCHEDA" : '0' }, "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE", "ID_UV_NEW", self.uvID )
 
 		# elimina la geometria solo se si tratta di geometria non spezzata
 		query = AutomagicallyUpdater.Query( "SELECT ZZ_STATO_GEOMETRIAID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [self.uvID] )

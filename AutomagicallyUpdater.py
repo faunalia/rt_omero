@@ -8,7 +8,7 @@ from ConnectionManager import ConnectionManager
 
 class AutomagicallyUpdater:
 
-	DEBUG = False
+	DEBUG = True
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 
 	PROGRESSIVO_ID = -1
@@ -519,12 +519,18 @@ class AutomagicallyUpdater:
 			else:
 				value = self._getDBStrValue(value)
 
-			whereClauses << "%s = %s" % (name, value)
+			if value != None:
+				whereClauses << "%s = %s" % (name, value)
+			else:
+				whereClauses << "%s IS %s" % (name, value)
 
 		if filterStr != None:
 			whereClauses << "%s" % filterStr
 
-		query.prepare( "DELETE FROM " + table + ( " WHERE " + whereClauses.join(" AND ") if whereClauses.count() else '' ) )
+		whereStr = ''
+		if whereClauses.count():
+			whereStr = " WHERE " + whereClauses.join(" AND ")
+		query.prepare( "DELETE FROM " + table + whereStr )
 		if filterParams != None:
 			for p in filterParams:
 				query.addBindValue( p if p != None else QVariant() )
@@ -538,19 +544,19 @@ class AutomagicallyUpdater:
 		return True
 
 	@classmethod
-	def _insertGeometriaNuova(self, wkb, stato=9):
-		return self._insertGeometria(wkb, None, stato)
+	def _insertGeometriaNuova(self, wkb, srid, stato=9):
+		return self._insertGeometria(wkb, srid, None, stato)
 
 	@classmethod
 	def _insertGeometriaCopiata(self, codice, stato=1):
-		return self._insertGeometria(None, codice, stato)
+		return self._insertGeometria(None, -1, codice, stato)
 
 	@classmethod
-	def _insertGeometriaSpezzata(self, wkb, codice, stato=2):
-		return self._insertGeometria(wkb, codice, stato)
+	def _insertGeometriaSpezzata(self, wkb, srid, codice, stato=2):
+		return self._insertGeometria(wkb, srid, codice, stato)
 
 	@classmethod
-	def _insertGeometria(self, wkb=None, codice=None, stato=1):
+	def _insertGeometria(self, wkb=None, srid=-1, codice=None, stato=1):
 		query = ConnectionManager.getNewQuery( AutomagicallyUpdater.EDIT_CONN_TYPE )
 		if query == None:
 			return
@@ -563,18 +569,19 @@ class AutomagicallyUpdater:
 		IDGeometria = "'" + IDComune + "-'||strftime('%Y%m%d%H%M%S', 'now')||'-" + macAddress + "-" + str(progressivo) + "_" + IDRilevatore + "'"
 
 		# costruisci la query
-		insertStr = "INSERT INTO GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE (ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, geometria)"
+		insertStr = "INSERT INTO GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE (ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ABBINATO_A_SCHEDA, geometria)"
 
 		if wkb != None:
-			query.prepare( insertStr + " VALUES ( %s, ?, ?, GeomFromWKB(?, 3003) )" % IDGeometria )
+			query.prepare( insertStr + " VALUES ( %s, ?, ?, '0', ST_GeomFromWKB(?, ?) )" % IDGeometria )
 			query.addBindValue( codice if codice != None else QVariant() )
 			query.addBindValue( stato if stato != None else self.VALORE_NON_INSERITO )
 			query.addBindValue( wkb )
+			query.addBindValue( srid )
 
 		elif codice != None:
-			query.prepare( insertStr + " SELECT %s, CODICE, ?, geometria FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE CODICE = ?" % IDGeometria )
+			query.prepare( insertStr + " SELECT %s, CODICE, ?, '0', geometria FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE CODICE = ?" % IDGeometria )
 			query.addBindValue( stato if stato != None else self.VALORE_NON_INSERITO )
-			query.addBindValue( codice if codice != None else QVariant() )
+			query.addBindValue( codice )
 
 		else:
 			raise Exception( "AutomagicallyUpdater._insertGeometria() chiamata senza i dovuti parametri" )
@@ -600,7 +607,7 @@ class AutomagicallyUpdater:
 		return ID
 
 	@classmethod
-	def _updateGeometria(self, ID, wkb):
+	def _updateGeometria(self, ID, wkb, srid=-1):
 		if ID == None:
 			return
         
@@ -608,9 +615,10 @@ class AutomagicallyUpdater:
 		if query == None:
 			return
 
-		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = GeomFromWkb(?, 3003) WHERE ID_UV_NEW = ?" )
+		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = ST_GeomFromWkb(?, ?) WHERE ID_UV_NEW = ?" )
 		query.addBindValue( wkb )
 		query.addBindValue( ID )
+		query.addBindValue( srid )
 
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )

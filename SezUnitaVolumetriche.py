@@ -110,11 +110,9 @@ class SezUnitaVolumetriche(MultiTabSection):
 			ConnectionManager.startTransaction()
 			refreshCanvas = self.deleteTab()
 
-		except Exception, e:
-			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
-				return False
-			raise
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return False
 
 		finally:
 			ConnectionManager.endTransaction()

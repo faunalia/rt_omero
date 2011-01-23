@@ -12,14 +12,23 @@ from MapTools import *
 
 class ManagerWindow(QDockWidget):
 
-	GEOM_ORIGINALI_TABLENAME = "GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA".lower()
-	GEOM_MODIFICATE_TABLENAME = "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE".lower()
+	# nomi tabelle contenenti le geometrie
+	TABLE_GEOM_ORIG = "GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA".lower()
+	TABLE_GEOM_MODIF = "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE".lower()
 
+	# ID dei layer contenenti geometrie e wms
 	VLID_GEOM_ORIG = ''
 	VLID_GEOM_MODIF = ''
-
 	RLID_WMS = {}
 
+	# stile per i layer delle geometrie
+	STYLE_PATH = "styles"
+	STYLE_GEOM_ORIG = "stile-geometrie-originali.qml"
+	STYLE_GEOM_MODIF = "stile-geometrie-modificate.qml"
+
+	DEFAULT_SRID = 3003
+
+	instance = None
 	iface = None
 	scheda = None
 	uvScheda = None
@@ -27,6 +36,7 @@ class ManagerWindow(QDockWidget):
 	def __init__(self, parent=None, iface=None):
 		QDockWidget.__init__(self, parent)
 		self.setAttribute(Qt.WA_DeleteOnClose)
+		ManagerWindow.instance = self
 		ManagerWindow.iface = iface
 		self.canvas = iface.mapCanvas()
 		self.setupUi()
@@ -48,7 +58,7 @@ class ManagerWindow(QDockWidget):
 		QObject.connect(self.lineDrawer, SIGNAL("geometryEmitted(const QgsGeometry *)"), self.spezzaGeometriaEsistente)
 
 		self.connect(self.btnSelNuovaScheda, SIGNAL("clicked()"), self.identificaNuovaScheda)
-		self.connect(self.btnSelSchedaEsistente, SIGNAL("clicked()"), self.identificaSchedaEsistente)
+		self.connect(self.btnSelSchedaEsistente, SIGNAL("clicked()"), self.apriScheda)
 		self.connect(self.btnEliminaScheda, SIGNAL("clicked()"), self.eliminaScheda)
 		self.connect(self.btnSpezzaGeometriaEsistente, SIGNAL("clicked()"), self.spezzaGeometriaEsistente)
 		self.connect(self.btnCreaNuovaGeometria, SIGNAL("clicked()"), self.creaNuovaGeometria)
@@ -194,12 +204,12 @@ class ManagerWindow(QDockWidget):
 			if stato != '9':
 				# se la geometria iniziale era copiata o spezzata, 
 				# crea una nuova geometria spezzata
-				newID = AutomagicallyUpdater._insertGeometriaSpezzata( wkb, codice )
+				newID = AutomagicallyUpdater._insertGeometriaSpezzata( wkb, ManagerWindow.srid, codice )
 
 			else:
 				# altrimenti crea una geometria non presente tra le 
 				# geometrie originali
-				newID = AutomagicallyUpdater._insertGeometriaNuova( wkb )
+				newID = AutomagicallyUpdater._insertGeometriaNuova( wkb, ManagerWindow.srid )
 
 			return newID
 
@@ -218,8 +228,9 @@ class ManagerWindow(QDockWidget):
 			if query == None:
 				return False
 
-			query.prepare( "SELECT CODICE, AsText(geometria) FROM (SELECT CODICE, geometria FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE Intersects(geometria, GeomFromWkb(?))) AS orig WHERE CODICE NOT IN (SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE)" )
+			query.prepare( "SELECT CODICE, ST_AsText(geometria) FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND CODICE NOT IN (SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE)" )
 			query.addBindValue( QByteArray(line.asWkb()) )
+			query.addBindValue( ManagerWindow.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 				return False
@@ -228,12 +239,12 @@ class ManagerWindow(QDockWidget):
 			while query.next():
 				ID = None
 				codice = query.value(0).toString()
-				stato = '1'
 				wkt = query.value(1).toString()
-				featureList.append( (ID, codice, stato, wkt) )
+				featureList.append( (ID, codice, wkt) )
 
-			for ID, codice, stato, wkt in featureList:
+			for ID, codice, wkt in featureList:
 				geom = QgsGeometry.fromWkt( wkt )
+				print ">>> orig:", geom.exportToWkt(), geom
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
 					continue
@@ -243,10 +254,10 @@ class ManagerWindow(QDockWidget):
 				if ID == None:
 					return False
 
-			# recupera le geometrie modificate che intersecano la linea
-			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE Intersects(geometria, GeomFromWkb(?, 3003))" )
+			# recupera le geometrie modificate che intersecano la linea e non hanno scheda abbinata
+			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ST_AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND ABBINATO_A_SCHEDA = '0'" )
 			query.addBindValue( QByteArray(line.asWkb()) )
-
+			query.addBindValue( ManagerWindow.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 				return False
@@ -261,6 +272,7 @@ class ManagerWindow(QDockWidget):
 
 			for ID, codice, stato, wkt in featureList:
 				geom = QgsGeometry.fromWkt( wkt )
+				print ">>> prev:", geom.exportToWkt(), geom
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
 					continue
@@ -270,19 +282,19 @@ class ManagerWindow(QDockWidget):
 					AutomagicallyUpdater._updateValue( { 'ZZ_STATO_GEOMETRIAID' : '2' }, 'GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE', 'ID_UV_NEW', ID )
 				# aggiorna la geometria iniziale con la nuova geometria
 				wkb = QByteArray( geom.asWkb() )
-				AutomagicallyUpdater._updateGeometria( ID, wkb )
+				print ">>> update:", geom.exportToWkt(), geom
+				AutomagicallyUpdater._updateGeometria( ID, wkb, ManagerWindow.srid )
 
 				# salva le nuove geometrie create dalla spezzatura
 				for geometry in newGeometries:
 					newWkb = QByteArray(geometry.asWkb())
+					print ">>> pezzetto:", geometry.exportToWkt(), geometry
 					newID = salvaGeometriaSpezzata(codice, stato, newWkb)
 					del geometry
 
-		except Exception, e:
-			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
-				return False
-			raise
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return
 
 		finally:
 			ConnectionManager.endTransaction()
@@ -305,14 +317,12 @@ class ManagerWindow(QDockWidget):
 
 			# inserisce la nuova geometria nel layer
 			wkb = QByteArray(polygon.asWkb())
-			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb ):
+			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb, ManagerWindow.srid ):
 				return False
 
-		except Exception, e:
-			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
-				return False
-			raise
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return
 
 		finally:
 			ConnectionManager.endTransaction()
@@ -339,11 +349,9 @@ class ManagerWindow(QDockWidget):
 			if ID == None:
 				return
 
-		except Exception, e:
-			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(None, "Errore", e.toString())
-				return
-			raise
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return
 
 		finally:
 			ConnectionManager.endTransaction()
@@ -361,7 +369,7 @@ class ManagerWindow(QDockWidget):
 
 			# avvisa l'utente segnalando quante UV si stanno per eliminare
 			# quindi chiedi se vuole davvero eliminarle
-			query = AutomagicallyUpdater.Query( "SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' /* non spezzate */ AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) /* senza scheda associata */ OR (gm1.ZZ_STATO_GEOMETRIAID = '2' /* spezzate */ AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE)) /* fanno parte dello stesso edificio */ ) /* i cui pezzi sono tutti senza geometria associata */" )
+			query = AutomagicallyUpdater.Query( "SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' /* non spezzate */ AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) /* senza scheda associata */ ) OR (gm1.ZZ_STATO_GEOMETRIAID = '2' /* spezzate */ AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE) /* fanno parte dello stesso edificio */ ) /* i cui pezzi sono tutti senza geometria associata */" )
 			numUV = query.getFirstResult()
 		except:
 			raise
@@ -383,13 +391,11 @@ class ManagerWindow(QDockWidget):
 			ConnectionManager.startTransaction()
 
 			# eliminazione geometrie non associate ad alcuna scheda: vedi query precedente
-			AutomagicallyUpdater._deleteGeometria( None, "ID_UV_NEW IN (SELECT gm1.ID_UV_NEW FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) OR (gm1.ZZ_STATO_GEOMETRIAID = '2' AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE))))" )
+			AutomagicallyUpdater._deleteGeometria( None, "ID_UV_NEW IN (SELECT gm1.ID_UV_NEW FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' /* non spezzate */ AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) /* senza scheda associata */ ) OR (gm1.ZZ_STATO_GEOMETRIAID = '2' AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE)))" )
 
-		except Exception, e:
-			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
-				return
-			raise
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return
 
 		finally:
 			ConnectionManager.endTransaction()
@@ -400,9 +406,29 @@ class ManagerWindow(QDockWidget):
 
 	@classmethod
 	def apriScheda(self, uvID=None):
+		if uvID == None:
+			ManagerWindow.instance.isApriScheda = True
+			return ManagerWindow.instance.identificaSchedaEsistente()
+
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.chiudiSchedaAperta()
+
 		ManagerWindow.scheda = self.recuperaScheda( uvID )
+		if ManagerWindow.scheda._ID == None:
+			# imposta la geometria come abbinata a scheda
+			try:
+				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+				ConnectionManager.startTransaction()
+				ManagerWindow.scheda.save()
+				AutomagicallyUpdater._updateValue( { "ABBINATO_A_SCHEDA" : '1' }, "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE", "ID_UV_NEW", uvID )
+			except ConnectionManager.AbortedException, e:
+				QMessageBox.critical(ManagerWindow.instance, "Errore", e.toString())
+				return
+
+			finally:
+				ConnectionManager.endTransaction()
+				QApplication.restoreOverrideCursor()
+			
 		ManagerWindow.scheda.show()
 		QApplication.restoreOverrideCursor()
 
@@ -414,11 +440,8 @@ class ManagerWindow(QDockWidget):
 		ManagerWindow.uvScheda = uvID
 
 		from SchedaEdificio import SchedaEdificio
-		parent = self if isinstance(self, ManagerWindow) else None
-		scheda = SchedaEdificio(parent, ManagerWindow.iface)
-		if schedaID != None:
-			scheda.setupLoader(schedaID)
-		return scheda
+		return SchedaEdificio(ManagerWindow.instance, schedaID)
+
 
 	@classmethod
 	def chiudiSchedaAperta(self):
@@ -429,12 +452,11 @@ class ManagerWindow(QDockWidget):
 				pass
 			ManagerWindow.scheda = None
 
-
+	@classmethod
 	def eliminaScheda(self, codice=None):
 		if codice == None:
-			self.isApriScheda = False
-			return self.identificaSchedaEsistente()
-		self.isApriScheda = True
+			ManagerWindow.instance.isApriScheda = False
+			return ManagerWindow.instance.identificaSchedaEsistente()
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
@@ -448,7 +470,7 @@ class ManagerWindow(QDockWidget):
 		if numUV == None:
 			return
 
-		if QMessageBox.Ok != QMessageBox.warning(self, "Eliminazione scheda", QString( u"La scheda ha %1 UV associate. Eliminare? L'operazione non è reversibile." ).arg( numUV ), QMessageBox.Ok|QMessageBox.Cancel ):
+		if QMessageBox.Ok != QMessageBox.warning( ManagerWindow.instance, "Eliminazione scheda", QString( u"La scheda ha %1 UV associate. Eliminare? L'operazione non è reversibile." ).arg( numUV ), QMessageBox.Ok|QMessageBox.Cancel ):
 			return
 
 		try:
@@ -459,11 +481,9 @@ class ManagerWindow(QDockWidget):
 			scheda = self.recuperaScheda( codice )
 			scheda.delete()
 
-		except Exception, e:
-			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
-				return
-			raise
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(ManagerWindow.instance, "Errore", e.toString())
+			return
 
 		finally:
 			ConnectionManager.endTransaction()
@@ -522,11 +542,23 @@ class ManagerWindow(QDockWidget):
 
 
 	def loadLayersInCanvas(self):
-		conn = ConnectionManager.getConnection()
-
-		prevRenderFlag = self.canvas.renderFlag()
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+		# disabilita il rendering
+		prevRenderFlag = self.canvas.renderFlag()
 		self.canvas.setRenderFlag( False )
+
+		# recupera ed imposta il CRS della canvas
+		query = AutomagicallyUpdater.Query( 'SELECT DISTINCT srid FROM geometry_columns' )
+		srid = query.getFirstResult()
+		try:
+			ManagerWindow.srid = int( srid )
+		except ValueError, e:
+			ManagerWindow.DEFAULT_SRID
+		srs = QgsCoordinateReferenceSystem( ManagerWindow.srid, QgsCoordinateReferenceSystem.EpsgCrsId )
+		renderer = self.canvas.mapRenderer()
+		renderer.setDestinationSrs(srs)
+		renderer.setMapUnits( srs.mapUnits() )
 
 		# carica i layer WMS
 		loadedWMS = QStringList()
@@ -563,21 +595,30 @@ class ManagerWindow(QDockWidget):
 				ManagerWindow.RLID_WMS[order] = str(rl.getLayerID())
 				QgsMapLayerRegistry.instance().addMapLayer(rl)
 
+		import os.path
+		conn = ConnectionManager.getConnection()
+
 		# carica il layer con le geometrie originali
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG ) == None:
 			ManagerWindow.VLID_GEOM_ORIG = ''
 
 			uri = QgsDataSourceURI()
 			uri.setDatabase(conn.databaseName())
-			uri.setDataSource('', self.GEOM_ORIGINALI_TABLENAME, 'geometria')
-			vl = QgsVectorLayer( uri.uri(), self.GEOM_ORIGINALI_TABLENAME, "spatialite" )
+			uri.setDataSource('', self.TABLE_GEOM_ORIG, 'geometria')
+			vl = QgsVectorLayer( uri.uri(), self.TABLE_GEOM_ORIG, "spatialite" )
 			if vl == None or not vl.isValid() or not vl.setReadOnly(True):
 				self.canvas.setRenderFlag( prevRenderFlag )
 				QApplication.restoreOverrideCursor()
 				return False
 
+			# imposta lo stile del layer
+			style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_ORIG )
+			(errorMsg, result) = vl.loadNamedStyle( style_path )
+			self.iface.legendInterface().refreshLayerSymbology(vl)
+
 			ManagerWindow.VLID_GEOM_ORIG = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
+
 
 		# carica il layer con le geometrie modificate
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF ) == None:
@@ -585,21 +626,30 @@ class ManagerWindow(QDockWidget):
 
 			uri = QgsDataSourceURI()
 			uri.setDatabase(conn.databaseName())
-			uri.setDataSource('', self.GEOM_MODIFICATE_TABLENAME, 'geometria')
-			vl = QgsVectorLayer( uri.uri(), self.GEOM_MODIFICATE_TABLENAME, "spatialite" )
-			if vl == None or not vl.isValid():# or not vl.setReadOnly(True):
+			uri.setDataSource('', self.TABLE_GEOM_MODIF, 'geometria')
+			vl = QgsVectorLayer( uri.uri(), self.TABLE_GEOM_MODIF, "spatialite" )
+			if vl == None or not vl.isValid() or not vl.setReadOnly(True):
 				self.canvas.setRenderFlag( prevRenderFlag )
 				QApplication.restoreOverrideCursor()
 				return False
 
+			if False:
+				# imposta lo stile del layer
+				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_MODIF )
+				(errorMsg, result) = vl.loadNamedStyle( style_path )
+				self.iface.legendInterface().refreshLayerSymbology(vl)
+
 			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
 
-			# ingrandisci all'estenzione del layer delle geometrie modificate
-			#self.iface.setActiveLayer(vl)
-			#self.iface.zoomToActiveLayer()
 
+		# ingrandisci all'estenzione del layer delle geometrie modificate
+		#self.iface.setActiveLayer(vl)
+		#self.iface.zoomToActiveLayer()
+
+		# ripristina il rendering
 		self.canvas.setRenderFlag( prevRenderFlag )
+
 		QApplication.restoreOverrideCursor()
 		return True
 

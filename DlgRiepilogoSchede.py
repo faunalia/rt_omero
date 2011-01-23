@@ -90,10 +90,10 @@ ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valid
 		schedaID = self.getValue( self.schedeList )
 		query = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID = ?", [ schedaID ] )
 		uvID = query.getFirstResult()
+		if uvID == None:
+			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
+			return
 
-		if isinstance(self.parent(), ManagerWindow):
-			self.parent().apriScheda(uvID)
-		else:
-			ManagerWindow.apriScheda(uvID)
+		ManagerWindow.apriScheda(uvID)
 
 		self.close()

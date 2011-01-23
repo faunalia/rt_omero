@@ -12,11 +12,10 @@ from AutomagicallyUpdater import *
 
 class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
-	def __init__(self, parent=None, iface=None):
+	def __init__(self, parent=None, schedaID=None):
 		QMainWindow.__init__(self, parent)
 		MappingOne2One.__init__(self, "SCHEDA_EDIFICIO")
 		self.setAttribute(Qt.WA_DeleteOnClose)
-		self.iface = iface
 		self.setupUi(self)
 		self.sectionsStacked.setCurrentIndex(0)
 
@@ -50,6 +49,9 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		# aggiorna il titolo della scheda con l'indirizzo del primo tab indirizzi
 		primoTabIndirizzi = self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.firstTab
 		self.connect(primoTabIndirizzi, SIGNAL("indirizzoChanged(const QString &)"), self.impostaTitolo)
+
+		# carica i dati della scheda
+		self.setupLoader( schedaID )
 
 	def currentSectionChanged(self):
 		if self.sectionsList.currentRow() < 0:
