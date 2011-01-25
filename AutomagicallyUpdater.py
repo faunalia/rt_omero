@@ -8,7 +8,7 @@ from ConnectionManager import ConnectionManager
 
 class AutomagicallyUpdater:
 
-	DEBUG = True
+	DEBUG = False
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 
 	PROGRESSIVO_ID = -1

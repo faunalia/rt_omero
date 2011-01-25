@@ -244,7 +244,6 @@ class ManagerWindow(QDockWidget):
 
 			for ID, codice, wkt in featureList:
 				geom = QgsGeometry.fromWkt( wkt )
-				print ">>> orig:", geom.exportToWkt(), geom
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
 					continue
@@ -272,7 +271,6 @@ class ManagerWindow(QDockWidget):
 
 			for ID, codice, stato, wkt in featureList:
 				geom = QgsGeometry.fromWkt( wkt )
-				print ">>> prev:", geom.exportToWkt(), geom
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
 					continue
@@ -282,13 +280,11 @@ class ManagerWindow(QDockWidget):
 					AutomagicallyUpdater._updateValue( { 'ZZ_STATO_GEOMETRIAID' : '2' }, 'GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE', 'ID_UV_NEW', ID )
 				# aggiorna la geometria iniziale con la nuova geometria
 				wkb = QByteArray( geom.asWkb() )
-				print ">>> update:", geom.exportToWkt(), geom
 				AutomagicallyUpdater._updateGeometria( ID, wkb, ManagerWindow.srid )
 
 				# salva le nuove geometrie create dalla spezzatura
 				for geometry in newGeometries:
 					newWkb = QByteArray(geometry.asWkb())
-					print ">>> pezzetto:", geometry.exportToWkt(), geometry
 					newID = salvaGeometriaSpezzata(codice, stato, newWkb)
 					del geometry
 

@@ -44,6 +44,8 @@ class MapTool(QObject):
 			self.rubberBand.setColor( Qt.red )
 			self.rubberBand.setWidth( 1 )
 
+			self.snapper = qgis.gui.QgsMapCanvasSnapper( self.canvas )
+
 			self.isEmittingPoints = False
 
 		def reset(self):
@@ -68,7 +70,12 @@ class MapTool(QObject):
 			if not self.isEmittingPoints:
 				return
 
-			point = self.toMapCoordinates( e.pos() )
+			retval, snapResults = self.snapper.snapToBackgroundLayers( e.pos() )
+			if retval == 0 and len(snapResults) > 0:
+				point = snapResults[0].snappedVertex
+			else:
+				point = self.toMapCoordinates( e.pos() )
+
 			self.rubberBand.movePoint( point )
 
 		def isValid(self):
