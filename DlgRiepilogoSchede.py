@@ -70,7 +70,8 @@ ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valid
 
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
-			self.schedeList: AutomagicallyUpdater.Query( query_localizzazione )
+			#self.schedeList: AutomagicallyUpdater.Query( query_localizzazione )	# non funziona, probabile problema in QtSql
+			self.schedeList: AutomagicallyUpdater.Query( query_localizzazione, None, 1 )	# workaround, usa pyspatialite
 		}
 		self.setupTablesUpdater(tablesDict)
 		self.loadTables()

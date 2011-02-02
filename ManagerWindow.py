@@ -638,10 +638,8 @@ class ManagerWindow(QDockWidget):
 			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
 
-
-		# ingrandisci all'estenzione del layer delle geometrie modificate
-		#self.iface.setActiveLayer(vl)
-		#self.iface.zoomToActiveLayer()
+		# imposta l'ultimo extent usato
+		self.loadLastUsedExtent()
 
 		# ripristina il rendering
 		self.canvas.setRenderFlag( prevRenderFlag )
@@ -676,10 +674,50 @@ class ManagerWindow(QDockWidget):
 		if layerModif == None:
 			return
 
-		layerModif.updateExtents()
+		# aggiorna il layer
+		layerModif.dataProvider().setSubsetString( "" )	# trick! aggiorna l'extent del provider
 		layerModif.triggerRepaint()
+		layerModif.updateExtents()
+
+
+	def loadLastUsedExtent(self):
+		# recupera l'extent memorizzato
+		query = AutomagicallyUpdater.Query( "SELECT XMIN, YMIN, XMAX, YMAX FROM ZZ_DISCLAIMER" ).getQuery()
+		if query.exec_():
+			if query.next():
+				xmin, ok1 = query.value(0).toDouble()
+				ymin, ok2 = query.value(1).toDouble()
+				xmax, ok3 = query.value(2).toDouble()
+				ymax, ok4 = query.value(3).toDouble()
+
+				# imposta l'extent memorizzato come attuale
+				if ok1 and ok2 and ok3 and ok4:
+					extent = QgsRectangle( xmin, ymin, xmax, ymax )
+					self.canvas.setExtent( extent )
+					return
+
+		# nessuno extent memorizzato o extent non valido, 
+		# ingrandisci all'estenzione del layer delle geometrie originali
+		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
+		if layerOrig == None:
+			return
+		self.iface.setActiveLayer( layerOrig )
+		self.iface.zoomToActiveLayer()
+
+	def storeLastUsedExtent(self):
+		# memorizza l'extent corrente
+		extent = self.canvas.extent()
+		name2valueDict = {
+			'XMIN' : extent.xMinimum(), 
+			'YMIN' : extent.yMinimum(), 
+			'XMAX' : extent.xMaximum(), 
+			'YMAX' : extent.yMaximum()
+		}
+		AutomagicallyUpdater._updateValue( name2valueDict, "ZZ_DISCLAIMER", None, None )
+
 
 	def closeEvent(self, event):
+		self.storeLastUsedExtent()
 		self.removeLayersFromCanvas()
 		ConnectionManager.closeConnection()
 

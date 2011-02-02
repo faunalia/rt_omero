@@ -615,10 +615,10 @@ class AutomagicallyUpdater:
 		if query == None:
 			return
 
-		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = ST_GeomFromWkb(?, ?) WHERE ID_UV_NEW = ?" )
+		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = ST_GeomFromWKB(?, ?) WHERE ID_UV_NEW = ?" )
 		query.addBindValue( wkb )
-		query.addBindValue( ID )
 		query.addBindValue( srid )
+		query.addBindValue( ID )
 
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
