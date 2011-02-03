@@ -77,14 +77,14 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 			item = self.list.item(row)
 			if item.checkState() == Qt.Checked:
 				ID = item.data(Qt.UserRole).toString()
+				if not ID in oldIDs:
+					values = {
+						self._pkColumn : ID, 
+						self._parentPkColumn : self._ID
+					}
+					self._insertValue(values, self._tableName, None)
 
-				values = {
-					self._pkColumn : ID, 
-					self._parentPkColumn : self._ID
-				}
-				self._insertValue(values, self._tableName, None)
 				newIDs.append(ID)
-
 
 		# rimuovi dal db quelli eliminati
 		for ID in oldIDs:
