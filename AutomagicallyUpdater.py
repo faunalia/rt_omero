@@ -84,8 +84,7 @@ class AutomagicallyUpdater:
 				return
 			if not query.next():
 				return
-			value = query.value(0)
-			return value.toString() if value.isValid() else None
+			return AutomagicallyUpdater._getRealValue( query.value(0) )
 
 	class Table(Query):
 		def __init__(self, table, filters=None, params=None):
@@ -210,6 +209,18 @@ class AutomagicallyUpdater:
 		elif isinstance(widget, QWidget) and not widget.isEnabled():
 			pass
 
+		elif isinstance(widget, QGraphicsView):
+			items = widget.scene().items()
+			if len(items) <= 0:
+				value = None
+			else:
+				image = items[0].pixmap()
+				byteArray = QByteArray()
+				bufferIO = QBuffer(byteArray)
+				bufferIO.open(QIODevice.WriteOnly)
+				image.save(bufferIO, "PNG")
+				value = byteArray
+
 		elif isinstance(widget, QComboBox):
 			index = widget.currentIndex()
 			text = widget.currentText()
@@ -265,6 +276,28 @@ class AutomagicallyUpdater:
 
 		elif isinstance(widget, MappingMany2Many):
 			widget.setValues(value)
+
+		elif isinstance(widget, QGraphicsView):
+			scene = widget.scene()
+			if scene == None:
+				scene = QGraphicsScene()
+				widget.setScene( scene )
+
+			scene.clear()
+			if value == None:
+				return
+
+			if isinstance(value, str) or isinstance(value, QString):
+				image = QPixmap( value )
+
+			elif isinstance(value, QByteArray):
+				image = QPixmap()
+				if not image.loadFromData( value ):
+					return
+
+			scaledImage = image.scaled( widget.width()-10, widget.height()-10, Qt.KeepAspectRatio )
+			item = QGraphicsPixmapItem( scaledImage )
+			scene.addItem( item )
 
 		elif isinstance(widget, QComboBox):
 			if value != None:
@@ -372,22 +405,32 @@ class AutomagicallyUpdater:
 		if value == self.VALORE_NON_INSERITO:
 			return
 
-		if value == "":
-			return
+		try:
+			if len(value) == 0:
+				return
+		except (TypeError, AttributeError):
+			pass
+
+		if isinstance(value, buffer):
+			value = QByteArray( str(value) )
 
 		if isinstance(value, QVariant):
 			if not value.isValid():
 				return
+
+			if value.type() == QVariant.ByteArray:
+				return value.toByteArray()
+
 			return value.toString()
 
 		return value
 
 	@classmethod
 	def _getDBStrValue(self, value):
-		if isinstance(value, bool):
-			return '1' if value else '0'
 		if value == None:
 			return "NULL"
+		if isinstance(value, bool):
+			return '1' if value else '0'
 
 		value = "%s" % value
 		return "'%s'" % value.replace("'","''")
@@ -429,6 +472,7 @@ class AutomagicallyUpdater:
 
 		fields = QStringList()
 		values = QStringList()
+		bindValues = []
 		if pk != None:
 			fields << pk
 			values << "'" + IDComune + "-'||strftime('%Y%m%d%H%M%S', 'now')||'-" + macAddress + "-" + str(progressivo) + "_" + IDRilevatore + "'"
@@ -437,12 +481,17 @@ class AutomagicallyUpdater:
 			fields << name
 			if value == None and QString(name).startsWith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
+			elif isinstance(value, buffer) or isinstance(value, QByteArray):
+				bindValues.append( value )
+				value = '?'
 			else:
 				value = self._getDBStrValue(value)
 			values << value
 
 		# memorizza la riga
 		query.prepare( "INSERT INTO " + table + " (" + fields.join(", ") + ") VALUES (" + values.join(", ") + ")" )
+		for v in bindValues:
+			query.addBindValue( QVariant(v) if v != None else QVariant() )
 
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
@@ -452,7 +501,7 @@ class AutomagicallyUpdater:
 		if pk == None:
 			ROWID = None if ROWID.isEmpty() else ROWID
 			if self.DEBUG:
-				print ">>>", query.lastQuery(), " >>> ROWID = ", ROWID
+				print ">>>", query.lastQuery().toUtf8(), " >>> ROWID = ", ROWID
 			return ROWID
 
 		# recupera il valore della pk
@@ -465,7 +514,7 @@ class AutomagicallyUpdater:
 
 		ID = query.value(0).toString()
 		if self.DEBUG:
-			print ">>>", insertQuery, " >>> pk = ", ID, ">>> ROWID =", ROWID
+			print ">>>", insertQuery.toUtf8(), " >>> pk = ", ID, ">>> ROWID =", ROWID
 
 		return ID
 
@@ -475,13 +524,17 @@ class AutomagicallyUpdater:
 		if query == None:
 			return
 
-		if name2valueDict == None:
-			name2valueDict = {}
+		if name2valueDict == None or len(name2valueDict) <= 0:
+			return ID
 
 		assignments = QStringList()
+		bindValues = []
 		for name, value in name2valueDict.iteritems():
 			if value == None and QString(name).startsWith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
+			elif isinstance(value, buffer) or isinstance(value, QByteArray):
+				bindValues.append( value )
+				value = '?'
 			else:
 				value = self._getDBStrValue(value)
 
@@ -490,17 +543,18 @@ class AutomagicallyUpdater:
 		whereStr = ''
 		if pk != None:
 			whereStr += " WHERE " + pk + " = ?"
+			bindValues.append( ID )
 
 		# aggiorna la riga
 		query.prepare( "UPDATE " + table + " SET " + assignments.join(", ") + whereStr )
-		if pk != None:
-			query.addBindValue( ID )
+		for v in bindValues:
+			query.addBindValue( QVariant(v) if v != None else QVariant() )
 
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 		if self.DEBUG:
-			print ">>>", query.lastQuery(), " >>> pk = ", ID
+			print ">>>", query.lastQuery().toUtf8(), " >>> pk = ", ID
 		return ID
 
 	@classmethod
@@ -513,9 +567,13 @@ class AutomagicallyUpdater:
 			name2valueDict = {}
 
 		whereClauses = QStringList()
+		bindValues = []
 		for name, value in name2valueDict.iteritems():
 			if value == None and QString(name).startsWith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
+			elif isinstance(value, buffer) or isinstance(value, QByteArray):
+				bindValues.append( value )
+				value = '?'
 			else:
 				value = self._getDBStrValue(value)
 
@@ -526,21 +584,22 @@ class AutomagicallyUpdater:
 
 		if filterStr != None:
 			whereClauses << "%s" % filterStr
+			if filterParams != None:
+				bindValues.extends( filterParams )
 
 		whereStr = ''
 		if whereClauses.count():
 			whereStr = " WHERE " + whereClauses.join(" AND ")
 		query.prepare( "DELETE FROM " + table + whereStr )
-		if filterParams != None:
-			for p in filterParams:
-				query.addBindValue( p if p != None else QVariant() )
+		for v in bindValues:
+			query.addBindValue( QVariant(v) if v != None else QVariant() )
 
 		# elimina
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return False
 		if self.DEBUG:
-			print ">>>", query.lastQuery()
+			print ">>>", query.lastQuery().toUtf8()
 		return True
 
 	@classmethod
@@ -602,7 +661,7 @@ class AutomagicallyUpdater:
 			return
 		ID = query.value(0).toString()
 		if self.DEBUG:
-			print ">>>", insertQuery, ">>> pk =", ID, ">>> ROWID =", ROWID
+			print ">>>", insertQuery.toUtf8(), ">>> pk =", ID, ">>> ROWID =", ROWID
 
 		return ID
 
@@ -624,7 +683,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 		if self.DEBUG:
-			print ">>>", query.lastQuery(), ">>> pk =", ID
+			print ">>>", query.lastQuery().toUtf8(), ">>> pk =", ID
 
 		return ID 
 
@@ -718,7 +777,10 @@ class MappingOne2One(AutomagicallyUpdater):
 			if isinstance(widget, MappingOne2One):
 				widget.delete()
 
-		return self._deleteValue( self._tableName, { self._pkColumn : self._ID } )
+		ret = self._deleteValue( self._tableName, { self._pkColumn : self._ID } )
+		if ret:
+			self._ID = None
+		return ret
 
 
 	def findPKColumnName(self, table):
@@ -897,7 +959,7 @@ class MappingOne2One(AutomagicallyUpdater):
 			if not query.next():
 				return
 
-			self.setValue(widget, query.value(0).toString())
+			self.setValue(widget, query.value(0))
 
 
 	def loadTables(self, widget=None, action=None):

@@ -40,7 +40,8 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			self.INTERVENTI, 
 			self.STATO_UTILIZZO_EDIFICIOID,
 			self.CARATTERISTICHE_STRUTTURALI, 
-			self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID
+			self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID, 
+			self.FOTO_EDIFICIOID 
 		]
 		self.setupValuesUpdater(childrenList)
 
@@ -72,11 +73,9 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			# effettua il salvataggio della scheda
 			self.save()
 
-		except Exception, e:
-			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
-				return
-			raise
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return
 
 		finally:
 			ConnectionManager.endTransaction()

@@ -22,7 +22,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 		self.firstTab = self.tabWidget.widget(0)
 
 		self.pointEmitter = FeatureFinder()
-		QObject.connect(self.pointEmitter, SIGNAL("pointEmitted(const QgsPoint &, Qt::MouseButton)"), self.clickedOnCanvas)
+		QObject.connect(self.pointEmitter, SIGNAL("pointEmitted"), self.clickedOnCanvas)
 
 		self.firstTab.setCurrentUV(ManagerWindow.uvScheda)
 		self.currentTabChanged(0)
@@ -62,7 +62,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 		self.pointEmitter.stopCapture()
 		ManagerWindow.iface.mainWindow().statusBar().clearMessage()		
 
-	def clickedOnCanvas(self, point, button):
+	def clickedOnCanvas(self, point=None, button=None):
 		self.stopCapture()
 
 		if button != Qt.LeftButton:

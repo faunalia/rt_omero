@@ -107,7 +107,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>7</number>
        </property>
        <widget class="SezPrincipale" name="PRINCIPALE"/>
        <widget class="SezLocalizzazione" name="LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ"/>
@@ -116,7 +116,7 @@
        <widget class="SezStatoUtilizzo" name="STATO_UTILIZZO_EDIFICIOID"/>
        <widget class="SezCaratteristicheStrutturali" name="CARATTERISTICHE_STRUTTURALI"/>
        <widget class="SezCaratteristicheArchitettoniche" name="CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID"/>
-       <widget class="QWidget" name="FOTO_IMMAGINI"/>
+       <widget class="SezFoto" name="FOTO_EDIFICIOID"/>
       </widget>
      </widget>
     </item>
@@ -175,6 +175,12 @@
    <class>SezCaratteristicheArchitettoniche</class>
    <extends>QWidget</extends>
    <header>..SezCaratteristicheArchitettoniche</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SezFoto</class>
+   <extends>QWidget</extends>
+   <header>..SezFoto</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

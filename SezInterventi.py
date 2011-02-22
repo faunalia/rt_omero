@@ -13,7 +13,7 @@ class SezInterventi(QWidget, MappingPart):
 
 	def __init__(self, parent=None):
 		QWidget.__init__(self, parent)
-		MappingOne2One.__init__(self, "SCHEDA_EDIFICIO")
+		MappingPart.__init__(self, "SCHEDA_EDIFICIO")
 		self.setupUi()
 
 		# mappa i widget con i campi delle tabelle

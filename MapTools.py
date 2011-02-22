@@ -8,6 +8,7 @@ import qgis.gui
 
 class MapTool(QObject):
 	canvas = None
+	currentTool = None
 
 	def __init__(self, mapToolClass, canvas=None):
 		QObject.__init__(self)
@@ -20,19 +21,25 @@ class MapTool(QObject):
 			self.canvas = canvas
 
 		self.tool = mapToolClass( self.canvas )
-		QObject.connect(self.tool, SIGNAL( "geometryDrawingEnded(const QgsGeometry *)" ), self.onEnd)
+		QObject.connect(self.tool, SIGNAL( "geometryDrawingEnded" ), self.onEnd)
 
 	def onEnd(self, geometry):
+		self.stopCapture()
 		if geometry == None:
 			return
-		self.stopCapture()
-		self.emit( SIGNAL( "geometryEmitted(const QgsGeometry *)" ), geometry )
+		self.emit( SIGNAL( "geometryEmitted" ), geometry )
 
 	def startCapture(self):
+		if MapTool.currentTool:
+			MapTool.currentTool.stopCapture()
+
+		MapTool.currentTool = self
 		self.canvas.setMapTool( self.tool )
 
 	def stopCapture(self):
 		self.canvas.unsetMapTool( self.tool )
+		if MapTool.currentTool == self:
+			MapTool.currentTool = None
 
 	class Drawer(qgis.gui.QgsMapToolEmitPoint):
 		def __init__(self, canvas, isPolygon=False):
@@ -55,7 +62,7 @@ class MapTool(QObject):
 		def canvasPressEvent(self, e):
 			if e.button() == Qt.RightButton:
 				self.isEmittingPoints = False
-				self.emit( SIGNAL("geometryDrawingEnded(const QgsGeometry *)"), self.geometry() )
+				self.emit( SIGNAL("geometryDrawingEnded"), self.geometry() )
 				return
 
 			if e.button() == Qt.LeftButton:
@@ -84,7 +91,10 @@ class MapTool(QObject):
 		def geometry(self):
 			if not self.isValid():
 				return None
-			return QgsGeometry.fromWkt( self.rubberBand.asGeometry().exportToWkt() )
+			geom = self.rubberBand.asGeometry()
+			if geom == None:
+				return
+			return QgsGeometry.fromWkt( geom.exportToWkt() )
 
 		def deactivate(self):
 			qgis.gui.QgsMapTool.deactivate(self)
@@ -100,7 +110,7 @@ class FeatureFinder(MapTool):
 
 	def onEnd(self, point, button):
 		self.stopCapture()
-		self.emit( SIGNAL("pointEmitted(const QgsPoint &, Qt::MouseButton)"), point, button )
+		self.emit( SIGNAL("pointEmitted"), point, button )
 
 	def findAtPoint(self, layer, point):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))

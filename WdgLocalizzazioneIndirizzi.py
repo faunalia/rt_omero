@@ -181,18 +181,15 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 		# elimina solo se non sono presenti altri riferimenti a questo oggetto
 		query = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] )
-		query = query.getQuery()
-		if query == None:
-			return
-		if not query.exec_() or not query.next():
+		value = query.getFirstResult()
+		if value == None or int(value) > 1:
 			return
 
-		if query.value(0).toInt()[0] <= 1:
-			# elimina l'indirizzo dalla tabella
-			MappingOne2One.delete(self)
+		#elimina i numeri civici
+		self.NUMERI_CIVICI.delete()
 
-			#elimina i numeri civici
-			self.NUMERI_CIVICI.delete()
+		# elimina l'indirizzo dalla tabella
+		MappingOne2One.delete(self)
 
 
 	def save(self):

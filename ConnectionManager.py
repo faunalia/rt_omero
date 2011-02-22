@@ -185,21 +185,18 @@ class PySLQuery:
 		self.setQuery(sql)
 
 	def escapeValue(self, value):
-		if value == None:
+		value = self.convertResult( value )
+		if not value.isValid():
 			return 'NULL'
-		if isinstance(value, int) or isinstance(value, long) or isinstance(value, float) or isinstance(value, buffer):
-			return value
-		if isinstance(value, str) or isinstance(value, unicode):
-			return value
 
-		if isinstance(value, QVariant):
-			if not value.isValid():
-				return 'NULL'
-			value = value.toString()
-		if isinstance(value, QByteArray):
-			return buffer(value)
-			
-		return "%s" % value
+		if value.type() == QVariant.ByteArray:
+			return buffer( value.toByteArray() )
+		if value.type() == QVariant.Int:
+			return value.toInt()[0]
+		if value.type() == QVariant.Double:
+			return value.toDouble()[0]
+
+		return unicode( value.toString() )
 
 	def convertResult(self, value):
 		return QVariant(value) if value != None else QVariant()

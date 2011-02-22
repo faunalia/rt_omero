@@ -27,9 +27,6 @@ class WdgNumeriCivici(Wdg2FieldsTable):
 		return Wdg2FieldsTable.loadValues(self, action)
 
 	def _saveValue(self, name2valueDict, table, pk, ID=None):
-		if table == None:
-			return True
-
 		name2valueDict[self._pkColumn] = self._ID[0]
 		name2valueDict[self._parentPkColumn] = self._ID[1]
 
@@ -44,6 +41,7 @@ class WdgNumeriCivici(Wdg2FieldsTable):
 		return Wdg2FieldsTable._saveValue(name2valueDict, table, pk, ID)
 
 	def _insertValue(self, name2valueDict, table, pk):
+		# table è None quando viene chiamato da Wdg2FieldTable per salvare i valori della tabella di normalizzazione
 		if table == None:
 			return True
 
@@ -58,9 +56,10 @@ class WdgNumeriCivici(Wdg2FieldsTable):
 			self._pkColumn : self._ID[0],
 			self._parentPkColumn : self._ID[1]
 		}
-		self._deleteValue(self._tableName, filters)
+		self._deleteValue(self._tableWithValues, filters)
 
 	def _deleteValue(self, table, name2valueDict=None, filterStr=None, filterParams=None):
+		# table è None quando viene chiamato da Wdg2FieldTable per salvare i valori della tabella di normalizzazione
 		if table == None:
 			return
 

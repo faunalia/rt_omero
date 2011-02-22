@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/mainSchedaEdificio.ui'
 #
-# Created: Wed Nov 24 15:49:41 2010
+# Created: Tue Feb 15 10:20:06 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,9 +78,9 @@ class Ui_SchedaEdificio(object):
         self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID = SezCaratteristicheArchitettoniche()
         self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.setObjectName("CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID")
         self.sectionsStacked.addWidget(self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID)
-        self.FOTO_IMMAGINI = QtGui.QWidget()
-        self.FOTO_IMMAGINI.setObjectName("FOTO_IMMAGINI")
-        self.sectionsStacked.addWidget(self.FOTO_IMMAGINI)
+        self.FOTO_EDIFICIOID = SezFoto()
+        self.FOTO_EDIFICIOID.setObjectName("FOTO_EDIFICIOID")
+        self.sectionsStacked.addWidget(self.FOTO_EDIFICIOID)
         self.verticalLayout_2.addWidget(self.splitter)
         SchedaEdificio.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(SchedaEdificio)
@@ -93,7 +93,7 @@ class Ui_SchedaEdificio(object):
 
         self.retranslateUi(SchedaEdificio)
         self.sectionsList.setCurrentRow(0)
-        self.sectionsStacked.setCurrentIndex(1)
+        self.sectionsStacked.setCurrentIndex(7)
         QtCore.QMetaObject.connectSlotsByName(SchedaEdificio)
 
     def retranslateUi(self, SchedaEdificio):
@@ -114,7 +114,8 @@ class Ui_SchedaEdificio(object):
 from ..SezLocalizzazione import SezLocalizzazione
 from ..SezUnitaVolumetriche import SezUnitaVolumetriche
 from ..SezCaratteristicheArchitettoniche import SezCaratteristicheArchitettoniche
-from ..SezStatoUtilizzo import SezStatoUtilizzo
+from ..SezFoto import SezFoto
 from ..SezCaratteristicheStrutturali import SezCaratteristicheStrutturali
 from ..SezPrincipale import SezPrincipale
 from ..SezInterventi import SezInterventi
+from ..SezStatoUtilizzo import SezStatoUtilizzo

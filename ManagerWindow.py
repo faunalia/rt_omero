@@ -23,8 +23,8 @@ class ManagerWindow(QDockWidget):
 
 	# stile per i layer delle geometrie
 	STYLE_PATH = "styles"
-	STYLE_GEOM_ORIG = "stile-geometrie-originali.qml"
-	STYLE_GEOM_MODIF = "stile-geometrie-modificate.qml"
+	STYLE_GEOM_ORIG = "stile_geometrie_originali.qml"
+	STYLE_GEOM_MODIF = "stile_geometrie_modificate.qml"
 
 	DEFAULT_SRID = 3003
 
@@ -46,16 +46,16 @@ class ManagerWindow(QDockWidget):
 		MapTool.canvas = self.canvas
 
 		self.nuovaPointEmitter = FeatureFinder()
-		QObject.connect(self.nuovaPointEmitter, SIGNAL("pointEmitted(const QgsPoint &, Qt::MouseButton)"), self.identificaNuovaScheda)
+		QObject.connect(self.nuovaPointEmitter, SIGNAL("pointEmitted"), self.identificaNuovaScheda)
 
 		self.esistentePointEmitter = FeatureFinder()
-		QObject.connect(self.esistentePointEmitter, SIGNAL("pointEmitted(const QgsPoint &, Qt::MouseButton)"), self.identificaSchedaEsistente)
+		QObject.connect(self.esistentePointEmitter, SIGNAL("pointEmitted"), self.identificaSchedaEsistente)
 
 		self.polygonDrawer = PolygonDrawer()
-		QObject.connect(self.polygonDrawer, SIGNAL("geometryEmitted(const QgsGeometry *)"), self.creaNuovaGeometria)
+		QObject.connect(self.polygonDrawer, SIGNAL("geometryEmitted"), self.creaNuovaGeometria)
 
 		self.lineDrawer = LineDrawer()
-		QObject.connect(self.lineDrawer, SIGNAL("geometryEmitted(const QgsGeometry *)"), self.spezzaGeometriaEsistente)
+		QObject.connect(self.lineDrawer, SIGNAL("geometryEmitted"), self.spezzaGeometriaEsistente)
 
 		self.connect(self.btnSelNuovaScheda, SIGNAL("clicked()"), self.identificaNuovaScheda)
 		self.connect(self.btnSelSchedaEsistente, SIGNAL("clicked()"), self.apriScheda)
@@ -217,7 +217,7 @@ class ManagerWindow(QDockWidget):
 		if line == None:
 			return self.lineDrawer.startCapture()
 
-		# fai qui i test sulla linea
+		#TODO: fai qui i test sulla linea
 
 		try:
 			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -629,11 +629,10 @@ class ManagerWindow(QDockWidget):
 				QApplication.restoreOverrideCursor()
 				return False
 
-			if False:
-				# imposta lo stile del layer
-				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_MODIF )
-				(errorMsg, result) = vl.loadNamedStyle( style_path )
-				self.iface.legendInterface().refreshLayerSymbology(vl)
+			# imposta lo stile del layer
+			style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_MODIF )
+			(errorMsg, result) = vl.loadNamedStyle( style_path )
+			self.iface.legendInterface().refreshLayerSymbology(vl)
 
 			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
