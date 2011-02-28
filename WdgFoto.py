@@ -92,12 +92,16 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 		if widget == self.IMAGE:
 			if isinstance(value, str) or isinstance(value, QString):
-				image = open( unicode(value).encode('utf8'), "r" )
-				self.imageBytes = value = QByteArray( image.read() )
-				image.close()
+				infile = open( unicode(value).encode('utf8'), "rb" )
+				self.imageBytes = value = QByteArray( infile.read() )
+				infile.close()
 
 			elif isinstance(value, QByteArray):
 				self.imageBytes = value
+
+			image = QPixmap()
+			if image.loadFromData( self.imageBytes ):
+				value = image.scaled( widget.width()-10, widget.height()-10, Qt.KeepAspectRatio )
 
 		AutomagicallyUpdater.setValue(widget, value)
 

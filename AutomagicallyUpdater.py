@@ -295,8 +295,10 @@ class AutomagicallyUpdater:
 				if not image.loadFromData( value ):
 					return
 
-			scaledImage = image.scaled( widget.width()-10, widget.height()-10, Qt.KeepAspectRatio )
-			item = QGraphicsPixmapItem( scaledImage )
+			elif isinstance(value, QPixmap):
+				image = value
+
+			item = QGraphicsPixmapItem( image )
 			scene.addItem( item )
 
 		elif isinstance(widget, QComboBox):
