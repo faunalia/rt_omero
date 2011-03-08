@@ -46,7 +46,9 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		self.EPOCA_COSTRUTTIVA.setVisible(show)
 
 	def toHtml(self, index):
-		intervento = self.getValue(self.INTERVENTO_IN_CORSO)
+		descrizione = self.getValue(self.DESCRIZ_INTERV)
+		titolo_abilitivo = self.getValue(self.TITOLO_ABILITATIVO)
+
 		return """
 <table class="white border">
 	<tr class="line">
@@ -71,5 +73,5 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		<td>Intervento in corso</td><td colspan="3" class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.ZZ_TIPO_INTERVENTOID.currentText(), self.ZZ_NORMATIVA_SISMICAID.currentText(), self.getValue(self.ANNO_PROGETTAZIONE), self.ZZ_QUALITA_INFORMAZIONEID.currentText(), self.getValue(self.DESCRIZ_INTERV), self.getValue(self.TITOLO_ABILITATIVO), self.getValue(self.DATA_TITOLO_ABILITATIVO), "SI" if intervento else "NO" )
+""" % ( self.ZZ_TIPO_INTERVENTOID.currentText(), self.ZZ_NORMATIVA_SISMICAID.currentText(), self.getValue(self.ANNO_PROGETTAZIONE), self.ZZ_QUALITA_INFORMAZIONEID.currentText(), descrizione if descrizione != None else '', titolo_abilitivo if titolo_abilitivo != None else '', self.getValue(self.DATA_TITOLO_ABILITATIVO), "SI" if self.getValue(self.INTERVENTO_IN_CORSO) else "NO" )
 

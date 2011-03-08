@@ -53,6 +53,22 @@ class AutomagicallyUpdater:
 		settings = QSettings()
 		return settings.value( "/omero_RT/lastIDRilevatore", QVariant("") ).toString()
 
+	@classmethod
+	def _getLastUsedDir(self, key):
+		settings = QSettings()
+		lastProjectDir = settings.value( "/UI/lastProjectDir", QVariant(".") ).toString()
+		return settings.value( "/omero_RT/lastUsedDir/%s" % key, QVariant(lastProjectDir) ).toString()
+
+	@classmethod
+	def _setLastUsedDir(self, key, filePath):
+		settings = QSettings()
+		fileInfo = QFileInfo(filePath)
+		if fileInfo.isDir():
+			dirPath = fileInfo.filePath()
+		else:
+			dirPath = fileInfo.path()
+		settings.setValue( "/omero_RT/lastUsedDir/%s" % key, QVariant(dirPath) )
+
 
 	class Query():
 		def __init__(self, query, params=None, conntype=0):

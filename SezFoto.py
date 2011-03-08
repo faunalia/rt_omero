@@ -29,9 +29,11 @@ class SezFoto(QWidget, MappingOne2One, Ui_Form):
 		supportedFormats = map( lambda x: "*.%s *.%s" % ( str(x).lower(), str(x).upper() ), supportedFormats )
 		filterStr = "Immagini (%s);; Tutti i file (*);;" % " ".join( supportedFormats )
 
-		filename = QFileDialog.getOpenFileName(self, self.tr( "Seleziona l'immagine" ), "", filterStr)
+		lastDir = AutomagicallyUpdater._getLastUsedDir( 'foto' )
+		filename = QFileDialog.getOpenFileName(self, self.tr( "Seleziona l'immagine" ), lastDir, filterStr)
 		if filename.isEmpty():
 			return
+		AutomagicallyUpdater._setLastUsedDir( 'foto', filename )
 
 		self.fileEdit.setText( filename )
 		self.listaFoto.caricaImmagine( filename )

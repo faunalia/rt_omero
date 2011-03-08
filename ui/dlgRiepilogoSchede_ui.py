@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/dlgRiepilogoSchede.ui'
 #
-# Created: Tue Mar  8 11:08:58 2011
+# Created: Tue Mar  8 13:00:49 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -25,6 +25,7 @@ class Ui_Dialog(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.listaSchedeGroup)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.schedeList = QtGui.QListWidget(self.listaSchedeGroup)
+        self.schedeList.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
         self.schedeList.setObjectName("schedeList")
         self.gridLayout_2.addWidget(self.schedeList, 1, 0, 1, 2)
         self.stampaBtn = QtGui.QPushButton(self.listaSchedeGroup)
@@ -56,7 +57,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(QtGui.QApplication.translate("Dialog", "Riepilogo schede", None, QtGui.QApplication.UnicodeUTF8))
         self.listaSchedeGroup.setTitle(QtGui.QApplication.translate("Dialog", "Lista schede edificio", None, QtGui.QApplication.UnicodeUTF8))
-        self.stampaBtn.setText(QtGui.QApplication.translate("Dialog", "Stampa scheda", None, QtGui.QApplication.UnicodeUTF8))
+        self.stampaBtn.setText(QtGui.QApplication.translate("Dialog", "Stampa selezionate", None, QtGui.QApplication.UnicodeUTF8))
         self.apriBtn.setText(QtGui.QApplication.translate("Dialog", "Apri scheda", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Dialog", "Indirizzo, N.ro Civico - Comune (Provincia)", None, QtGui.QApplication.UnicodeUTF8))
 

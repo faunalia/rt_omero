@@ -104,3 +104,6 @@ td.line {
 .space {
 	padding: 0px 30px;
 }
+.hidden {
+	display: none;
+}

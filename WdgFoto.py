@@ -113,6 +113,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		return AutomagicallyUpdater.getValue(widget)
 
 	def toHtml(self, index):
+		annotazione = self.getValue(self.ANNOTAZIONE)
 		return """
 <table class="border">
 	<tr>
@@ -128,5 +129,5 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		<td>Annotazioni</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % ( index+1, self.ZZ_FRONTE_EDIFICIOID.currentText(), "foto.jpg", self.getValue(self.FILENAME), self.getValue(self.ANNOTAZIONE) )
+""" % ( index+1, self.ZZ_FRONTE_EDIFICIOID.currentText(), "foto.jpg", self.getValue(self.FILENAME), annotazione if annotazione != None else '' )
 

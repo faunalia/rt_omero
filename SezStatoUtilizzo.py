@@ -62,6 +62,7 @@ class SezStatoUtilizzo(QWidget, MappingOne2One, Ui_Form):
 		uso_prevalente = map( str, self.CATEGORIA_USO_PREVALENTE.getValues(False) )
 		uso_terra = map( str, self.CATEGORIA_USO_PIANO_TERRA.getValues(False) )
 		uso_altri = map( str, self.CATEGORIA_USO_ALTRI_PIANI.getValues(False) )
+		descrizione = self.getValue(self.DESCRIZIONE_VISIVA)
 		return """
 <p class="section">SEZIONE A5 - STATO E UTILIZZO</p>
 <table class="white border">
@@ -86,5 +87,5 @@ class SezStatoUtilizzo(QWidget, MappingOne2One, Ui_Form):
 		<td>Descrizione visiva dello stato attuale</td><td colspan="3" class="value">%s</td>
 	</tr>
 </table>
-"""	% ( self.ZZ_TIPOLOGIA_EDILIZIAID.currentText(), "<br>".join(uso_prevalente), "<br>".join(uso_terra), "<br>".join(uso_altri), self.ZZ_STATO_EDIFICIOID.currentText(), self.ZZ_FRUIZIONE_TEMPORALEID.currentText(), self.getValue(self.DESCRIZIONE_VISIVA) )
+"""	% ( self.ZZ_TIPOLOGIA_EDILIZIAID.currentText(), "<br>".join(uso_prevalente), "<br>".join(uso_terra), "<br>".join(uso_altri), self.ZZ_STATO_EDIFICIOID.currentText(), self.ZZ_FRUIZIONE_TEMPORALEID.currentText(), descrizione if descrizione != None else '' )
 

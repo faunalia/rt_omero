@@ -17,12 +17,27 @@ class DlgRiepilogoSchede(QDialog, MappingOne2One, Ui_Dialog):
 		MappingOne2One.__init__(self)
 		self.setupUi(self)
 
-		# crea una webview e il preview dialog per la stampa
-		self.webView = QWebView( parent )
+		# crea una webview per la stampa della scheda
+		self.webView = QWebView(self)
+		self.webView.setVisible(False)
 		QObject.connect(self.webView, SIGNAL("loadFinished(bool)"), self.loadFinished)
-		self.printDlg = QPrintPreviewDialog( parent )
-		QObject.connect(self.printDlg, SIGNAL("paintRequested(QPrinter *)"), self.webView.print_)
 
+		# carica i widget multivalore con i valori delle relative tabelle
+		tablesDict = {
+			#self.schedeList: AutomagicallyUpdater.Query( self.createQuerySchede() )	# non funziona, probabile problema in QtSql 
+			self.schedeList: AutomagicallyUpdater.Query( self.createQuerySchede(), None, 1 )	# workaround, usa pyspatialite 
+		}
+		self.setupTablesUpdater(tablesDict)
+		self.loadTables()
+
+		self.connect(self.apriBtn, SIGNAL("clicked()"), self.apriScheda)
+		self.connect(self.stampaBtn, SIGNAL("clicked()"), self.stampaSchede)
+		self.connect(self.schedeList, SIGNAL("itemSelectionChanged()"), self.aggiornaPulsanti)
+
+		self.aggiornaPulsanti()
+
+
+	def createQuerySchede(self):
 		# recupera il primo indirizzo di ogni scheda edificio
 		query_indirizzi = """
 SELECT * FROM INDIRIZZO_VIA ORDER BY ROWID DESC
@@ -64,51 +79,101 @@ FROM
 GROUP BY sch.ID
 ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valido, comune_non_valido, query_indirizzi, query_comuni, query_ncivici)
 
-		# carica i widget multivalore con i valori delle relative tabelle
-		tablesDict = {
-			#self.schedeList: AutomagicallyUpdater.Query( query_localizzazione )	# non funziona, probabile problema in QtSql 
-			self.schedeList: AutomagicallyUpdater.Query( query_localizzazione, None, 1 )	# workaround, usa pyspatialite 
-		}
-		self.setupTablesUpdater(tablesDict)
-		self.loadTables()
+		return query_localizzazione
 
-		self.connect(self.apriBtn, SIGNAL("clicked()"), self.apriScheda)
-		self.connect(self.stampaBtn, SIGNAL("clicked()"), self.stampaScheda)
-		self.connect(self.schedeList, SIGNAL("itemSelectionChanged()"), self.aggiornaPulsanti)
-
-		self.aggiornaPulsanti()
 
 	def aggiornaPulsanti(self):
 		self.apriBtn.setEnabled( self.getValue(self.schedeList) != None )
 		self.stampaBtn.setEnabled( self.getValue(self.schedeList) != None )
 
-	def stampaScheda(self):
-		self.apriScheda(True)
+	def recuperaUvID(self, schedaID):
+		query = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID = ?", [ schedaID ] )
+		return query.getFirstResult()
 
 	def apriScheda(self, stampa=False):
-		from ManagerWindow import ManagerWindow
-
 		schedaID = self.getValue( self.schedeList )
-		query = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID = ?", [ schedaID ] )
-		uvID = query.getFirstResult()
+		uvID = self.recuperaUvID( schedaID )
 		if uvID == None:
 			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
 			return
 
-		if not stampa:
-			ManagerWindow.apriScheda(uvID)
-			self.close()
+		from ManagerWindow import ManagerWindow
+		ManagerWindow.apriScheda(uvID)
+		self.close()
 
-		else:
-			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-			scheda = ManagerWindow.recuperaScheda(uvID)
-			if scheda:
-				self.webView.setHtml( scheda.toHtml() )
+	def stampaSchede(self):
+		self.invalidPrint = []
+		self.toPrint = []
+		self.currentIndex = -1
 
+		self.outFn = "%s.pdf"
+		lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
+
+		if len(self.schedeList.selectedItems()) > 1:
+			# permetti all'utente di selezionare la directory di output
+			lastDir = QFileDialog.getExistingDirectory(self, "Salvataggio le schede", lastDir, QFileDialog.ShowDirsOnly )
+			if lastDir.isEmpty():
+				return
+			AutomagicallyUpdater._setLastUsedDir( 'pdf', lastDir )
+
+		import os.path
+		self.outFn = os.path.join( str(lastDir), self.outFn )
+
+		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+		# recupera tutte le schede selezionate
+		for item in self.schedeList.selectedItems():
+			self.toPrint.append( item.data(Qt.UserRole).toString() )
+
+		# avvia la stampa
+		self.printNext()
+
+	def printNext(self):
+		self.currentIndex = self.currentIndex + 1
+
+		if self.currentIndex >= len(self.toPrint):	# stampa completata
+			QApplication.restoreOverrideCursor()
+			return
+
+		# recupera la scheda
+		schedaID = self.toPrint[self.currentIndex]
+		uvID = self.recuperaUvID( schedaID )
+		if uvID == None:	# nessuna UV associata alla scheda
+			self.invalidPrint.append( schedaID )
+			return self.printNext()
+		
+		from ManagerWindow import ManagerWindow
+		scheda = ManagerWindow.recuperaScheda(uvID)
+		if scheda == None:	# impossibile recuperare la scheda
+			self.invalidPrint.append( schedaID )
+			return self.printNext()
+
+		# genera la scheda in HTML
+		self.webView.setHtml( scheda.toHtml() )
 
 	def loadFinished(self, ok):
-		QApplication.restoreOverrideCursor()
+		schedaID = self.toPrint[self.currentIndex]
+
 		if not ok:
-			return
-		self.printDlg.exec_()
+			self.invalidPrint.append( schedaID )
+		else:
+			printer = QPrinter()
+			printer.setOutputFormat( QPrinter.PdfFormat )
+			printer.setOutputFileName( self.outFn % schedaID )
+
+			if len(self.toPrint) == 1:	# solo una scheda, mostra la preview
+				printDlg = QPrintPreviewDialog(printer, self)
+				QObject.connect(printDlg, SIGNAL("paintRequested(QPrinter *)"), self.webView.print_)
+				QApplication.restoreOverrideCursor()
+
+				if printDlg.exec_():
+					AutomagicallyUpdater._setLastUsedDir( 'pdf', printer.outputFileName() )
+
+				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+			else:	# stampa direttamente su pdf
+				self.webView.print_(printer)
+
+		# stampa il successivo
+		self.printNext()
 

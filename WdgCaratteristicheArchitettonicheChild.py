@@ -80,11 +80,7 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 			valori.append( self.getValue(self.ALTRO) )
 		valori = map( str, valori )
 
-		incongruenze = """
-	<tr>
-		<td>Presenza di elementi incogruenti</td><td class="value">%s</td><td class="value">%s</td>
-	</tr>
-""" % ( "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) != None else "NO", self.getValue(self.DESCRIZIONI_INCONGRUENZE) )
+		incongruenze = self.getValue(self.DESCRIZIONI_INCONGRUENZE)
 
 		return """
 <table class="yellow border">
@@ -92,7 +88,9 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		<td class="subtitle">%s</td><td class="value">%s</td>
 		<td class="line">Stato di conservazione</td><td class="value">%s</td>
 	</tr>
-%s
+	<tr %s>
+		<td>Presenza di elementi incogruenti</td><td class="value">%s</td><td class="value">%s</td>
+	</tr>
 </table>
-""" % ( self.getNomeCaratteristica(), "<br>".join(valori), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), incongruenze if self.otherInfos else "" )
+""" % ( self.getNomeCaratteristica(), "<br>".join(valori), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), 'class="hidden"' if not self.otherInfos else '', "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) else "NO", incongruenze if incongruenze != None else '' )
 
