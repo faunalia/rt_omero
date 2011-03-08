@@ -20,3 +20,6 @@ class WdgCaratteristicheArchitettonicheBalconi(WdgCaratteristicheArchitettoniche
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_BALCONI_BALCONI")
 		self.ALTRO.setObjectName("ALTRO_BALCONE")
 
+	def getNomeCaratteristica(self):
+		return "Balconi"
+

@@ -61,13 +61,13 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		self.btnDel.setEnabled( enabler )
 
 
-	def getValues(self):
+	def getValues(self, getIDs=True):
 		values = []
 		row=0
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
-				values.append( model.record(row).value(0).toString() )
+				values.append( model.record(row).value(0 if getIDs else 1).toString() )
 			row = row + 1
 
 		return values
@@ -161,3 +161,4 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 
 	def delete(self):
 		self._deleteValue( self._tableName, { self._parentPkColumn : self._ID } )
+

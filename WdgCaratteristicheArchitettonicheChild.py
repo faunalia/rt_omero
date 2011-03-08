@@ -48,6 +48,7 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 
 	def showOtherInfos(self, show=True):
 		self.incongruenzeInfo.setVisible(show)
+		self.otherInfos = show
 		if show:
 			self.addChildRef(self.PRESENZA_INCONGRUENZE)
 			self.addChildRef(self.DESCRIZIONI_INCONGRUENZE, AutomagicallyUpdater.OPTIONAL)
@@ -65,4 +66,33 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		info = gridLayout.getItemPosition(index)
 		gridLayout.addWidget(self.ZZ_TIPO, *info)
 		#gridLayout.removeWidget(oldZZ_TIPO)
+
+	def getNomeCaratteristica(self):
+		pass
+
+	def toHtml(self):
+		valori = self.ZZ_TIPO.getValues(False)
+		if self.ALTRO.isEnabled():
+			for v in valori:
+				if v.endsWith("Altro"):
+					valori.remove(v)
+					break
+			valori.append( self.getValue(self.ALTRO) )
+		valori = map( str, valori )
+
+		incongruenze = """
+	<tr>
+		<td>Presenza di elementi incogruenti</td><td class="value">%s</td><td class="value">%s</td>
+	</tr>
+""" % ( "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) != None else "NO", self.getValue(self.DESCRIZIONI_INCONGRUENZE) )
+
+		return """
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">%s</td><td class="value">%s</td>
+		<td class="line">Stato di conservazione</td><td class="value">%s</td>
+	</tr>
+%s
+</table>
+""" % ( self.getNomeCaratteristica(), "<br>".join(valori), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), incongruenze if self.otherInfos else "" )
 

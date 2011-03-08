@@ -14,9 +14,17 @@ from AutomagicallyUpdater import *
 class WdgElencoFoto(MultiTabSection):
 
 	def __init__(self, parent=None):
+		self._hasTabs = False
 		MultiTabSection.__init__(self, parent, WdgFoto, "Foto", "FOTO_GEOREF_FOTO_EDIFICIO", "FOTO_GEOREFID", "FOTO_EDIFICIOID")
 		self.btnNew.setVisible( False )
 		self.setVisible( False )
+
+	def setVisible(self, enable):
+		MultiTabSection.setVisible(self, enable)
+		self._hasTabs = enable
+
+	def hasTabs(self):
+		return self._hasTabs
 
 	def save(self):
 		if not MultiTabSection.save(self):
@@ -25,7 +33,7 @@ class WdgElencoFoto(MultiTabSection):
 		# rimuovi i vecchi ID dalle tabella di normalizzazione
 		self._deleteValue(self._tableName, { self._parentPkColumn : self._ID })
 
-		if not self.isVisible():
+		if not self.hasTabs():
 			return True
 
 		# inserisci i nuovi ID nella tabella di normalizzazione evitando i doppioni
@@ -48,6 +56,7 @@ class WdgElencoFoto(MultiTabSection):
 	def setupLoader(self, ID=None):
 		MultiTabSection.setupLoader(self, ID)
 		self.setVisible( self.tabWidget.count() > 1 or self.tabWidget.widget(0)._ID != None )
+		
 
 	def aggiornaPulsanti(self):
 		self.btnDelete.setEnabled(True)
@@ -74,7 +83,7 @@ class WdgElencoFoto(MultiTabSection):
 
 
 	def caricaImmagine(self, filename):
-		if self.isVisible():
+		if self.hasTabs():
 			index = self.addTab()
 		else:
 			index = 0

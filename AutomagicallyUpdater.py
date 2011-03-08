@@ -404,14 +404,6 @@ class AutomagicallyUpdater:
 
 	@classmethod
 	def _getRealValue(self, value):
-		if value == self.VALORE_NON_INSERITO:
-			return
-
-		try:
-			if len(value) == 0:
-				return
-		except (TypeError, AttributeError):
-			pass
 
 		if isinstance(value, buffer):
 			value = QByteArray( str(value) )
@@ -421,9 +413,16 @@ class AutomagicallyUpdater:
 				return
 
 			if value.type() == QVariant.ByteArray:
-				return value.toByteArray()
+				value = value.toByteArray()
+			else:
+				value = value.toString()
 
-			return value.toString()
+		if value == self.VALORE_NON_INSERITO:
+			return
+
+		if hasattr(value, '__len__'):
+			if len(value) == 0:
+				return
 
 		return value
 

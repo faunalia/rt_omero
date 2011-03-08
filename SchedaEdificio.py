@@ -80,3 +80,28 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		finally:
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
+
+	def toHtml(self):
+		import os.path
+		currentPath = os.path.dirname(__file__)
+		css = os.path.join( currentPath, "docs", "default.css" )
+		giunta = os.path.join( currentPath, "docs", "RTgiunta_logo.jpg" )
+		return """
+<html>
+<head>
+	<title>Scheda di rilevamento</title>
+	<link media="all" href="%s" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div id="header">
+	<img id="rt_giunta" src="%s" alt="RT Giunta regionale">
+	<p><span id="ter_amb">Direzione Generale Politiche Territoriali e Ambientali</span><br>
+		<span id="sigta">Sistema Informativo per il Governo del Territorio e dell'Ambiente</span>
+	</p>
+	<p id="mude">Indagine sperimentale per la implementazione del DB Topografico attraverso rilievi sul campo sugli edifici e aggiornamento tramite il MUDE</p>
+</div>
+%s %s %s %s %s %s %s %s 
+</body>
+</html>
+""" % (css, giunta, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO_EDIFICIOID.toHtml() )

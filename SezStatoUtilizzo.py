@@ -58,3 +58,33 @@ class SezStatoUtilizzo(QWidget, MappingOne2One, Ui_Form):
 		query = AutomagicallyUpdater.Query( "SELECT * FROM " + listaConValori._tableWithValues + " WHERE ID IN (" + ",".join(values) + ") ORDER BY DESCRIZIONE ASC" )
 		self.loadTables(listaDiRiepilogo, query)
 
+	def toHtml(self):
+		uso_prevalente = map( str, self.CATEGORIA_USO_PREVALENTE.getValues(False) )
+		uso_terra = map( str, self.CATEGORIA_USO_PIANO_TERRA.getValues(False) )
+		uso_altri = map( str, self.CATEGORIA_USO_ALTRI_PIANI.getValues(False) )
+		return """
+<p class="section">SEZIONE A5 - STATO E UTILIZZO</p>
+<table class="white border">
+	<tr class="line">
+		<td class="subtitle">Tipologia edilizia</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td rowspan="3" class="subtitle">Categoria d'uso</td>
+		<td>Uso prevalente</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Uso piano terra</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Altri usi presenti</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Stato</td><td class="value">%s</td>
+		<td class="subtitle line">Fruizione temporale</td><td class="value">%s</td>
+	</tr>
+	<tr>
+		<td>Descrizione visiva dello stato attuale</td><td colspan="3" class="value">%s</td>
+	</tr>
+</table>
+"""	% ( self.ZZ_TIPOLOGIA_EDILIZIAID.currentText(), "<br>".join(uso_prevalente), "<br>".join(uso_terra), "<br>".join(uso_altri), self.ZZ_STATO_EDIFICIOID.currentText(), self.ZZ_FRUIZIONE_TEMPORALEID.currentText(), self.getValue(self.DESCRIZIONE_VISIVA) )
+

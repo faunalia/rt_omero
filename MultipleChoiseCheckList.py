@@ -35,12 +35,12 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 		itemsFound = self.list.findItems(text, matchFlags)
 		return len(itemsFound) > 0 and itemsFound[0].checkState() == Qt.Checked
 
-	def getValues(self):
+	def getValues(self, getIDs=True):
 		values = []
 		for row in range(self.list.count()):
 			item = self.list.item(row)
 			if item.checkState() == Qt.Checked:
-				values.append( item.data(Qt.UserRole).toString() )
+				values.append( item.data(Qt.UserRole).toString() if getIDs else item.text() )
 
 		return values
 

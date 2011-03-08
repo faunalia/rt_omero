@@ -52,3 +52,35 @@ class WdgStrutturePortantiVerticali(QWidget, MappingOne2One, Ui_Form):
 		self.ZZ_APPARECCHIATURA_MURARIAID.setEnabled(enabler)
 		self.ZZ_INCATENAMENTIID.setEnabled(enabler)
 
+	def toHtml(self):
+		tipologia = map( str, self.ZZ_TIPOLOGIA_COSTRUTTIVAID.getValues(False) )
+		return """
+<table class="green border">
+	<tr>
+		<td class="title" colspan="4">Strutture portanti verticali</td>
+	</tr>
+	<tr class="line">
+		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Tipologia costruttiva</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Stato di conservazione strutturale</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Apparecchiatura muraria</td><td class="value">%s</td>
+		<td class="subtitle line">Incatenamenti</td><td class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle" colspan="6">Tamponature</td>
+	</tr>
+	<tr class="line">
+		<td>Distribuzione</td><td class="value">%s</td>
+		<td class="line">Tipologia</td><td class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Piano debole</td><td colspan="3" class="value">%s</td>
+	</tr>
+</table>
+""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), "<br>".join(tipologia), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText(), self.ZZ_APPARECCHIATURA_MURARIAID.currentText(), self.ZZ_INCATENAMENTIID.currentText(), self.ZZ_TAMPONATURE_DISTRIBUZIONEID.currentText(), self.ZZ_TAMPONATURE_TIPOLOGIAID.currentText(), self.ZZ_TAMPONATURE_PRESENZA_PIANO_DEBOLEID.currentText() )

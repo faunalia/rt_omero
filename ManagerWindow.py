@@ -6,6 +6,8 @@ from PyQt4.QtGui import *
 from qgis.core import *
 import qgis.gui
 
+import resources
+
 from ConnectionManager import ConnectionManager
 from AutomagicallyUpdater import AutomagicallyUpdater
 from MapTools import *
@@ -57,6 +59,8 @@ class ManagerWindow(QDockWidget):
 		self.lineDrawer = LineDrawer()
 		QObject.connect(self.lineDrawer, SIGNAL("geometryEmitted"), self.spezzaGeometriaEsistente)
 
+		self.connect( self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
+
 		self.connect(self.btnSelNuovaScheda, SIGNAL("clicked()"), self.identificaNuovaScheda)
 		self.connect(self.btnSelSchedaEsistente, SIGNAL("clicked()"), self.apriScheda)
 		self.connect(self.btnEliminaScheda, SIGNAL("clicked()"), self.eliminaScheda)
@@ -64,6 +68,7 @@ class ManagerWindow(QDockWidget):
 		self.connect(self.btnCreaNuovaGeometria, SIGNAL("clicked()"), self.creaNuovaGeometria)
 		self.connect(self.btnRipulisciGeometrie, SIGNAL("clicked()"), self.ripulisciGeometrie)
 		self.connect(self.btnRiepilogoSchede, SIGNAL("clicked()"), self.riepilogoSchede)
+		self.connect(self.btnAbout, SIGNAL("clicked()"), self.about)
 
 	def setupUi(self):
 		self.setObjectName( "rt_omero_dockwidget" )
@@ -71,41 +76,57 @@ class ManagerWindow(QDockWidget):
 		self.child = QWidget()
 		gridLayout = QGridLayout(self.child)
 
-		text = QString.fromUtf8( "Identifica la geometria per \nla creazione di una nuova \nscheda edificio" )
-		self.btnSelNuovaScheda = QPushButton( text, self.child )
-		#self.btnSelNuovaScheda.setCheckable(True)
-		gridLayout.addWidget(self.btnSelNuovaScheda, 0, 0, 1, 1)
+		text = QString.fromUtf8( "Identifica la geometria per la creazione \ndi una nuova scheda edificio" )
+		self.btnSelNuovaScheda = QPushButton( QIcon(":/icons/nuova_scheda.png"), text, self.child )
+		self.btnSelNuovaScheda.setCheckable(True)
+		gridLayout.addWidget(self.btnSelNuovaScheda, 0, 0, 1, 2)
 
-		text = QString.fromUtf8( "Identifica la geometria per \nla apertura di una scheda \ngià esistente su di essa" )
-		self.btnSelSchedaEsistente = QPushButton( text, self.child )
-		#self.btnSelSchedaEsistente.setCheckable(True)
-		gridLayout.addWidget(self.btnSelSchedaEsistente, 1, 0, 1, 1)
+		text = QString.fromUtf8( "Identifica la geometria per l'apertura \ndi una scheda già esistente su di essa" )
+		self.btnSelSchedaEsistente = QPushButton( QIcon(":/icons/modifica_scheda.png"), text, self.child )
+		self.btnSelSchedaEsistente.setCheckable(True)
+		gridLayout.addWidget(self.btnSelSchedaEsistente, 1, 0, 1, 2)
 
 		text = QString.fromUtf8( "Elimina scheda edificio" )
-		self.btnEliminaScheda = QPushButton( text, self.child )
-		#self.btnEliminaScheda.setCheckable(True)
-		gridLayout.addWidget(self.btnEliminaScheda, 2, 0, 1, 1)
+		self.btnEliminaScheda = QPushButton( QIcon(":/icons/cancella_scheda.png"), text, self.child )
+		self.btnEliminaScheda.setCheckable(True)
+		gridLayout.addWidget(self.btnEliminaScheda, 2, 0, 1, 2)
 
-		text = QString.fromUtf8( "Crea una nuova geometria da zero" )
-		self.btnCreaNuovaGeometria = QPushButton( text, self.child )
-		#self.btnCreaNuovaGeometria.setCheckable(True)
-		gridLayout.addWidget(self.btnCreaNuovaGeometria, 3, 0, 1, 1)
+		text = QString.fromUtf8( "Crea una nuova geometria" )
+		self.btnCreaNuovaGeometria = QPushButton( QIcon(":/icons/crea_geometria.png"), text, self.child )
+		self.btnCreaNuovaGeometria.setCheckable(True)
+		gridLayout.addWidget(self.btnCreaNuovaGeometria, 3, 0, 1, 2)
 
 		text = QString.fromUtf8( "Spezza una geometria esistente" )
-		self.btnSpezzaGeometriaEsistente = QPushButton( text, self.child )
-		#self.btnSpezzaGeometriaEsistente.setCheckable(True)
-		gridLayout.addWidget(self.btnSpezzaGeometriaEsistente, 4, 0, 1, 1)
+		self.btnSpezzaGeometriaEsistente = QPushButton( QIcon(":/icons/spezza_geometria.png"), text, self.child )
+		self.btnSpezzaGeometriaEsistente.setCheckable(True)
+		gridLayout.addWidget(self.btnSpezzaGeometriaEsistente, 4, 0, 1, 2)
 
 		text = QString.fromUtf8( "Ripulisci geometrie non associate" )
-		self.btnRipulisciGeometrie = QPushButton( text, self.child )
-		gridLayout.addWidget(self.btnRipulisciGeometrie, 5, 0, 1, 1)
+		self.btnRipulisciGeometrie = QPushButton( QIcon(":/icons/ripulisci.png"), text, self.child )
+		gridLayout.addWidget(self.btnRipulisciGeometrie, 5, 0, 1, 2)
 
 		text = QString.fromUtf8( "Riepilogo schede edificio" )
-		self.btnRiepilogoSchede = QPushButton( text, self.child )
+		self.btnRiepilogoSchede = QPushButton( QIcon(":/icons/riepilogo_schede.png"), text, self.child )
 		gridLayout.addWidget(self.btnRiepilogoSchede, 6, 0, 1, 1)
+
+		text = QString.fromUtf8( "About" )
+		self.btnAbout = QPushButton( QIcon(":/icons/about.png"), text, self.child )
+		gridLayout.addWidget(self.btnAbout, 6, 1, 1, 1)
 
 		self.setWidget(self.child)
 
+	def about(self):
+		from DlgAbout import DlgAbout
+		DlgAbout(self).exec_()
+
+	def toolChanged(self, tool):
+		if tool == None:
+			return
+		self.btnSelNuovaScheda.setChecked( self.nuovaPointEmitter.isActive() )
+		self.btnSelSchedaEsistente.setChecked( self.isApriScheda and self.esistentePointEmitter.isActive() )
+		self.btnEliminaScheda.setChecked( not self.isApriScheda and self.esistentePointEmitter.isActive() )
+		self.btnCreaNuovaGeometria.setChecked( self.polygonDrawer.isActive() )
+		self.btnSpezzaGeometriaEsistente.setChecked( self.lineDrawer.isActive() )
 
 	def riepilogoSchede(self):
 		from DlgRiepilogoSchede import DlgRiepilogoSchede
@@ -114,9 +135,11 @@ class ManagerWindow(QDockWidget):
 
 	def identificaNuovaScheda(self, point=None, button=None):
 		if point == None:
+			self.btnSelNuovaScheda.setChecked(True)
 			return self.nuovaPointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
+			self.btnSelNuovaScheda.setChecked(False)
 			return
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
@@ -138,6 +161,7 @@ class ManagerWindow(QDockWidget):
 			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 			self.apriScheda(codice)
 			QApplication.restoreOverrideCursor()
+			self.btnSelNuovaScheda.setChecked(False)
 			return
 			
 		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
@@ -152,16 +176,26 @@ class ManagerWindow(QDockWidget):
 
 			self.apriScheda(uvID)
 			QApplication.restoreOverrideCursor()
+			self.btnSelNuovaScheda.setChecked(False)
 			return
 
 		return self.nuovaPointEmitter.startCapture()
 
 
 	def identificaSchedaEsistente(self, point=None, button=None):
+		print self.btnSelSchedaEsistente.isDown(), self.btnEliminaScheda.isDown()
 		if point == None:
+			if self.isApriScheda:
+				self.btnSelSchedaEsistente.setChecked(True)
+			else:
+				self.btnEliminaScheda.setChecked(True)
 			return self.esistentePointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
+			if self.isApriScheda:
+				self.btnSelSchedaEsistente.setChecked(False)
+			else:
+				self.btnEliminaScheda.setChecked(False)
 			return
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
@@ -178,20 +212,13 @@ class ManagerWindow(QDockWidget):
 				codice = feat.attributeMap()[0].toString()
 				if self.isApriScheda:
 					self.apriScheda( codice )
+					self.btnSelSchedaEsistente.setChecked(False)
 				else:
 					self.eliminaScheda( codice )
+					self.btnEliminaScheda.setChecked(False)
 				return
 
 			# NO, non esiste alcuna scheda associata a tale geometria
-			QMessageBox.warning( self, "RT Omero", "Non esiste alcun edificio sulla geometria selezionata" )
-			return self.esistentePointEmitter.startCapture()
-			
-		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
-		if layerOrig == None:
-			return
-
-		feat = self.esistentePointEmitter.findAtPoint(layerOrig, point)		
-		if feat != None:
 			QMessageBox.warning( self, "RT Omero", "Non esiste alcun edificio sulla geometria selezionata" )
 			return self.esistentePointEmitter.startCapture()
 
@@ -215,6 +242,7 @@ class ManagerWindow(QDockWidget):
 
 
 		if line == None:
+			self.btnSpezzaGeometriaEsistente.setChecked(True)
 			return self.lineDrawer.startCapture()
 
 		#TODO: fai qui i test sulla linea
@@ -299,10 +327,12 @@ class ManagerWindow(QDockWidget):
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
 
+		self.btnSpezzaGeometriaEsistente.setChecked(False)
 		return True
 
 	def creaNuovaGeometria(self, polygon=None):
 		if polygon == None:
+			self.btnCreaNuovaGeometria.setChecked(True)
 			return self.polygonDrawer.startCapture()
 
 		# TODO: fai qui i test sul poligono
@@ -327,6 +357,7 @@ class ManagerWindow(QDockWidget):
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
 
+		self.btnCreaNuovaGeometria.setChecked(False)
 		return True
 
 
@@ -409,6 +440,7 @@ class ManagerWindow(QDockWidget):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.chiudiSchedaAperta()
 
+		ManagerWindow.uvScheda = uvID
 		ManagerWindow.scheda = self.recuperaScheda( uvID )
 		if ManagerWindow.scheda._ID == None:
 			# imposta la geometria come abbinata a scheda
@@ -432,8 +464,6 @@ class ManagerWindow(QDockWidget):
 	def recuperaScheda(self, uvID):
 		query = AutomagicallyUpdater.Query( "SELECT SCHEDA_EDIFICIOID FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [ uvID ] )
 		schedaID = query.getFirstResult()
-
-		ManagerWindow.uvScheda = uvID
 
 		from SchedaEdificio import SchedaEdificio
 		return SchedaEdificio(ManagerWindow.instance, schedaID)
@@ -720,6 +750,7 @@ class ManagerWindow(QDockWidget):
 		self.removeLayersFromCanvas()
 		ConnectionManager.closeConnection()
 
+		self.disconnect( self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
 		self.nuovaPointEmitter.stopCapture()
 		self.esistentePointEmitter.stopCapture()
 		self.polygonDrawer.stopCapture()

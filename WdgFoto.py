@@ -86,14 +86,14 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		return MappingOne2One.delete(self)
 
 
-	def setValue(self, widget, value):
+	def setValue(self, widget, valueOld):
 		widget = self._getRealWidget(widget)
-		value = self._getRealValue(value)
+		value = self._getRealValue(valueOld)
 
 		if widget == self.IMAGE:
 			if isinstance(value, str) or isinstance(value, QString):
 				infile = open( unicode(value).encode('utf8'), "rb" )
-				self.imageBytes = value = QByteArray( infile.read() )
+				self.imageBytes = QByteArray( infile.read() )
 				infile.close()
 
 			elif isinstance(value, QByteArray):
@@ -111,4 +111,22 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		if widget == self.IMAGE:
 			return self._getRealValue( self.imageBytes )
 		return AutomagicallyUpdater.getValue(widget)
+
+	def toHtml(self, index):
+		return """
+<table class="border">
+	<tr>
+		<td>Foto #%d</td><td class="value">%s</td>
+	</tr>
+	<tr>
+		<td colspan="2"><img class="border" src="%s" alt="foto"></td>
+	</tr>
+	<tr>
+		<td colspan="2" class="value">%s</td>
+	</tr>
+	<tr>
+		<td>Annotazioni</td><td class="value">%s</td>
+	</tr>
+</table>
+""" % ( index+1, self.ZZ_FRONTE_EDIFICIOID.currentText(), "foto.jpg", self.getValue(self.FILENAME), self.getValue(self.ANNOTAZIONE) )
 

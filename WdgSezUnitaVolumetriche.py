@@ -145,3 +145,27 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 			return self._deleteGeometria(self.uvID)
 
 		return False
+
+	def toHtml(self, index):
+		strutture_oriz_copertura = self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID.toHtml() if self.getValue(self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID) != None else self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_GRANDI_LUCIID.toHtml()
+		return """
+<table class="blue border">
+	<tr class="line">
+		<td class="middle subtitle" rowspan="2" width="5%%">UV%d</td>
+		<td>ID_UV</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>N. piani interrati</td><td class="value">%s</td>
+		<td class="line">N. piani f. t.</td><td class="value">%s</td>
+	</tr>
+</table>
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle" rowspan="3" width="5%%"></td>
+		<td>Morfologia della copertura</td><td colspan="3" class="value">%s</td>
+	</tr>
+%s
+</table>
+%s
+"""	% ( index+1, self._ID, self.getValue(self.INTERR_NPIANI), self.getValue(self.FUORITERR_NPIANI), self.ZZ_MORFOLOGIA_COPERTURAID.currentText(), self.MANTO_COPERTURA_UNITA_VOLUMETRICAID.toHtml(), strutture_oriz_copertura )
+

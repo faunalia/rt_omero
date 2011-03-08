@@ -20,3 +20,6 @@ class WdgCaratteristicheArchitettonicheGronda(WdgCaratteristicheArchitettonicheC
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_GRONDA_GRONDA")
 		self.ALTRO.setObjectName("ALTRO_GRONDA")
 
+	def getNomeCaratteristica(self):
+		return "Gronda"
+

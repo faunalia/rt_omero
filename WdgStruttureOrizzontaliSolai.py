@@ -37,3 +37,22 @@ class WdgStruttureOrizzontaliSolai(QWidget, MappingOne2One, Ui_Form):
 		]
 		self.setupValuesUpdater(childrenList)
 
+	def toHtml(self, index):
+		tipologia = map( str, self.ZZ_TIPOLOGIA_COSTRUTTIVA_ORIZZONTALE_PREVALENTEID.getValues(False) )
+		return """
+<table class="green border">
+	<tr>
+		<td class="title" colspan="4">Strutture orizzontali solai</td>
+	</tr>
+	<tr class="line">
+		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Tipologia costruttiva</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr>
+		<td>Stato di conservazione</td><td colspan="3" class="value">%s</td>
+	</tr>
+</table>
+""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), "<br>".join(tipologia), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText() )
+

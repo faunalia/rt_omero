@@ -36,3 +36,12 @@ class SezFoto(QWidget, MappingOne2One, Ui_Form):
 		self.fileEdit.setText( filename )
 		self.listaFoto.caricaImmagine( filename )
 
+	def toHtml(self):
+		if not self.listaFoto.hasTabs():
+			return ""
+
+		return """
+<p class="section">SEZIONE A8 - FOTOGRAFIE</p>
+%s
+""" % ( self.listaFoto.toHtml() ) 
+

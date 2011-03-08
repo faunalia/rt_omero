@@ -20,3 +20,6 @@ class WdgCaratteristicheArchitettonicheSuperfetazioni(WdgCaratteristicheArchitet
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_SUPERFETAZIONI_SUPERFETAZIONI")
 		self.ALTRO.setObjectName("ALTRO_SUPERFETAZIONE_INCONGRUENZA")
 
+	def getNomeCaratteristica(self):
+		return "Superfetazioni e incongruenze"
+

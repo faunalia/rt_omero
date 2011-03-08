@@ -2,7 +2,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from PyQt4.QtSql import *
+from PyQt4.QtWebKit import *
 
 import qgis.gui
 import qgis.core
@@ -16,6 +16,12 @@ class DlgRiepilogoSchede(QDialog, MappingOne2One, Ui_Dialog):
 		QDialog.__init__(self, parent)
 		MappingOne2One.__init__(self)
 		self.setupUi(self)
+
+		# crea una webview e il preview dialog per la stampa
+		self.webView = QWebView( parent )
+		QObject.connect(self.webView, SIGNAL("loadFinished(bool)"), self.loadFinished)
+		self.printDlg = QPrintPreviewDialog( parent )
+		QObject.connect(self.printDlg, SIGNAL("paintRequested(QPrinter *)"), self.webView.print_)
 
 		# recupera il primo indirizzo di ogni scheda edificio
 		query_indirizzi = """
@@ -67,15 +73,19 @@ ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valid
 		self.loadTables()
 
 		self.connect(self.apriBtn, SIGNAL("clicked()"), self.apriScheda)
+		self.connect(self.stampaBtn, SIGNAL("clicked()"), self.stampaScheda)
 		self.connect(self.schedeList, SIGNAL("itemSelectionChanged()"), self.aggiornaPulsanti)
 
 		self.aggiornaPulsanti()
 
 	def aggiornaPulsanti(self):
 		self.apriBtn.setEnabled( self.getValue(self.schedeList) != None )
-		self.stampaBtn.setEnabled(False)
+		self.stampaBtn.setEnabled( self.getValue(self.schedeList) != None )
 
-	def apriScheda(self):
+	def stampaScheda(self):
+		self.apriScheda(True)
+
+	def apriScheda(self, stampa=False):
 		from ManagerWindow import ManagerWindow
 
 		schedaID = self.getValue( self.schedeList )
@@ -85,6 +95,20 @@ ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valid
 			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
 			return
 
-		ManagerWindow.apriScheda(uvID)
+		if not stampa:
+			ManagerWindow.apriScheda(uvID)
+			self.close()
 
-		self.close()
+		else:
+			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+			scheda = ManagerWindow.recuperaScheda(uvID)
+			if scheda:
+				self.webView.setHtml( scheda.toHtml() )
+
+
+	def loadFinished(self, ok):
+		QApplication.restoreOverrideCursor()
+		if not ok:
+			return
+		self.printDlg.exec_()
+

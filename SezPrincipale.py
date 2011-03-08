@@ -37,3 +37,31 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		
 		AutomagicallyUpdater.setValue(widget, value)
 		
+
+	def toHtml(self):
+		comIstat = QString(self._ID).remove( QRegExp('\-.*$') )
+		numScheda = QString(self._ID).mid( len(comIstat)+1 ).remove( QRegExp('\_.*$') )
+
+		rilevatoreID = self.getValue(self.RILEVATOREID)
+		ril = self.RILEVATOREID.model().record(0)
+		cognome = ril.value(1).toString()
+		nome = ril.value(2).toString()
+
+		return """
+<p class="section"><span class="scheda">SCHEDA A EDIFICIO </span>SEZIONE A1 - IDENTIFICAZIONE</p>
+<div class="border">
+<table class="blue">
+	<tr class="line">
+		<!--<td>ID Scheda</td><td class="value center">%s<br><span class="tooltip">COD. ISTAT COMUNE <span class="space">-</span> NUM. SCHEDA <span class="space">_</span> ID RILEVATORE</span></td>-->
+		<td>ID Scheda</td><td class="value">%s<br><span class="tooltip">COD. ISTAT COMUNE</span></td><td class="value" width="5px">-</td><td class="value">%s<br><span class="tooltip">NUM. SCHEDA</span></td><td class="value" width="5px">_</td><td class="value">%s<br><span class="tooltip">ID_RIL</span></td>
+		<td class="line">Data</td><td class="value">%s<br><span class="tooltip">GG MM AAAA</span></td>
+	</tr>
+</table>
+<table class="blue">
+	<tr>
+		<td>Rilevatori</td><td class="value">%s<br><span class="tooltip">NOME</span></td><td class="value">%s<br><span class="tooltip">COGNOME</span></td>
+		<td class="line">ID_RIL</td><td class="value">%s</td>
+	</tr>
+</table>
+</div>
+""" % (self._ID, comIstat, numScheda, rilevatoreID, self.getValue(self.DATA_COMPILAZIONE_SCHEDA), nome, cognome, rilevatoreID)

@@ -19,3 +19,7 @@ class WdgCaratteristicheArchitettonicheOscuramenti(WdgCaratteristicheArchitetton
 		# modifica il nome degli oggetti
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_OSCURAMENTI_OSCURAMENTI")
 		self.ALTRO.setObjectName("ALTRO_OSCURAMENTO")
+
+	def getNomeCaratteristica(self):
+		return "Oscuramenti"
+

@@ -41,3 +41,15 @@ class WdgMantoCoperturaUnitaVolumetrica(QWidget, MappingOne2One, Ui_Form):
 		enabler = self.ZZ_TIPO_MANTO_COPERTURAID.currentText().endsWith('Altro')
 		self.ALTRO_MANTO_COPERTURA.setEnabled(enabler)
 
+	def toHtml(self):
+		incongruenza = self.getValue(self.DESCRIZIONE_INCONGRUENZA)
+		return """
+	<tr class="line">
+		<td>Manto di copertura</td><td class="value">%s</td>
+		<td class="line">Stato di conservazione</td><td class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Presenza di elementi incogruenti</td><td class="value">%s</td><td colspan="2" class="value">%s</td>
+	</tr>
+""" % ( self.ZZ_TIPO_MANTO_COPERTURAID.currentText() if not self.ALTRO_MANTO_COPERTURA.isEnabled() else self.getValue(self.ALTRO_MANTO_COPERTURA), self.ZZ_STATO_CONSERVAZIONE_MANTOID.currentText(), "SI" if incongruenza != None else "NO", incongruenza if incongruenza != None else "" )
+

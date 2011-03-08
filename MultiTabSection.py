@@ -89,3 +89,9 @@ class MultiTabSection(QWidget, MappingOne2Many, Ui_MultiTabSection):
 	def setupUpdater(self, ID=None):
 		MappingOne2Many.setupUpdater(ID)
 		self.tabWidget.setCurrentIndex(0)
+
+	def toHtml(self):
+		html = ""
+		for index in range(self.tabWidget.count()):
+			html += self.tabWidget.widget(index).toHtml(index)
+		return html

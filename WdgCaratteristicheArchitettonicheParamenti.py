@@ -20,3 +20,7 @@ class WdgCaratteristicheArchitettonicheParamenti(WdgCaratteristicheArchitettonic
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_PARAMENTI_ARCHITETTONICI_PARAMENTI")
 		self.DESCRIZIONI_INCONGRUENZE.setObjectName("DESCRIZIONE_INCONGRUENZE")
 		self.ALTRO.setObjectName("ALTRO_PARAMENTO")
+
+	def getNomeCaratteristica(self):
+		return "Paramenti"
+

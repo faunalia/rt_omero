@@ -32,3 +32,29 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 		]
 		self.setupValuesUpdater(childrenList)
 
+	def toHtml(self):
+		catastali = self.PARTICELLE_CATASTALI.getValues()
+		fogli = map(lambda x: str(x[0] if x[0] != None else ""), catastali)
+		particelle = map(lambda x: str(x[1] if x[1] != None else ""), catastali)
+		isolato = self.getValue(self.EDIFICIO_ISOLATO)
+		return """
+<p class="section">SEZIONE A2 - LOCALIZZAZIONE DELL'EDIFICIO</p>
+<div class="border">
+%s
+<table class="blue">
+	<tr class="line">
+		<td class="subtitle">Riferimenti catastali</td>
+		<td class="line">Foglio</td><td class="value">%s</td>
+		<td class="line">Particelle</td><td class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Edificio isolato</td><td class="value">%s</td>
+		<td colspan="2" class="line">Posizione dell'edificio nell'aggregato strutturale</td><td class="value">%s</td>
+	</tr>
+	<tr>
+		<td>Numero unit&agrave immobiliari</td><td class="value">%s</td>
+		<td colspan="2" class="line">Propriet&agrave prevalente</td><td class="value">%s</td>
+	</tr>
+</table>
+</div>
+""" % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), "<br>".join(fogli), "<br>".join(particelle), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETA_PREVALENTEID.currentText() )

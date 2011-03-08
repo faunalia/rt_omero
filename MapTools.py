@@ -8,7 +8,6 @@ import qgis.gui
 
 class MapTool(QObject):
 	canvas = None
-	currentTool = None
 
 	def __init__(self, mapToolClass, canvas=None):
 		QObject.__init__(self)
@@ -29,17 +28,14 @@ class MapTool(QObject):
 			return
 		self.emit( SIGNAL( "geometryEmitted" ), geometry )
 
-	def startCapture(self):
-		if MapTool.currentTool:
-			MapTool.currentTool.stopCapture()
+	def isActive(self):
+		return self.canvas != None and self.canvas.mapTool() == self.tool
 
-		MapTool.currentTool = self
+	def startCapture(self):
 		self.canvas.setMapTool( self.tool )
 
 	def stopCapture(self):
 		self.canvas.unsetMapTool( self.tool )
-		if MapTool.currentTool == self:
-			MapTool.currentTool = None
 
 	class Drawer(qgis.gui.QgsMapToolEmitPoint):
 		def __init__(self, canvas, isPolygon=False):

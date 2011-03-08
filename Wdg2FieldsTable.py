@@ -85,6 +85,17 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 
 		return string
 
+	def getValues(self, getIDs=True):
+		values = []
+		for row in range(self.table.rowCount()):
+			item1 = self.table.item(row, 0)
+			item2 = self.table.item(row, 1)
+			if item1 == None:
+				continue
+
+			values.append( item1.data(Qt.UserRole).toString() if getIDs else (item1.text(), item2.text() if item2 != None else None) )
+		return values
+
 	def clear(self):
 		for i in range(self.table.rowCount()):
 			self.table.removeRow(0)

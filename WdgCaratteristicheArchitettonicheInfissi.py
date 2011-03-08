@@ -20,3 +20,6 @@ class WdgCaratteristicheArchitettonicheInfissi(WdgCaratteristicheArchitettoniche
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_INFISSI_INFISSI")
 		self.ALTRO.setObjectName("ALTRO_INFISSO")
 
+	def getNomeCaratteristica(self):
+		return "Infissi"
+

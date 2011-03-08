@@ -21,3 +21,6 @@ class WdgCaratteristicheArchitettonicheElemDecorativi(WdgCaratteristicheArchitet
 		self.ZZ_TIPO.setObjectName("ZZ_TIPO_ELEMENTI_DECORATIVI_ELEMENTI_DECORATIVI")
 		self.ALTRO.setObjectName("ALTRO_ELEMENTO_DECORATIVO")
 
+	def getNomeCaratteristica(self):
+		return "Elem. arch. decorativi"
+

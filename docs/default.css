@@ -1,0 +1,106 @@
+html {
+	margin: auto 0px;
+}
+
+body {
+	font-family: Arial, Verdana, sans-serif;
+	font-size: 12px;
+}
+
+#header {
+	text-align: center;
+	font-size: 16px;
+}
+
+#rt_giunta {
+	width: 280px;
+}
+#ter_amb {
+	font-size: 18px;
+}
+#sigta {
+	font-weight: bold;
+}
+#mude {
+	font-variant: small-caps;
+}
+
+.scheda {
+	font-size: 18px;
+}
+
+.section {
+	padding-top: 20px;
+	font-weight: bold;
+	font-size: 14px;
+}
+
+table {
+	width: 100%;
+	border-spacing: 0px;
+	page-break-inside: avoid;
+}
+table.border, div.border, img.border {
+	border: 1px solid gray;
+}
+
+h3 {
+	padding: 20px 0px 0px 0px;
+}
+
+td {
+	padding: 10px;
+	vertical-align: top;
+}
+
+tr.line td {
+	border-bottom: 1px solid white;
+}
+td.line {
+	border-left: 1px solid white;
+}
+
+.white tr.line td {
+	border-bottom: 1px solid lightgray;
+}
+.white td.line {
+	border-left: 1px solid lightgray;
+}
+
+.blue {
+	background-color: #cdffff;
+}
+.yellow {
+	background-color: #ffff9a;
+}
+.green {
+	background-color: #cdff9a;
+}
+
+.middle {
+	vertical-align: middle;
+}
+.center {
+	text-align: center;
+}
+
+.title {
+	font-weight: bold;
+	font-variant: small-caps;
+	font-size: 14px;
+}
+.subtitle {
+	font-weight: bold;
+}
+
+.value {
+	font-style: italic;
+}
+.tooltip {
+	font-style: normal;
+	font-size: 9px;
+}
+
+.space {
+	padding: 0px 30px;
+}

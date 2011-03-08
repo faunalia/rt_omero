@@ -45,3 +45,31 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 	def showOtherInfos(self, show=True):
 		self.EPOCA_COSTRUTTIVA.setVisible(show)
 
+	def toHtml(self, index):
+		intervento = self.getValue(self.INTERVENTO_IN_CORSO)
+		return """
+<table class="white border">
+	<tr class="line">
+		<td colspan="4" class="subtitle">Interventi strutturali successivi</td>
+	</tr>
+	<tr class="line">
+		<td>Categoria di intervento</td><td class="value">%s</td>
+		<td class="line">Normativa sismica di riferimento</td><td class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Anno di progettazione</td><td class="value">%s</td>
+		<td class="line">Qualit&agrave; dell'informazione</td><td class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Descrizione dell'intervento</td><td colspan="3" class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Titolo abilitativo n.</td><td class="value">%s</td>
+		<td>data</td><td class="value">%s</td>
+	</tr>
+	<tr>
+		<td>Intervento in corso</td><td colspan="3" class="value">%s</td>
+	</tr>
+</table>
+""" % ( self.ZZ_TIPO_INTERVENTOID.currentText(), self.ZZ_NORMATIVA_SISMICAID.currentText(), self.getValue(self.ANNO_PROGETTAZIONE), self.ZZ_QUALITA_INFORMAZIONEID.currentText(), self.getValue(self.DESCRIZ_INTERV), self.getValue(self.TITOLO_ABILITATIVO), self.getValue(self.DATA_TITOLO_ABILITATIVO), "SI" if intervento else "NO" )
+

@@ -132,4 +132,8 @@ class SezUnitaVolumetriche(MultiTabSection):
 				self.tabWidget.setCurrentIndex(index)
 				return
 
-
+	def toHtml(self):
+		return """
+<p class="section">SEZIONE A3 - IDENTIFICAZIONE DELLE UNITA' VOLUMETRICHE</p>
+%s
+""" % MultiTabSection.toHtml(self)

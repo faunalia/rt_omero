@@ -229,3 +229,19 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self.NUMERI_CIVICI.save()
 
 		return True
+
+	def toHtml(self, index):
+		civici = map(lambda x: str( (x[0] if x[0] != None else "") + (x[1] if x[1] != None else "") ), self.NUMERI_CIVICI.getValues())
+		return """
+<table class="blue">
+	<tr class="line">
+		<td>Provincia</td><td class="value">%s</td>
+		<td class="line">Comune</td><td class="value">%s</td>
+	</tr>
+	<tr class="line">
+		<td>Via/Piazza</td><td class="value">%s</td>
+		<td class="line">Num. Civici</td><td class="value">%s</td>
+	</tr>
+</table>
+""" % ( self.ZZ_COMUNIISTATCOM.currentText(), self.ZZ_PROVINCEISTATPROV.currentText(), self.VIA.currentText(), ", ".join(civici) )
+

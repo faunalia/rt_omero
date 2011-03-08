@@ -1,0 +1,311 @@
+<html>
+<head>
+	<title>Scheda di rilevamento</title>
+	<link media="all" href="default.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+
+<div id="header">
+	<img id="rt_giunta" src="RTgiunta_logo.jpg" alt="RT Giunta regionale">
+	<p><span id="ter_amb">Direzione Generale Politiche Territoriali e Ambientali</span><br>
+		<span id="sigta">Sistema Informativo per il Governo del Territorio e dell'Ambiente</span>
+	</p>
+	<p id="mude">Indagine sperimentale per la implementazione del DB Topografico attraverso rilievi sul campo sugli edifici e aggiornamento tramite il MUDE</p>
+</div>
+
+<div id="container">
+<p class="section"><span class="scheda">SCHEDA A EDIFICIO </span>SEZIONE A1 - IDENTIFICAZIONE</p>
+<div class="border">
+<table class="blue">
+	<tr class="line">
+		<!---<td>ID Scheda</td><td class="value center">09050026-20110304215314-4717-1_09050026-1<br><span class="tooltip">COD. ISTAT COMUNE <span class="space">-</span> NUM. SCHEDA <span class="space">_</span> ID RILEVATORE</span></td>-->
+		<td>ID Scheda</td><td class="value">istat<br><span class="tooltip">COD. ISTAT COMUNE</span></td><td class="value" width="5px">-</td><td class="value">x<br><span class="tooltip">NUM. SCHEDA</span></td><td class="value" width="5px">_</td><td class="value">rilevatore<br><span class="tooltip">ID_RIL</span></td>
+		<td class="line">Data</td><td class="value">01/01/2001<br><span class="tooltip">GG MM AAAA</span></td>
+	</tr>
+</table>
+<table class="blue">
+	<tr>
+		<td>Rilevatori</td><td class="value">nome<br><span class="tooltip">NOME</span></td><td class="value">cognome<br><span class="tooltip">COGNOME</span></td>
+		<td class="line">ID_RIL</td><td class="value">rilevatore</td>
+	</tr>
+</table>
+</div>
+
+<p class="section">SEZIONE A2 - LOCALIZZAZIONE DELL'EDIFICIO</p>
+<div class="border">
+<table class="blue">
+	<tr class="line">
+		<td>Provincia</td><td colspan="2" class="value">PI</td>
+		<td class="line">Comune</td><td class="value">Pisa</td>
+	</tr>
+	<tr class="line">
+		<td>Via/Piazza</td><td colspan="2" class="value">via Cagliari</td>
+		<td class="line">Num. Civici</td><td class="value">38, 40, 40BIS</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Riferimenti catastali</td>
+		<td class="line">Foglio</td><td class="value">123</td>
+		<td class="line">Particelle</td><td class="value">1, 15, 32</td>
+	</tr>
+</table>
+<table class="blue">
+	<tr class="line">
+		<td>Edificio isolato</td><td class="value">SI</td>
+		<td class="line">Posizione dell'edificio nell'aggregato strutturale</td><td class="value">interno</td>
+	</tr>
+	<tr>
+		<td>Numero unit&agrave immobiliari</td><td class="value">3</td>
+		<td class="line">Propriet&agrave prevalente</td><td class="value">pubblica</td>
+	</tr>
+</table>
+</div>
+
+<p class="section">SEZIONE A3 - IDENTIFICAZIONE DELLE UNITA' VOLUMETRICHE</p>
+<table class="blue border">
+	<tr class="line">
+		<td class="middle subtitle" rowspan="2" width="5%">UV1</td>
+		<td>ID_UV</td><td colspan="3" class="value">x</td>
+		<!--<td>ID_UV_bis</td><td class="value">x</td>-->
+	</tr>
+	<tr class="line">
+		<td>N. piani interrati</td><td class="value">1</td>
+		<td class="line">N. piani f. t.</td><td class="value">2</td>
+	</tr>
+</table>
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle" rowspan="3" width="5%"></td>
+		<td>Morfologia della copertura</td><td colspan="3" class="value">piana</td>
+	</tr>
+	<tr class="line">
+		<td>Manto di copertura</td><td class="value">coppi<br>legno</td>
+		<td class="line">Stato di conservazione</td><td class="value">cattivo</td>
+	</tr>
+	<tr class="line">
+		<td>Presenza di elementi incogruenti</td><td class="value">SI</td><td colspan="2" class="value">segue descrizione</td>
+	</tr>
+</table>
+
+<table class="green border">
+	<tr>
+		<td class="title" colspan="4">Strutture orizzontali - Copertura > Edifici ordinari</td>
+	</tr>
+	<tr class="line">
+		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">media</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Tipologia costruttiva</td><td colspan="3" class="value">struttura in legno<br>laterocemento</td>
+	</tr>
+	<tr>
+		<td>Comportamento strutturale</td><td class="value">copertura a spinta contrastata</td>
+		<td class="line">Stato di conservazione</td><td class="value">medio</td>
+	</tr>
+</table>
+
+<table class="green border">
+	<tr>
+		<td class="title" colspan="4">Strutture orizzontali - Copertura > Edifici con grandi luci (capannoni, palestre, piscine, etc.)</td>
+	</tr>
+	<tr class="line">
+		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">media</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Tipologia costruttiva</td><td class="value">travi ad arco semplici o reticolari<br>piastre</td>
+		<td class="subtitle line">Materiale</td><td class="value">acciaio</td>
+	</tr>
+	<tr>
+		<td>Comportamento strutturale</td><td class="value">copertura a spinta contrastata</td>
+		<td class="line">Stato di conservazione</td><td class="value">medio</td>
+	</tr>
+</table>
+
+<p class="section">SEZIONE A4 - DATAZIONE INTERVENTI DELL'EDIFICIO</p>
+<table class="white border">
+	<tr class="line">
+		<td colspan="6" class="subtitle">Epoca di impianto</td>
+	</tr>
+	<tr>
+		<td class="subtitle">Inizio della costruzione</td><td class="value">2004</td>
+		<td class="subtitle line">Fine della costruzione</td><td class="value">2008</td>
+		<td class="line">Qualit&agrave; dell'informazione</td><td class="value">media</td>
+	</tr>
+</table>
+
+<table class="white border">
+	<tr class="line">
+		<td colspan="4" class="subtitle">Interventi strutturali successivi</td>
+	</tr>
+	<tr class="line">
+		<td>Categoria di intervento</td><td class="value">restauro e risanamento conservativo</td>
+		<td class="line">Normativa sismica di riferimento</td><td class="value">D.M. 03/03/1975</td>
+	</tr>
+	<tr class="line">
+		<td>Anno di progettazione</td><td class="value">2003</td>
+		<td class="line">Qualit&agrave; dell'informazione</td><td class="value">media</td>
+	</tr>
+	<tr class="line">
+		<td>Descrizione dell'intervento</td><td colspan="3" class="value">segue descrizione</td>
+	</tr>
+	<tr class="line">
+		<td>Titolo abilitativo n.</td><td class="value">abc55412t</td>
+		<td>data</td><td class="value">01/01/2001</td>
+	</tr>
+	<tr>
+		<td>Intervento in corso</td><td colspan="3" class="value">NO</td>
+	</tr>
+</table>
+
+<p class="section">SEZIONE A5 - STATO E UTILIZZO</p>
+<table class="white border">
+	<tr class="line">
+		<td class="subtitle">Tipologia edilizia</td><td colspan="3" class="value">villetta a schiera</td>
+	</tr>
+	<tr class="line">
+		<td rowspan="3" class="subtitle">Categoria d'uso</td>
+		<td>Uso prevalente</td><td colspan="3" class="value">residenziale<br>abitativo</td>
+	</tr>
+	<tr class="line">
+		<td>Uso piano terra</td><td colspan="3" class="value">residenziale<br>abitativo</td>
+	</tr>
+	<tr class="line">
+		<td>Altri usi presenti</td><td colspan="3" class="value">residenziale<br>abitativo</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Stato</td><td class="value">in esercizio</td>
+		<td class="subtitle line">Fruizione temporale</td><td class="value">periodica</td>
+	</tr>
+	<tr>
+		<td>Descrizione visiva dello stato attuale</td><td colspan="3" class="value">segue descrizione</td>
+	</tr>
+</table>
+
+<p class="section">SEZIONE A6 - CARATTERISTICHE STRUTTURALI</p>
+<table class="green border">
+	<tr>
+		<td class="title" colspan="4">Strutture portanti verticali</td>
+	</tr>
+	<tr class="line">
+		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">media</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Tipologia costruttiva</td><td colspan="3" class="value">muratura<br>acciaio</td>
+	</tr>
+	<tr class="line">
+		<td>Stato di conservazione strutturale</td><td colspan="3" class="value">cattivo</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Apparecchiatura muraria</td><td class="value">pezzatura omogenea</td>
+		<td class="subtitle line">Incatenamenti</td><td class="value">Presenza di catene metalliche</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle" colspan="6">Tamponature</td>
+	</tr>
+	<tr class="line">
+		<td>Distribuzione</td><td class="value">tamponature mal distribuite sul perimetro</td>
+		<td class="line">Tipologia</td><td class="value">tamponature consistenti</td>
+	</tr>
+	<tr class="line">
+		<td>Piano debole</td><td colspan="3" class="value">assenza piano debole</td>
+	</tr>
+</table>
+
+<table class="green border">
+	<tr>
+		<td class="title" colspan="4">Strutture orizzontali solai</td>
+	</tr>
+	<tr class="line">
+		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">media</td>
+	</tr>
+	<tr class="line">
+		<td class="subtitle">Tipologia costruttiva</td><td colspan="3" class="value">muratura<br>acciaio</td>
+	</tr>
+	<tr>
+		<td>Stato di conservazione</td><td colspan="3" class="value">cattivo</td>
+	</tr>
+</table>
+
+<p class="section">SEZIONE A7 - CARATTERISTICHE ARCHITETTONICHE</p>
+<table class="yellow border">
+	<tr>
+		<td class="subtitle">Prospetti</td><td class="value">impaginato regolare</td>
+	</tr>
+</table>
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">Paramenti</td><td class="value">laterizio faccia a vista<br>tracce di intonaco</td>
+		<td class="line">Stato di conservazione</td><td class="value">cattivo</td>
+	</tr>
+	<tr>
+		<td>Presenza di elementi incogruenti</td><td class="value">SI</td><td class="value">segue descrizione</td>
+	</tr>
+</table>
+
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">Balconi</td><td class="value">inclusi nel volume del fabbricato</td>
+		<td class="line">Stato di conservazione</td><td class="value">cattivo</td>
+	</tr>
+	<tr>
+		<td>Presenza di elementi incogruenti</td><td class="value">SI</td><td class="value">segue descrizione</td>
+	</tr>
+</table>
+
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">Infissi</td><td class="value">ferro, acciaio</td>
+		<td class="line">Stato di conservazione</td><td class="value">cattivo</td>
+	</tr>
+	<tr>
+		<td>Presenza di elementi incogruenti</td><td class="value">SI</td><td class="value">segue descrizione</td>
+	</tr>
+</table>
+
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">Oscuramenti</td><td class="value">scuri in metallo</td>
+		<td class="line">Stato di conservazione</td><td class="value">cattivo</td>
+	</tr>
+	<tr>
+		<td>Presenza di elementi incogruenti</td><td class="value">SI</td><td class="value">segue descrizione</td>
+	</tr>
+</table>
+
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">Gronda</td><td class="value">travetti in cemento e tavelloni</td>
+		<td class="line">Stato di conservazione</td><td class="value">cattivo</td>
+	</tr>
+	<tr>
+		<td>Presenza di elementi incogruenti</td><td class="value">SI</td><td class="value">segue descrizione</td>
+	</tr>
+</table>
+
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">Elem. arch. decorativi</td><td class="value">basamento/zoccolatura</td>
+		<td class="line">Stato di conservazione</td><td class="value">cattivo</td>
+	</tr>
+</table>
+
+<table class="yellow border">
+	<tr class="line">
+		<td class="subtitle">Superfetazioni e incongruenze</td><td class="value">tamponamento di strutture aperte<br>impianti tecnologici incongruenti</td>
+	</tr>
+</table>
+
+<p class="section">SEZIONE A8 - FOTOGRAFIE</p>
+<table class="border">
+	<tr>
+		<td>Foto</td><td class="value">annotazioni fotografia</td>
+	</tr>
+	<tr>
+		<td colspan="2"><img class="border" src="foto.jpg" alt="foto"></td>
+	</tr>
+	<tr>
+		<td colspan="2" class="value">percorso fotografia</td>
+	</tr>
+</table>
+</div>
+
+</body>
+</html>
