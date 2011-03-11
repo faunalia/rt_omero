@@ -10,7 +10,7 @@ from MultiTabSection import MultiTabSection
 from WdgSezUnitaVolumetriche import WdgSezUnitaVolumetriche
 from AutomagicallyUpdater import *
 
-from MapTools import *
+import Utils
 from ManagerWindow import ManagerWindow
 
 class SezUnitaVolumetriche(MultiTabSection):
@@ -19,12 +19,14 @@ class SezUnitaVolumetriche(MultiTabSection):
 		MultiTabSection.__init__(self, parent, WdgSezUnitaVolumetriche, "UV", "SCHEDA_UNITA_VOLUMETRICA", None, "SCHEDA_EDIFICIOID")
 		self.connect(self.tabWidget, SIGNAL( "currentChanged(int)" ), self.currentTabChanged)
 
+		self.pluginManager = ManagerWindow.instance
+		self.iface = self.pluginManager.iface
 		self.firstTab = self.tabWidget.widget(0)
 
-		self.pointEmitter = FeatureFinder()
+		self.pointEmitter = Utils.FeatureFinder()
 		QObject.connect(self.pointEmitter, SIGNAL("pointEmitted"), self.clickedOnCanvas)
 
-		self.firstTab.setCurrentUV(ManagerWindow.uvScheda)
+		self.firstTab.setCurrentUV(self.pluginManager.uvScheda)
 		self.currentTabChanged(0)
 
 	def assegnaGeomNuova(self, feat):
@@ -33,9 +35,9 @@ class SezUnitaVolumetriche(MultiTabSection):
 		index = self.addTab()
 		currentTab = self.tabWidget.widget(index)
 
-		ID = ManagerWindow.copiaGeometria(feat)
+		ID = self.pluginManager.copiaGeometria(feat)
 		currentTab.setCurrentUV(ID)
-		ManagerWindow.scheda.show()
+		self.pluginManager.scheda.show()
 		self.tabWidget.setCurrentIndex(index)
 
 		QApplication.restoreOverrideCursor()
@@ -48,25 +50,25 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 		codice = feat.attributeMap()[0].toString()
 		currentTab.setCurrentUV(codice)
-		ManagerWindow.scheda.show()
+		self.pluginManager.scheda.show()
 		self.tabWidget.setCurrentIndex(index)
 
 		QApplication.restoreOverrideCursor()
 
 	def startCapture(self):
-		ManagerWindow.iface.mainWindow().statusBar().showMessage( QString( u"Seleziona l'unità volumetrica da associare alla scheda" ) )
-		ManagerWindow.scheda.hide()
+		self.iface.mainWindow().statusBar().showMessage( QString( u"Seleziona l'unità volumetrica da associare alla scheda" ) )
+		self.pluginManager.scheda.hide()
 		return self.pointEmitter.startCapture()
 
 	def stopCapture(self):
 		self.pointEmitter.stopCapture()
-		ManagerWindow.iface.mainWindow().statusBar().clearMessage()		
+		self.iface.mainWindow().statusBar().clearMessage()
 
 	def clickedOnCanvas(self, point=None, button=None):
 		self.stopCapture()
 
 		if button != Qt.LeftButton:
-			ManagerWindow.scheda.show()
+			self.pluginManager.scheda.show()
 			return
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
@@ -120,7 +122,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 		if refreshCanvas:
 			# aggiorna il layer con le geometrie modificate
-			ManagerWindow.aggiornaLayerModif()
+			self.pluginManager.aggiornaLayerModif()
 
 	def setupLoader(self, ID=None):
 		MultiTabSection.setupLoader(self, ID)
@@ -128,12 +130,14 @@ class SezUnitaVolumetriche(MultiTabSection):
 		# seleziona il tab contenente l'UV selezionata in canvas
 		for index in range(self.tabWidget.count()):
 			uvWidget = self.tabWidget.widget(index)
-			if uvWidget.uvID == ManagerWindow.uvScheda:
+			if uvWidget.uvID == self.pluginManager.uvScheda:
 				self.tabWidget.setCurrentIndex(index)
 				return
 
 	def toHtml(self):
 		return """
+<div id="sez3" class="block">
 <p class="section">SEZIONE A3 - IDENTIFICAZIONE DELLE UNITA' VOLUMETRICHE</p>
 %s
+</div>
 """ % MultiTabSection.toHtml(self)

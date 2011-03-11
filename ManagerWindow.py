@@ -10,7 +10,7 @@ import resources
 
 from ConnectionManager import ConnectionManager
 from AutomagicallyUpdater import AutomagicallyUpdater
-from MapTools import *
+from Utils import *
 
 class ManagerWindow(QDockWidget):
 
@@ -18,32 +18,39 @@ class ManagerWindow(QDockWidget):
 	TABLE_GEOM_ORIG = "GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA".lower()
 	TABLE_GEOM_MODIF = "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE".lower()
 
+	# nomi dei layer in TOC
+	LAYER_GEOM_ORIG = "Geom. Originali"
+	LAYER_GEOM_MODIF = "Geom. Suddivise o Ex-Novo"
+	LAYER_FOTO = "Foto Edifici"
+
 	# ID dei layer contenenti geometrie e wms
 	VLID_GEOM_ORIG = ''
 	VLID_GEOM_MODIF = ''
+	VLID_FOTO = ''
 	RLID_WMS = {}
 
 	# stile per i layer delle geometrie
 	STYLE_PATH = "styles"
 	STYLE_GEOM_ORIG = "stile_geometrie_originali.qml"
 	STYLE_GEOM_MODIF = "stile_geometrie_modificate.qml"
+	STYLE_FOTO = "stile_foto.qml"
 
 	DEFAULT_SRID = 3003
 
 	instance = None
-	iface = None
-	scheda = None
-	uvScheda = None
-
+	
 	def __init__(self, parent=None, iface=None):
 		QDockWidget.__init__(self, parent)
 		self.setAttribute(Qt.WA_DeleteOnClose)
-		ManagerWindow.instance = self
-		ManagerWindow.iface = iface
-		self.canvas = iface.mapCanvas()
 		self.setupUi()
 
+		ManagerWindow.instance = self
+		self.iface = iface
+		self.canvas = self.iface.mapCanvas()
+		self.scheda = None
+		self.uvScheda = None
 		self.isApriScheda = True
+		self.srid = ManagerWindow.DEFAULT_SRID
 
 		MapTool.canvas = self.canvas
 
@@ -59,6 +66,9 @@ class ManagerWindow(QDockWidget):
 		self.lineDrawer = LineDrawer()
 		QObject.connect(self.lineDrawer, SIGNAL("geometryEmitted"), self.spezzaGeometriaEsistente)
 
+		self.fotoPointEmitter = FeatureFinder()
+		QObject.connect(self.fotoPointEmitter, SIGNAL("pointEmitted"), self.identificaFoto)
+
 		self.connect( self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
 
 		self.connect(self.btnSelNuovaScheda, SIGNAL("clicked()"), self.identificaNuovaScheda)
@@ -68,6 +78,7 @@ class ManagerWindow(QDockWidget):
 		self.connect(self.btnCreaNuovaGeometria, SIGNAL("clicked()"), self.creaNuovaGeometria)
 		self.connect(self.btnRipulisciGeometrie, SIGNAL("clicked()"), self.ripulisciGeometrie)
 		self.connect(self.btnRiepilogoSchede, SIGNAL("clicked()"), self.riepilogoSchede)
+		self.connect(self.btnSelFoto, SIGNAL("clicked()"), self.identificaFoto)
 		self.connect(self.btnAbout, SIGNAL("clicked()"), self.about)
 
 	def setupUi(self):
@@ -107,11 +118,16 @@ class ManagerWindow(QDockWidget):
 
 		text = QString.fromUtf8( "Riepilogo schede edificio" )
 		self.btnRiepilogoSchede = QPushButton( QIcon(":/icons/riepilogo_schede.png"), text, self.child )
-		gridLayout.addWidget(self.btnRiepilogoSchede, 6, 0, 1, 1)
+		gridLayout.addWidget(self.btnRiepilogoSchede, 6, 0, 1, 2)
+
+		text = QString.fromUtf8( "Visualizza foto" )
+		self.btnSelFoto = QPushButton( QIcon(":/icons/foto.png"), text, self.child )
+		self.btnSelFoto.setCheckable(True)
+		gridLayout.addWidget(self.btnSelFoto, 7, 0, 1, 1)
 
 		text = QString.fromUtf8( "About" )
 		self.btnAbout = QPushButton( QIcon(":/icons/about.png"), text, self.child )
-		gridLayout.addWidget(self.btnAbout, 6, 1, 1, 1)
+		gridLayout.addWidget(self.btnAbout, 7, 1, 1, 1)
 
 		self.setWidget(self.child)
 
@@ -127,6 +143,7 @@ class ManagerWindow(QDockWidget):
 		self.btnEliminaScheda.setChecked( not self.isApriScheda and self.esistentePointEmitter.isActive() )
 		self.btnCreaNuovaGeometria.setChecked( self.polygonDrawer.isActive() )
 		self.btnSpezzaGeometriaEsistente.setChecked( self.lineDrawer.isActive() )
+		self.btnSelFoto.setChecked( self.fotoPointEmitter.isActive() )
 
 	def riepilogoSchede(self):
 		from DlgRiepilogoSchede import DlgRiepilogoSchede
@@ -144,6 +161,7 @@ class ManagerWindow(QDockWidget):
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
 		if layerModif == None:
+			self.btnSelNuovaScheda.setChecked(False)
 			return
 
 		feat = self.nuovaPointEmitter.findAtPoint(layerModif, point)
@@ -166,6 +184,7 @@ class ManagerWindow(QDockWidget):
 			
 		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
 		if layerOrig == None:
+			self.btnSelNuovaScheda.setChecked(False)
 			return
 
 		feat = self.nuovaPointEmitter.findAtPoint(layerOrig, point)		
@@ -183,23 +202,24 @@ class ManagerWindow(QDockWidget):
 
 
 	def identificaSchedaEsistente(self, point=None, button=None):
-		print self.btnSelSchedaEsistente.isDown(), self.btnEliminaScheda.isDown()
-		if point == None:
+
+		def setButtonChecked(checked):
 			if self.isApriScheda:
-				self.btnSelSchedaEsistente.setChecked(True)
+				self.btnSelSchedaEsistente.setChecked(checked)
 			else:
-				self.btnEliminaScheda.setChecked(True)
+				self.btnEliminaScheda.setChecked(checked)
+
+		if point == None:
+			setButtonChecked(True)
 			return self.esistentePointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
-			if self.isApriScheda:
-				self.btnSelSchedaEsistente.setChecked(False)
-			else:
-				self.btnEliminaScheda.setChecked(False)
+			setButtonChecked(False)
 			return
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
 		if layerModif == None:
+			setButtonChecked(False)
 			return
 
 		feat = self.esistentePointEmitter.findAtPoint(layerModif, point)
@@ -212,10 +232,9 @@ class ManagerWindow(QDockWidget):
 				codice = feat.attributeMap()[0].toString()
 				if self.isApriScheda:
 					self.apriScheda( codice )
-					self.btnSelSchedaEsistente.setChecked(False)
 				else:
 					self.eliminaScheda( codice )
-					self.btnEliminaScheda.setChecked(False)
+				setButtonChecked(False)
 				return
 
 			# NO, non esiste alcuna scheda associata a tale geometria
@@ -225,18 +244,43 @@ class ManagerWindow(QDockWidget):
 		return self.esistentePointEmitter.startCapture()
 
 
+	def identificaFoto(self, point=None, button=None):
+		if point == None:
+			self.btnSelFoto.setChecked(True)
+			return self.fotoPointEmitter.startCapture()
+
+		if button != Qt.LeftButton:
+			self.btnSelFoto.setChecked(False)
+			return
+
+		layerFoto = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO )
+		if layerFoto == None:
+			self.btnSelFoto.setChecked(False)
+			return
+
+		featIds = self.fotoPointEmitter.findAtPoint(layerFoto, point, False, True)
+		if len(featIds) > 0:
+			from DlgVisualizzaFoto import DlgVisualizzaFoto
+			dlg = DlgVisualizzaFoto(self)
+			dlg.exec_( featIds )
+			self.btnSelFoto.setChecked(False)
+			return
+
+		return self.fotoPointEmitter.startCapture()
+
+
 	def spezzaGeometriaEsistente(self, line=None):
 
 		def salvaGeometriaSpezzata(codice, stato, wkb):
 			if stato != '9':
 				# se la geometria iniziale era copiata o spezzata, 
 				# crea una nuova geometria spezzata
-				newID = AutomagicallyUpdater._insertGeometriaSpezzata( wkb, ManagerWindow.srid, codice )
+				newID = AutomagicallyUpdater._insertGeometriaSpezzata( wkb, self.srid, codice )
 
 			else:
 				# altrimenti crea una geometria non presente tra le 
 				# geometrie originali
-				newID = AutomagicallyUpdater._insertGeometriaNuova( wkb, ManagerWindow.srid )
+				newID = AutomagicallyUpdater._insertGeometriaNuova( wkb, self.srid )
 
 			return newID
 
@@ -258,7 +302,7 @@ class ManagerWindow(QDockWidget):
 
 			query.prepare( "SELECT CODICE, ST_AsText(geometria) FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND CODICE NOT IN (SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE)" )
 			query.addBindValue( QByteArray(line.asWkb()) )
-			query.addBindValue( ManagerWindow.srid )
+			query.addBindValue( self.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 				return False
@@ -284,7 +328,7 @@ class ManagerWindow(QDockWidget):
 			# recupera le geometrie modificate che intersecano la linea e non hanno scheda abbinata
 			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ST_AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND ABBINATO_A_SCHEDA = '0'" )
 			query.addBindValue( QByteArray(line.asWkb()) )
-			query.addBindValue( ManagerWindow.srid )
+			query.addBindValue( self.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 				return False
@@ -308,7 +352,7 @@ class ManagerWindow(QDockWidget):
 					AutomagicallyUpdater._updateValue( { 'ZZ_STATO_GEOMETRIAID' : '2' }, 'GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE', 'ID_UV_NEW', ID )
 				# aggiorna la geometria iniziale con la nuova geometria
 				wkb = QByteArray( geom.asWkb() )
-				AutomagicallyUpdater._updateGeometria( ID, wkb, ManagerWindow.srid )
+				AutomagicallyUpdater._updateGeometria( ID, wkb, self.srid )
 
 				# salva le nuove geometrie create dalla spezzatura
 				for geometry in newGeometries:
@@ -318,16 +362,15 @@ class ManagerWindow(QDockWidget):
 
 		except ConnectionManager.AbortedException, e:
 			QMessageBox.critical(self, "Errore", e.toString())
-			return
+			return False
 
 		finally:
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
+			self.btnSpezzaGeometriaEsistente.setChecked(False)
 
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
-
-		self.btnSpezzaGeometriaEsistente.setChecked(False)
 		return True
 
 	def creaNuovaGeometria(self, polygon=None):
@@ -343,21 +386,20 @@ class ManagerWindow(QDockWidget):
 
 			# inserisce la nuova geometria nel layer
 			wkb = QByteArray(polygon.asWkb())
-			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb, ManagerWindow.srid ):
+			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb, self.srid ):
 				return False
 
 		except ConnectionManager.AbortedException, e:
 			QMessageBox.critical(self, "Errore", e.toString())
-			return
+			return False
 
 		finally:
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
+			self.btnCreaNuovaGeometria.setChecked(False)
 
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
-
-		self.btnCreaNuovaGeometria.setChecked(False)
 		return True
 
 
@@ -431,58 +473,54 @@ class ManagerWindow(QDockWidget):
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
 
-	@classmethod
 	def apriScheda(self, uvID=None):
 		if uvID == None:
-			ManagerWindow.instance.isApriScheda = True
-			return ManagerWindow.instance.identificaSchedaEsistente()
+			self.isApriScheda = True
+			return self.identificaSchedaEsistente()
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.chiudiSchedaAperta()
 
-		ManagerWindow.uvScheda = uvID
-		ManagerWindow.scheda = self.recuperaScheda( uvID )
-		if ManagerWindow.scheda._ID == None:
+		self.uvScheda = uvID
+		self.scheda = self.recuperaScheda( uvID )
+		if self.scheda._ID == None:
 			# imposta la geometria come abbinata a scheda
 			try:
 				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 				ConnectionManager.startTransaction()
-				ManagerWindow.scheda.save()
+				self.scheda.save()
 				AutomagicallyUpdater._updateValue( { "ABBINATO_A_SCHEDA" : '1' }, "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE", "ID_UV_NEW", uvID )
 			except ConnectionManager.AbortedException, e:
-				QMessageBox.critical(ManagerWindow.instance, "Errore", e.toString())
+				QMessageBox.critical(self, "Errore", e.toString())
 				return
 
 			finally:
 				ConnectionManager.endTransaction()
 				QApplication.restoreOverrideCursor()
 			
-		ManagerWindow.scheda.show()
+		self.scheda.show()
 		QApplication.restoreOverrideCursor()
 
-	@classmethod
 	def recuperaScheda(self, uvID):
 		query = AutomagicallyUpdater.Query( "SELECT SCHEDA_EDIFICIOID FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [ uvID ] )
 		schedaID = query.getFirstResult()
 
 		from SchedaEdificio import SchedaEdificio
-		return SchedaEdificio(ManagerWindow.instance, schedaID)
+		return SchedaEdificio(self, schedaID)
 
 
-	@classmethod
 	def chiudiSchedaAperta(self):
-		if ManagerWindow.scheda != None:
+		if self.scheda != None:
 			try:
-				ManagerWindow.scheda.close()
+				self.scheda.close()
 			except RuntimeError:
 				pass
-			ManagerWindow.scheda = None
+			self.scheda = None
 
-	@classmethod
 	def eliminaScheda(self, codice=None):
 		if codice == None:
-			ManagerWindow.instance.isApriScheda = False
-			return ManagerWindow.instance.identificaSchedaEsistente()
+			self.isApriScheda = False
+			return self.identificaSchedaEsistente()
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
@@ -496,7 +534,7 @@ class ManagerWindow(QDockWidget):
 		if numUV == None:
 			return
 
-		if QMessageBox.Ok != QMessageBox.warning( ManagerWindow.instance, "Eliminazione scheda", QString( u"La scheda ha %1 UV associate. Eliminare? L'operazione non è reversibile." ).arg( numUV ), QMessageBox.Ok|QMessageBox.Cancel ):
+		if QMessageBox.Ok != QMessageBox.warning( self, "Eliminazione scheda", QString( u"La scheda ha %1 UV associate. Eliminare? L'operazione non è reversibile." ).arg( numUV ), QMessageBox.Ok|QMessageBox.Cancel ):
 			return
 
 		try:
@@ -508,7 +546,7 @@ class ManagerWindow(QDockWidget):
 			scheda.delete()
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(ManagerWindow.instance, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", e.toString())
 			return
 
 		finally:
@@ -578,13 +616,15 @@ class ManagerWindow(QDockWidget):
 		query = AutomagicallyUpdater.Query( 'SELECT DISTINCT srid FROM geometry_columns' )
 		srid = query.getFirstResult()
 		try:
-			ManagerWindow.srid = int( srid )
+			self.srid = int( srid )
 		except ValueError, e:
-			ManagerWindow.DEFAULT_SRID
-		srs = QgsCoordinateReferenceSystem( ManagerWindow.srid, QgsCoordinateReferenceSystem.EpsgCrsId )
+			self.srid = ManagerWindow.DEFAULT_SRID
+
+		srs = QgsCoordinateReferenceSystem( self.srid, QgsCoordinateReferenceSystem.EpsgCrsId )
 		renderer = self.canvas.mapRenderer()
 		renderer.setDestinationSrs(srs)
 		renderer.setMapUnits( srs.mapUnits() )
+
 
 		# carica i layer WMS
 		loadedWMS = QStringList()
@@ -631,7 +671,7 @@ class ManagerWindow(QDockWidget):
 			uri = QgsDataSourceURI()
 			uri.setDatabase(conn.databaseName())
 			uri.setDataSource('', self.TABLE_GEOM_ORIG, 'geometria')
-			vl = QgsVectorLayer( uri.uri(), self.TABLE_GEOM_ORIG, "spatialite" )
+			vl = QgsVectorLayer( uri.uri(), self.LAYER_GEOM_ORIG, "spatialite" )
 			if vl == None or not vl.isValid() or not vl.setReadOnly(True):
 				self.canvas.setRenderFlag( prevRenderFlag )
 				QApplication.restoreOverrideCursor()
@@ -653,7 +693,7 @@ class ManagerWindow(QDockWidget):
 			uri = QgsDataSourceURI()
 			uri.setDatabase(conn.databaseName())
 			uri.setDataSource('', self.TABLE_GEOM_MODIF, 'geometria')
-			vl = QgsVectorLayer( uri.uri(), self.TABLE_GEOM_MODIF, "spatialite" )
+			vl = QgsVectorLayer( uri.uri(), self.LAYER_GEOM_MODIF, "spatialite" )
 			if vl == None or not vl.isValid() or not vl.setReadOnly(True):
 				self.canvas.setRenderFlag( prevRenderFlag )
 				QApplication.restoreOverrideCursor()
@@ -666,6 +706,27 @@ class ManagerWindow(QDockWidget):
 
 			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
+
+
+		# carica il layer con le foto
+		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) == None:
+			ManagerWindow.VLID_FOTO = ''
+
+			query = "SELECT ROWID AS pk, ID, MakePoint(GEOREF_EPSG3003_X, GEOREF_EPSG3003_Y, 3003) AS geometria FROM FOTO_GEOREF WHERE geometria IS NOT NULL"
+
+			uri = QgsDataSourceURI()
+			uri.setDatabase(conn.databaseName())
+			uri.setDataSource('', "(%s)" % query, 'geometria', '', 'pk')
+			vl = QgsVectorLayer( uri.uri(), self.LAYER_FOTO, "spatialite" )
+			if vl != None and vl.isValid() and vl.setReadOnly(True):
+				# imposta lo stile del layer
+				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_FOTO )
+				(errorMsg, result) = vl.loadNamedStyle( style_path )
+				self.iface.legendInterface().refreshLayerSymbology(vl)
+
+				ManagerWindow.VLID_FOTO = vl.getLayerID()
+				QgsMapLayerRegistry.instance().addMapLayer(vl)
+
 
 		# imposta l'ultimo extent usato
 		self.loadLastUsedExtent()
@@ -692,6 +753,8 @@ class ManagerWindow(QDockWidget):
 			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_ORIG)
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF ) != None:
 			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_MODIF)
+		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) != None:
+			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_FOTO)
 
 		self.canvas.setRenderFlag(prevRenderFlag)
 		QApplication.restoreOverrideCursor()
@@ -726,7 +789,7 @@ class ManagerWindow(QDockWidget):
 					return
 
 		# nessuno extent memorizzato o extent non valido, 
-		# ingrandisci all'estenzione del layer delle geometrie originali
+		# fai zoom all'estenzione del layer delle geometrie originali
 		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
 		if layerOrig == None:
 			return
@@ -744,15 +807,16 @@ class ManagerWindow(QDockWidget):
 		}
 		AutomagicallyUpdater._updateValue( name2valueDict, "ZZ_DISCLAIMER", None, None )
 
-
 	def closeEvent(self, event):
 		self.storeLastUsedExtent()
 		self.removeLayersFromCanvas()
+		TemporaryFile.clear()
 		ConnectionManager.closeConnection()
 
 		self.disconnect( self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
 		self.nuovaPointEmitter.stopCapture()
 		self.esistentePointEmitter.stopCapture()
+		self.fotoPointEmitter.stopCapture()
 		self.polygonDrawer.stopCapture()
 		self.lineDrawer.stopCapture()
 

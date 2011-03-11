@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgFoto.ui'
 #
-# Created: Wed Feb 16 00:14:17 2011
+# Created: Thu Mar 10 10:47:13 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(589, 415)
+        Form.resize(589, 416)
         self.gridLayout = QtGui.QGridLayout(Form)
         self.gridLayout.setObjectName("gridLayout")
         self.label_3 = QtGui.QLabel(Form)
@@ -27,13 +27,15 @@ class Ui_Form(object):
         self.FILENAME.setReadOnly(True)
         self.FILENAME.setObjectName("FILENAME")
         self.gridLayout.addWidget(self.FILENAME, 0, 1, 1, 2)
-        self.IMAGE = QtGui.QGraphicsView(Form)
+        self.IMAGE = PicViewer(Form)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.IMAGE.sizePolicy().hasHeightForWidth())
         self.IMAGE.setSizePolicy(sizePolicy)
         self.IMAGE.setMinimumSize(QtCore.QSize(280, 210))
+        self.IMAGE.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.IMAGE.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.IMAGE.setObjectName("IMAGE")
         self.gridLayout.addWidget(self.IMAGE, 1, 0, 2, 2)
         self.groupBox = QtGui.QGroupBox(Form)
@@ -129,3 +131,4 @@ class Ui_Form(object):
         self.label_2.setText(QtGui.QApplication.translate("Form", "Fronte edificio", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Form", "Annotazione", None, QtGui.QApplication.UnicodeUTF8))
 
+from ..Utils import PicViewer

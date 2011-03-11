@@ -22,6 +22,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self.setupUi(self)
 
 		# mostra le vie che corrispondono all'input dell'utente
+		self.VIA.setInsertPolicy(QComboBox.NoInsert)
 		self.VIA.completer().setCompletionMode(QCompleter.PopupCompletion)
 
 		# carica i widget multivalore con i valori delle relative tabelle
@@ -105,21 +106,23 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 			via = self.VIA.currentText()
 			if via.isEmpty():
-				via = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
+				indirizzo = u"<indirizzo non inserito>"
+			else:
+				civico = self.NUMERI_CIVICI.rowToString()
+				if civico.isEmpty():
+					civico = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
+				indirizzo = u"%s, %s" % (via, civico)
 
-			civico = self.NUMERI_CIVICI.rowToString()
-			if civico.isEmpty():
-				civico = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
-
-			indirizzo = u"%s, %s - %s" % (via, civico, comune)
+			indirizzo = u"%s - %s" % (indirizzo, comune)
 
 		self.emit( SIGNAL("indirizzoChanged(const QString &)"), QString(indirizzo) )
 
-	# gestisti a parte il caso del widget VIA così da effettuare un test CaseInsensitive
+
 	def getValue(self, widget):
 		if self._getRealWidget(widget) != self.VIA:
 			return AutomagicallyUpdater.getValue(widget)
 
+		# gestisti a parte il caso del widget VIA così da effettuare un test CaseInsensitive
 		value = AutomagicallyUpdater.getValue(widget)
 		if value != None:
 			index = self.VIA.findData( value )
@@ -135,12 +138,12 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 		return value
 
-	# impostando il comune bisogna aggiornare anche la provincia
 	def setValue(self, widget, value):
 		value = self._getRealValue(value)
 		if self._getRealWidget(widget) != self.ZZ_COMUNIISTATCOM or value == None:
 			return AutomagicallyUpdater.setValue(widget, value)
 
+		# impostando il comune bisogna aggiornare anche la provincia
 		query = AutomagicallyUpdater.Query("SELECT ZZ_PROVINCEISTATPROV FROM ZZ_COMUNI WHERE ISTATCOM = ?", [value])
 
 		self.disconnect(self.ZZ_PROVINCEISTATPROV, SIGNAL("currentIndexChanged(int)"), self.caricaComuni)
@@ -151,16 +154,11 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		AutomagicallyUpdater.setValue(self.ZZ_COMUNIISTATCOM, value)
 
 
-	def getComuneVia(self):
-		return ( self.getValue(self.ZZ_COMUNIISTATCOM), self.getValue(self.VIA) )
+	def getComune(self):
+		return self.getValue(self.ZZ_COMUNIISTATCOM)
 
-	def setComuneVia(self, comune, via):
-		#self.disconnect(self.ZZ_COMUNIISTATCOM, SIGNAL("currentIndexChanged(int)"), self.caricaVie)
+	def setComune(self, comune):
 		self.setValue(self.ZZ_COMUNIISTATCOM, comune)
-		#self.caricaVie()
-		#self.connect(self.ZZ_COMUNIISTATCOM, SIGNAL("currentIndexChanged(int)"), self.caricaVie)
-
-		self.setValue(self.VIA, via)
 
 
 	def setupLoader(self, ID=None):
@@ -208,13 +206,12 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 							break
 
 					if value == None:
-						value = ''
+						value = ''	#self.COMUNE_NON_VALIDO
 
 					query = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s = ? AND %s = ?" % (self._pkColumn, self._tableName, self.ZZ_COMUNIISTATCOM.objectName(), self.VIA.objectName()), [self.getValue(self.ZZ_COMUNIISTATCOM), value], 1 )
 					ID = query.getFirstResult()
 					if ID != None:
 						break
-						
 
 				values[widget.objectName()] = value
 
@@ -229,6 +226,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self.NUMERI_CIVICI.save()
 
 		return True
+
 
 	def toHtml(self, index):
 		civici = map(lambda x: str( (x[0] if x[0] != None else "") + (x[1] if x[1] != None else "") ), self.NUMERI_CIVICI.getValues())

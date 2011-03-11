@@ -48,6 +48,7 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		nome = ril.value(2).toString()
 
 		return """
+<div id="sez1" class="block">
 <p class="section"><span class="scheda">SCHEDA A EDIFICIO </span>SEZIONE A1 - IDENTIFICAZIONE</p>
 <div class="border">
 <table class="blue">
@@ -63,5 +64,6 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		<td class="line">ID_RIL</td><td class="value">%s</td>
 	</tr>
 </table>
+</div>
 </div>
 """ % (self._ID, comIstat, numScheda, rilevatoreID, self.getValue(self.DATA_COMPILAZIONE_SCHEDA), nome, cognome, rilevatoreID)

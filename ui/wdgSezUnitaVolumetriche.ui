@@ -90,7 +90,11 @@
     <widget class="QSpinBox" name="FUORITERR_NPIANI"/>
    </item>
    <item row="7" column="0" colspan="5">
-    <widget class="QLineEdit" name="SCHEDA_EDIFICIOID"/>
+    <widget class="QLineEdit" name="SCHEDA_EDIFICIOID">
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item row="5" column="0" colspan="5">
     <widget class="QTabWidget" name="tabWidget">

@@ -9,6 +9,7 @@ import qgis.core
 
 from ui.wdgFoto_ui import Ui_Form
 from AutomagicallyUpdater import *
+from Utils import TemporaryFile
 
 class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
@@ -16,8 +17,6 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		QWidget.__init__(self, parent)
 		MappingOne2One.__init__(self, "FOTO_GEOREF")
 		self.setupUi(self)
-
-		self.imageBytes = None
 
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
@@ -38,6 +37,9 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 			self.ZZ_FRONTE_EDIFICIOID
 		]
 		self.setupValuesUpdater(childrenList)
+
+		self.connect(self.IMAGE, SIGNAL( "openPicRequested" ), self.apriFoto)
+
 
 	def caricaImmagine(self, filename):
 		rl = qgis.core.QgsRasterLayer( filename )
@@ -81,53 +83,77 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 		return True
 
-	def delete(self):
-		self.imageBytes = None
-		return MappingOne2One.delete(self)
-
-
-	def setValue(self, widget, valueOld):
-		widget = self._getRealWidget(widget)
-		value = self._getRealValue(valueOld)
-
-		if widget == self.IMAGE:
-			if isinstance(value, str) or isinstance(value, QString):
-				infile = open( unicode(value).encode('utf8'), "rb" )
-				self.imageBytes = QByteArray( infile.read() )
-				infile.close()
-
-			elif isinstance(value, QByteArray):
-				self.imageBytes = value
-
-			image = QPixmap()
-			if image.loadFromData( self.imageBytes ):
-				value = image.scaled( widget.width()-10, widget.height()-10, Qt.KeepAspectRatio )
-
-		AutomagicallyUpdater.setValue(widget, value)
-
 	def getValue(self, widget):
-		widget = self._getRealWidget(widget)
+		if self._getRealWidget(widget) != self.IMAGE or self._ID == None:
+			return MappingOne2One.getValue(widget)
 
-		if widget == self.IMAGE:
-			return self._getRealValue( self.imageBytes )
-		return AutomagicallyUpdater.getValue(widget)
+		return AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ID = ?", [self._ID] ).getFirstResult()
+
+
+	def setValue(self, widget, value):
+		widget = self._getRealWidget(widget)
+		MappingOne2One.setValue(widget, value)
+		# disabilita il caching se l'immagine è già stata memorizzata sul db
+		if widget == self.IMAGE and self._ID != None:
+			self.IMAGE.clearCache()
+
+	def salvaFotoSuFile(self, imgData):
+		if imgData == None:
+			return
+
+		tmp = TemporaryFile.getNewFile( 'SchedaEdificio' )
+		if not tmp.open():
+			TemporaryFile.delFile( tmp, 'SchedaEdificio' )
+			return
+
+		outfile = open( tmp.fileName().toUtf8(), "wb" )
+		outfile.write( str(imgData) )
+		outfile.close()
+
+		tmp.close()
+		return tmp.fileName()
+
+	def apriFoto(self):
+		filename = self.salvaFotoSuFile( self.getValue(self.IMAGE) )
+		if filename == None:
+			return False
+		url = QUrl.fromLocalFile( filename )
+		QDesktopServices.openUrl( url )
+		return True
+
+
+	def _saveValue(self, name2valueDict, table, pk, ID=None):
+		# non aggiornare le immagini per evitare overhead inutile: 
+		# la GUI non permette di cambiare l'immagine salvata, l'unico modo è 
+		# creare una nuova immagine ed eliminare quella vecchia
+		if ID != None and name2valueDict.has_key( self.IMAGE.objectName() ):
+			del name2valueDict[ self.IMAGE.objectName() ]
+		return AutomagicallyUpdater._saveValue(name2valueDict, table, pk, ID)
+
 
 	def toHtml(self, index):
+		filename = self.salvaFotoSuFile( self.getValue(self.IMAGE) )
+		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''
 		annotazione = self.getValue(self.ANNOTAZIONE)
+
+		georef_x = self.getValue(self.GEOREF_EPSG3003_X)
+		georef_y = self.getValue(self.GEOREF_EPSG3003_Y)
+		georef = '%s , %s' % ( str(georef_x), str(georef_y) ) if georef_x != None and georef_y != None else ''
+		
 		return """
-<table class="border">
+<table class="border %s">
 	<tr>
 		<td>Foto #%d</td><td class="value">%s</td>
 	</tr>
 	<tr>
-		<td colspan="2"><img class="border" src="%s" alt="foto"></td>
+		<td colspan="2"><img class="foto border" src="%s" alt="foto"></td>
 	</tr>
 	<tr>
-		<td colspan="2" class="value">%s</td>
+		<td>Coordinate EPSG:3003</td><td class="value">%s</td>
 	</tr>
 	<tr>
 		<td>Annotazioni</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % ( index+1, self.ZZ_FRONTE_EDIFICIOID.currentText(), "foto.jpg", self.getValue(self.FILENAME), annotazione if annotazione != None else '' )
+""" % ( 'newPage' if index > 0 and index%2 == 0 else '', index+1, fronte_edificio, filename, georef, annotazione if annotazione != None else '' )
 

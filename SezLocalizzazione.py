@@ -38,6 +38,7 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 		particelle = map(lambda x: str(x[1] if x[1] != None else ""), catastali)
 		isolato = self.getValue(self.EDIFICIO_ISOLATO)
 		return """
+<div id="sez2" class="block">
 <p class="section">SEZIONE A2 - LOCALIZZAZIONE DELL'EDIFICIO</p>
 <div class="border">
 %s
@@ -56,5 +57,6 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 		<td colspan="2" class="line">Propriet&agrave prevalente</td><td class="value">%s</td>
 	</tr>
 </table>
+</div>
 </div>
 """ % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), "<br>".join(fogli), "<br>".join(particelle), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETA_PREVALENTEID.currentText() )

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgSezUnitaVolumetriche.ui'
 #
-# Created: Thu Jan 13 14:29:11 2011
+# Created: Thu Mar 10 23:29:02 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -55,6 +55,7 @@ class Ui_Form(object):
         self.FUORITERR_NPIANI.setObjectName("FUORITERR_NPIANI")
         self.gridLayout_5.addWidget(self.FUORITERR_NPIANI, 2, 3, 1, 1)
         self.SCHEDA_EDIFICIOID = QtGui.QLineEdit(Form)
+        self.SCHEDA_EDIFICIOID.setReadOnly(True)
         self.SCHEDA_EDIFICIOID.setObjectName("SCHEDA_EDIFICIOID")
         self.gridLayout_5.addWidget(self.SCHEDA_EDIFICIOID, 7, 0, 1, 5)
         self.tabWidget = QtGui.QTabWidget(Form)

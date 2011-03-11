@@ -43,7 +43,9 @@ class SezFoto(QWidget, MappingOne2One, Ui_Form):
 			return ""
 
 		return """
+<div id="sez8" class="block">
 <p class="section">SEZIONE A8 - FOTOGRAFIE</p>
 %s
+</div>
 """ % ( self.listaFoto.toHtml() ) 
 

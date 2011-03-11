@@ -81,6 +81,10 @@ class WdgElencoFoto(MultiTabSection):
 			self.tabWidget.setTabText(i, QString(text) )
 		return ret
 
+	# recupera le foto ordinate secondo ZZ_FRONTE_EDIFICIOID
+	def _computeAction(self, action):
+		query = "SELECT t0.%s FROM %s AS t0 JOIN FOTO_GEOREF AS t1 ON t0.FOTO_GEOREFID = t1.ID WHERE %s = :id ORDER BY abs(ZZ_FRONTE_EDIFICIOID) ASC" % ( self._pkColumn, self._tableName, self._parentPkColumn )
+		return AutomagicallyUpdater.Query( query )
 
 	def caricaImmagine(self, filename):
 		if self.hasTabs():

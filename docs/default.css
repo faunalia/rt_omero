@@ -35,10 +35,17 @@ body {
 	font-size: 14px;
 }
 
+.block {
+	page-break-inside: avoid;
+}
+
+.newPage, #sez3.block, #sez4.block, #sez5.block, #sez7.block, #sez8.block, {
+	page-break-before: always;
+}
+
 table {
 	width: 100%;
 	border-spacing: 0px;
-	page-break-inside: avoid;
 }
 table.border, div.border, img.border {
 	border: 1px solid gray;
@@ -99,6 +106,10 @@ td.line {
 .tooltip {
 	font-style: normal;
 	font-size: 9px;
+}
+.foto {
+	max-width: 100%;
+	max-height: 420px;
 }
 
 .space {

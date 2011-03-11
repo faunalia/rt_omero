@@ -98,6 +98,7 @@ class AutomagicallyUpdater:
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text() )
 				return
+			AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
 			if not query.next():
 				return
 			return AutomagicallyUpdater._getRealValue( query.value(0) )
@@ -216,6 +217,8 @@ class AutomagicallyUpdater:
 		widget = self._getRealWidget(widget)
 		value = None
 
+		from Utils import PicViewer
+
 		if isinstance(widget, MappingOne2One):
 			value = widget._ID
 
@@ -224,6 +227,9 @@ class AutomagicallyUpdater:
 
 		elif isinstance(widget, QWidget) and not widget.isEnabled():
 			pass
+
+		elif isinstance(widget, PicViewer):
+			value = widget.getBytes()
 
 		elif isinstance(widget, QGraphicsView):
 			items = widget.scene().items()
@@ -284,6 +290,8 @@ class AutomagicallyUpdater:
 		widget = self._getRealWidget(widget)
 		value = self._getRealValue(value)
 
+		from Utils import PicViewer
+
 		if isinstance(value, AutomagicallyUpdater.Query):
 			value = value.getFirstResult()
 
@@ -292,6 +300,9 @@ class AutomagicallyUpdater:
 
 		elif isinstance(widget, MappingMany2Many):
 			widget.setValues(value)
+
+		elif isinstance(widget, PicViewer):
+			widget.loadImage( value )
 
 		elif isinstance(widget, QGraphicsView):
 			scene = widget.scene()
@@ -739,6 +750,12 @@ class AutomagicallyUpdater:
 			print msg.encode('utf-8')
 		else:
 			ConnectionManager.abortTransaction( msg )
+
+	@classmethod
+	def _onQueryExecuted(self, query, widget=None):
+		msg = u"DEBUG executed query:\n\tquery: %s\n\twidget: %s" % (query, widget)
+		if self.DEBUG:
+			print msg.encode('utf-8')
 
 
 class MappingOne2One(AutomagicallyUpdater):

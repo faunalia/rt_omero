@@ -78,6 +78,10 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			return
 
 		finally:
+			# rimuovi i file temporanei collegati alla scheda
+			import Utils
+			Utils.TemporaryFile.delAllFiles( 'SchedaEdificio' )
+
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
 

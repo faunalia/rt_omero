@@ -13,7 +13,7 @@
 	<p id="mude">Indagine sperimentale per la implementazione del DB Topografico attraverso rilievi sul campo sugli edifici e aggiornamento tramite il MUDE</p>
 </div>
 
-<div id="container">
+<div id="sez1" class="block">
 <p class="section"><span class="scheda">SCHEDA A EDIFICIO </span>SEZIONE A1 - IDENTIFICAZIONE</p>
 <div class="border">
 <table class="blue">
@@ -30,7 +30,9 @@
 	</tr>
 </table>
 </div>
+</div>
 
+<div id="sez2" class="block">
 <p class="section">SEZIONE A2 - LOCALIZZAZIONE DELL'EDIFICIO</p>
 <div class="border">
 <table class="blue">
@@ -59,7 +61,9 @@
 	</tr>
 </table>
 </div>
+</div>
 
+<div id="sez3" class="block">
 <p class="section">SEZIONE A3 - IDENTIFICAZIONE DELLE UNITA' VOLUMETRICHE</p>
 <table class="blue border">
 	<tr class="line">
@@ -88,7 +92,7 @@
 
 <table class="green border">
 	<tr>
-		<td class="title" colspan="4">Strutture orizzontali - Copertura > Edifici ordinari</td>
+		<td class="title" colspan="4">Strutture orizzontali - Copertura &gt; Edifici ordinari</td>
 	</tr>
 	<tr class="line">
 		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">media</td>
@@ -104,7 +108,7 @@
 
 <table class="green border">
 	<tr>
-		<td class="title" colspan="4">Strutture orizzontali - Copertura > Edifici con grandi luci (capannoni, palestre, piscine, etc.)</td>
+		<td class="title" colspan="4">Strutture orizzontali - Copertura &gt; Edifici con grandi luci (capannoni, palestre, piscine, etc.)</td>
 	</tr>
 	<tr class="line">
 		<td>Qualit&agrave; dell'informazione</td><td colspan="3" class="value">media</td>
@@ -118,7 +122,9 @@
 		<td class="line">Stato di conservazione</td><td class="value">medio</td>
 	</tr>
 </table>
+</div>
 
+<div id="sez4" class="block">
 <p class="section">SEZIONE A4 - DATAZIONE INTERVENTI DELL'EDIFICIO</p>
 <table class="white border">
 	<tr class="line">
@@ -154,7 +160,9 @@
 		<td>Intervento in corso</td><td colspan="3" class="value">NO</td>
 	</tr>
 </table>
+</div>
 
+<div id="sez5" class="block">
 <p class="section">SEZIONE A5 - STATO E UTILIZZO</p>
 <table class="white border">
 	<tr class="line">
@@ -178,7 +186,9 @@
 		<td>Descrizione visiva dello stato attuale</td><td colspan="3" class="value">segue descrizione</td>
 	</tr>
 </table>
+</div>
 
+<div id="sez6" class="block">
 <p class="section">SEZIONE A6 - CARATTERISTICHE STRUTTURALI</p>
 <table class="green border">
 	<tr>
@@ -223,7 +233,9 @@
 		<td>Stato di conservazione</td><td colspan="3" class="value">cattivo</td>
 	</tr>
 </table>
+</div>
 
+<div id="sez7" class="block">
 <p class="section">SEZIONE A7 - CARATTERISTICHE ARCHITETTONICHE</p>
 <table class="yellow border">
 	<tr>
@@ -295,20 +307,53 @@
 		<td>Presenza di elementi incogruenti</td><td class="value">SI</td><td class="value">segue descrizione</td>
 	</tr>
 </table>
+</div>
 
+<div id="sez8" class="block">
 <p class="section">SEZIONE A8 - FOTOGRAFIE</p>
 <table class="border">
 	<tr>
-		<td>Foto</td><td class="value">annotazioni fotografia</td>
+		<td>Foto #1</td><td class="value">annotazioni fotografia</td>
 	</tr>
 	<tr>
-		<td colspan="2"><img class="border" src="foto.jpg" alt="foto"></td>
+		<td colspan="2"><img class="foto border" src="foto.jpg" alt="foto"></td>
 	</tr>
 	<tr>
+		<td>EPSG:3003</td><td class="value">%s</td>
+	</tr>	<tr>
 		<td colspan="2" class="value">percorso fotografia</td>
 	</tr>
 </table>
 </div>
+
+<table class="block border">
+	<tr>
+		<td>Foto #2</td><td class="value">annotazioni fotografia</td>
+	</tr>
+	<tr>
+		<td colspan="2"><img class="foto border" src="foto.jpg" alt="foto"></td>
+	</tr>
+	<tr>
+		<td>EPSG:3003</td><td class="value">%s</td>
+	</tr>	<tr>
+		<td colspan="2" class="value">percorso fotografia</td>
+	</tr>
+</table>
+
+<!-- max 2 foto per pagina, usa class="newPage" per inserire una nuova linea -->
+<table class="newPage block border">
+	<tr>
+		<td>Foto</td><td class="value">annotazioni fotografia</td>
+	</tr>
+	<tr>
+		<td colspan="2"><img class="foto border" src="foto.jpg" alt="foto"></td>
+	</tr>
+	<tr>
+		<td>EPSG:3003</td><td class="value">%s</td>
+	</tr>	<tr>
+		<td colspan="2" class="value">percorso fotografia</td>
+	</tr>
+</table>
 
 </body>
 </html>

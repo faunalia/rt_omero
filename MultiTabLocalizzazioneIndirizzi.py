@@ -20,10 +20,10 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 		self.firstTab = self.tabWidget.widget(0)
 		self.tabWidget.setTabText(0, "Indirizzo")
 
-		if self.firstTab.getComuneVia()[0] == None:
+		if self.firstTab.getComune() == None:
 			settings = QSettings()
 			IDComune = settings.value( "/omero_RT/lastIDComune", QVariant("") ).toString()
-			self.firstTab.setComuneVia(IDComune, None)
+			self.firstTab.setComune(IDComune)
 
 
 	def addTab(self):
@@ -37,8 +37,8 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 		widget = self.tabWidget.widget(newIndex)
 		prevWidget = self.tabWidget.widget(newIndex-1)
 
-		(IDComune, via) = prevWidget.getComuneVia()
-		widget.setComuneVia(IDComune, via)
+		IDComune = prevWidget.getComune()
+		widget.setComune(IDComune)
 		return newIndex
 
 	def btnDeleteTabClicked(self):
