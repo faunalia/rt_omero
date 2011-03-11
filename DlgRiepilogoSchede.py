@@ -115,7 +115,7 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 		query = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID = ?", [ schedaID ] )
 		return query.getFirstResult()
 
-	def apriScheda(self, stampa=False):
+	def apriScheda(self):
 		schedaID = AutomagicallyUpdater.getValue( self.schedeList )
 		uvID = self.recuperaUvID( schedaID )
 		if uvID == None:

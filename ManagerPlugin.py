@@ -20,16 +20,16 @@ class ManagerPlugin:
 	
 		# Add toolbar button and menu item
 		self.iface.addToolBarIcon(self.action)
-		try:
+		if hasattr( self.iface, 'addPluginToDatabaseMenu' ):
 			self.iface.addPluginToDatabaseMenu("&Omero RT", self.action)
-		except AttributeError:
+		else:
 			self.iface.addPluginToMenu("&Omero RT", self.action)
 	
 	def unload(self):
 		# Remove the plugin menu item and icon
-		try:
+		if hasattr( self.iface, 'removePluginDatabaseMenu' ):
 			self.iface.removePluginDatabaseMenu("&Omero RT", self.action)
-		except AttributeError:
+		else:
 			self.iface.removePluginMenu("&Omero RT", self.action)
 		self.iface.removeToolBarIcon(self.action)
 
