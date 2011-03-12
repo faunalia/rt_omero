@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/mainSchedaEdificio.ui'
 #
-# Created: Tue Feb 15 10:20:06 2011
+# Created: Sat Mar 12 01:59:33 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,9 +78,9 @@ class Ui_SchedaEdificio(object):
         self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID = SezCaratteristicheArchitettoniche()
         self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.setObjectName("CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID")
         self.sectionsStacked.addWidget(self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID)
-        self.FOTO_EDIFICIOID = SezFoto()
-        self.FOTO_EDIFICIOID.setObjectName("FOTO_EDIFICIOID")
-        self.sectionsStacked.addWidget(self.FOTO_EDIFICIOID)
+        self.FOTO = SezFoto()
+        self.FOTO.setObjectName("FOTO")
+        self.sectionsStacked.addWidget(self.FOTO)
         self.verticalLayout_2.addWidget(self.splitter)
         SchedaEdificio.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(SchedaEdificio)

@@ -18,6 +18,8 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		MappingOne2One.__init__(self, "FOTO_GEOREF")
 		self.setupUi(self)
 
+		self.SCHEDA_EDIFICIOID.hide()
+
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
 			self.ZZ_FRONTE_EDIFICIOID: AutomagicallyUpdater.ZZTable( "ZZ_FRONTE_EDIFICIO" )
@@ -27,10 +29,11 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 		# mappa i widget con i campi delle tabelle
 		childrenList = [
-			(self.GEOREF_EPSG3003_X, AutomagicallyUpdater.OPTIONAL), 
-			(self.GEOREF_EPSG3003_Y, AutomagicallyUpdater.OPTIONAL), 
+			self.SCHEDA_EDIFICIOID, 
+			(self.GEOREF_PROIET_X, AutomagicallyUpdater.OPTIONAL), 
+			(self.GEOREF_PROIET_Y, AutomagicallyUpdater.OPTIONAL), 
 			(self.GEOREF_EPSG4326_X, AutomagicallyUpdater.OPTIONAL), 
-			(self.GEOREF_EPSG4326_X2, AutomagicallyUpdater.OPTIONAL), 
+			(self.GEOREF_EPSG4326_Y, AutomagicallyUpdater.OPTIONAL), 
 			(self.FILENAME, AutomagicallyUpdater.OPTIONAL), 
 			(self.ANNOTAZIONE, AutomagicallyUpdater.OPTIONAL), 
 			(self.IMAGE, AutomagicallyUpdater.OPTIONAL), 
@@ -69,14 +72,14 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 			point4326 = qgis.core.QgsPoint(longitude, latitude)
 
 			self.setValue( self.GEOREF_EPSG4326_X, str(point4326.x()) )
-			self.setValue( self.GEOREF_EPSG4326_X2, str(point4326.y()) )
+			self.setValue( self.GEOREF_EPSG4326_Y, str(point4326.y()) )
 
 			fromCrs = qgis.core.QgsCoordinateReferenceSystem( 4236, qgis.core.QgsCoordinateReferenceSystem.EpsgCrsId )
 			toCrs = qgis.core.QgsCoordinateReferenceSystem( 3003, qgis.core.QgsCoordinateReferenceSystem.EpsgCrsId )
 			point3003 = qgis.core.QgsCoordinateTransform( fromCrs, toCrs ).transform( point4326 )
 		
-			self.setValue( self.GEOREF_EPSG3003_X, str(point3003.x()) )
-			self.setValue( self.GEOREF_EPSG3003_Y, str(point3003.y()) )
+			self.setValue( self.GEOREF_PROIET_X, str(point3003.x()) )
+			self.setValue( self.GEOREF_PROIET_Y, str(point3003.y()) )
 
 		self.setValue(self.FILENAME, filename)
 		self.setValue(self.IMAGE, filename)	# mostra la preview
@@ -86,16 +89,14 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 	def getValue(self, widget):
 		if self._getRealWidget(widget) != self.IMAGE or self._ID == None:
 			return MappingOne2One.getValue(widget)
-
 		return AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ID = ?", [self._ID] ).getFirstResult()
 
-
 	def setValue(self, widget, value):
-		widget = self._getRealWidget(widget)
 		MappingOne2One.setValue(widget, value)
 		# disabilita il caching se l'immagine è già stata memorizzata sul db
-		if widget == self.IMAGE and self._ID != None:
+		if self._getRealWidget(widget) == self.IMAGE and self._ID != None:
 			self.IMAGE.clearCache()
+
 
 	def salvaFotoSuFile(self, imgData):
 		if imgData == None:
@@ -136,8 +137,8 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''
 		annotazione = self.getValue(self.ANNOTAZIONE)
 
-		georef_x = self.getValue(self.GEOREF_EPSG3003_X)
-		georef_y = self.getValue(self.GEOREF_EPSG3003_Y)
+		georef_x = self.getValue(self.GEOREF_PROIET_X)
+		georef_y = self.getValue(self.GEOREF_PROIET_Y)
 		georef = '%s , %s' % ( str(georef_x), str(georef_y) ) if georef_x != None and georef_y != None else ''
 		
 		return """

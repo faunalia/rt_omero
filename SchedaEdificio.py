@@ -41,7 +41,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			self.STATO_UTILIZZO_EDIFICIOID,
 			self.CARATTERISTICHE_STRUTTURALI, 
 			self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID, 
-			self.FOTO_EDIFICIOID 
+			self.FOTO 
 		]
 		self.setupValuesUpdater(childrenList)
 

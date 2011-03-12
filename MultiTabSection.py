@@ -28,9 +28,9 @@ class MultiTabSection(QWidget, MappingOne2Many, Ui_MultiTabSection):
 		self.aggiornaPulsanti()
 
 	def clear(self):
-		for i in range(self.tabWidget.count()-1, -1, -1):
-			w = self.tabWidget.widget(i)
-			self.tabWidget.removeTab(i)
+		for i in range(self.tabWidget.count()):
+			w = self.tabWidget.widget(0)
+			self.tabWidget.removeTab(0)
 			del w
 
 		self.tabWidget.clear()

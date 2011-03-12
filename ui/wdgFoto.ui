@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>589</width>
-    <height>416</height>
+    <height>445</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -76,7 +76,7 @@
        </widget>
       </item>
       <item row="0" column="1">
-       <widget class="QLineEdit" name="GEOREF_EPSG3003_X">
+       <widget class="QLineEdit" name="GEOREF_PROIET_X">
         <property name="text">
          <string/>
         </property>
@@ -90,7 +90,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="GEOREF_EPSG3003_Y"/>
+       <widget class="QLineEdit" name="GEOREF_PROIET_Y"/>
       </item>
      </layout>
     </widget>
@@ -120,12 +120,12 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>X2</string>
+         <string>Y</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QLineEdit" name="GEOREF_EPSG4326_X2"/>
+       <widget class="QLineEdit" name="GEOREF_EPSG4326_Y"/>
       </item>
      </layout>
     </widget>
@@ -178,6 +178,9 @@
       </sizepolicy>
      </property>
     </widget>
+   </item>
+   <item row="6" column="0" colspan="3">
+    <widget class="QLineEdit" name="SCHEDA_EDIFICIOID"/>
    </item>
   </layout>
  </widget>

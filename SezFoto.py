@@ -9,11 +9,11 @@ import qgis.core
 from ui.wdgSezFoto_ui import Ui_Form
 from AutomagicallyUpdater import *
 
-class SezFoto(QWidget, MappingOne2One, Ui_Form):
+class SezFoto(QWidget, MappingPart, Ui_Form):
 
 	def __init__(self, parent=None):
 		QWidget.__init__(self, parent)
-		MappingOne2One.__init__(self, "FOTO_EDIFICIO")
+		MappingPart.__init__(self, "SCHEDA_EDIFICIO")
 		self.setupUi(self)
 
 		# mappa i widget con i campi delle tabelle

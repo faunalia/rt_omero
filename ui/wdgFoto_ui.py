@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgFoto.ui'
 #
-# Created: Thu Mar 10 10:47:13 2011
+# Created: Sat Mar 12 02:06:31 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(589, 416)
+        Form.resize(589, 445)
         self.gridLayout = QtGui.QGridLayout(Form)
         self.gridLayout.setObjectName("gridLayout")
         self.label_3 = QtGui.QLabel(Form)
@@ -50,15 +50,15 @@ class Ui_Form(object):
         self.label_4 = QtGui.QLabel(self.groupBox)
         self.label_4.setObjectName("label_4")
         self.gridLayout_2.addWidget(self.label_4, 0, 0, 1, 1)
-        self.GEOREF_EPSG3003_X = QtGui.QLineEdit(self.groupBox)
-        self.GEOREF_EPSG3003_X.setObjectName("GEOREF_EPSG3003_X")
-        self.gridLayout_2.addWidget(self.GEOREF_EPSG3003_X, 0, 1, 1, 1)
+        self.GEOREF_PROIET_X = QtGui.QLineEdit(self.groupBox)
+        self.GEOREF_PROIET_X.setObjectName("GEOREF_PROIET_X")
+        self.gridLayout_2.addWidget(self.GEOREF_PROIET_X, 0, 1, 1, 1)
         self.label_5 = QtGui.QLabel(self.groupBox)
         self.label_5.setObjectName("label_5")
         self.gridLayout_2.addWidget(self.label_5, 1, 0, 1, 1)
-        self.GEOREF_EPSG3003_Y = QtGui.QLineEdit(self.groupBox)
-        self.GEOREF_EPSG3003_Y.setObjectName("GEOREF_EPSG3003_Y")
-        self.gridLayout_2.addWidget(self.GEOREF_EPSG3003_Y, 1, 1, 1, 1)
+        self.GEOREF_PROIET_Y = QtGui.QLineEdit(self.groupBox)
+        self.GEOREF_PROIET_Y.setObjectName("GEOREF_PROIET_Y")
+        self.gridLayout_2.addWidget(self.GEOREF_PROIET_Y, 1, 1, 1, 1)
         self.gridLayout.addWidget(self.groupBox, 1, 2, 1, 1)
         self.groupBox_2 = QtGui.QGroupBox(Form)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
@@ -78,9 +78,9 @@ class Ui_Form(object):
         self.label_7 = QtGui.QLabel(self.groupBox_2)
         self.label_7.setObjectName("label_7")
         self.gridLayout_3.addWidget(self.label_7, 1, 0, 1, 1)
-        self.GEOREF_EPSG4326_X2 = QtGui.QLineEdit(self.groupBox_2)
-        self.GEOREF_EPSG4326_X2.setObjectName("GEOREF_EPSG4326_X2")
-        self.gridLayout_3.addWidget(self.GEOREF_EPSG4326_X2, 1, 1, 1, 1)
+        self.GEOREF_EPSG4326_Y = QtGui.QLineEdit(self.groupBox_2)
+        self.GEOREF_EPSG4326_Y.setObjectName("GEOREF_EPSG4326_Y")
+        self.gridLayout_3.addWidget(self.GEOREF_EPSG4326_Y, 1, 1, 1, 1)
         self.gridLayout.addWidget(self.groupBox_2, 2, 2, 1, 1)
         self.label_2 = QtGui.QLabel(Form)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Preferred)
@@ -115,6 +115,9 @@ class Ui_Form(object):
         self.ANNOTAZIONE.setSizePolicy(sizePolicy)
         self.ANNOTAZIONE.setObjectName("ANNOTAZIONE")
         self.gridLayout.addWidget(self.ANNOTAZIONE, 5, 0, 1, 3)
+        self.SCHEDA_EDIFICIOID = QtGui.QLineEdit(Form)
+        self.SCHEDA_EDIFICIOID.setObjectName("SCHEDA_EDIFICIOID")
+        self.gridLayout.addWidget(self.SCHEDA_EDIFICIOID, 6, 0, 1, 3)
 
         self.retranslateUi(Form)
         QtCore.QMetaObject.connectSlotsByName(Form)
@@ -127,7 +130,7 @@ class Ui_Form(object):
         self.label_5.setText(QtGui.QApplication.translate("Form", "Y", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_2.setTitle(QtGui.QApplication.translate("Form", "Georef EPSG:4326", None, QtGui.QApplication.UnicodeUTF8))
         self.label_6.setText(QtGui.QApplication.translate("Form", "X", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_7.setText(QtGui.QApplication.translate("Form", "X2", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_7.setText(QtGui.QApplication.translate("Form", "Y", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Form", "Fronte edificio", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("Form", "Annotazione", None, QtGui.QApplication.UnicodeUTF8))
 

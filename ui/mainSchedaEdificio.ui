@@ -116,7 +116,7 @@
        <widget class="SezStatoUtilizzo" name="STATO_UTILIZZO_EDIFICIOID"/>
        <widget class="SezCaratteristicheStrutturali" name="CARATTERISTICHE_STRUTTURALI"/>
        <widget class="SezCaratteristicheArchitettoniche" name="CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID"/>
-       <widget class="SezFoto" name="FOTO_EDIFICIOID"/>
+       <widget class="SezFoto" name="FOTO"/>
       </widget>
      </widget>
     </item>

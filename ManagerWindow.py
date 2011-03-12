@@ -712,7 +712,7 @@ class ManagerWindow(QDockWidget):
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) == None:
 			ManagerWindow.VLID_FOTO = ''
 
-			query = "SELECT ROWID AS pk, ID, MakePoint(GEOREF_EPSG3003_X, GEOREF_EPSG3003_Y, 3003) AS geometria FROM FOTO_GEOREF WHERE geometria IS NOT NULL"
+			query = "SELECT ROWID AS pk, ID, MakePoint(GEOREF_PROIET_X, GEOREF_PROIET_Y, 3003) AS geometria FROM FOTO_GEOREF WHERE geometria IS NOT NULL"
 
 			uri = QgsDataSourceURI()
 			uri.setDatabase(conn.databaseName())

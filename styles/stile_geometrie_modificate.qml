@@ -46,7 +46,7 @@
           <prop k="color" v="85,170,0,127"/>
           <prop k="color_border" v="0,170,0,127"/>
           <prop k="offset" v="0,0"/>
-          <prop k="style" v="dense3"/>
+          <prop k="style" v="diagonal_x"/>
           <prop k="style_border" v="solid"/>
           <prop k="width_border" v="0.26"/>
         </layer>
@@ -62,7 +62,7 @@
           <prop k="color" v="170,85,255,127"/>
           <prop k="color_border" v="123,61,184,127"/>
           <prop k="offset" v="0,0"/>
-          <prop k="style" v="dense3"/>
+          <prop k="style" v="diagonal_x"/>
           <prop k="style_border" v="solid"/>
           <prop k="width_border" v="0.26"/>
         </layer>
@@ -78,7 +78,7 @@
           <prop k="color" v="170,85,0,127"/>
           <prop k="color_border" v="134,0,0,127"/>
           <prop k="offset" v="0,0"/>
-          <prop k="style" v="dense3"/>
+          <prop k="style" v="diagonal_x"/>
           <prop k="style_border" v="solid"/>
           <prop k="width_border" v="0.52"/>
         </layer>
@@ -124,7 +124,7 @@
           <prop k="color" v="85,170,0,126"/>
           <prop k="color_border" v="0,170,0,126"/>
           <prop k="offset" v="0,0"/>
-          <prop k="style" v="dense3"/>
+          <prop k="style" v="diagonal_x"/>
           <prop k="style_border" v="solid"/>
           <prop k="width_border" v="0.4"/>
         </layer>
@@ -134,7 +134,7 @@
           <prop k="color" v="123,61,184,126"/>
           <prop k="color_border" v="0,0,0,126"/>
           <prop k="offset" v="0,0"/>
-          <prop k="style" v="dense3"/>
+          <prop k="style" v="diagonal_x"/>
           <prop k="style_border" v="solid"/>
           <prop k="width_border" v="0.26"/>
         </layer>
@@ -144,7 +144,7 @@
           <prop k="color" v="170,85,0,126"/>
           <prop k="color_border" v="134,0,0,126"/>
           <prop k="offset" v="0,0"/>
-          <prop k="style" v="dense3"/>
+          <prop k="style" v="diagonal_x"/>
           <prop k="style_border" v="solid"/>
           <prop k="width_border" v="0.26"/>
         </layer>
@@ -273,6 +273,7 @@
       </symbol>
     </symbols>
   </renderer-v2>
+  <customproperties/>
   <displayfield>ID_UV_NEW</displayfield>
   <label>0</label>
   <labelattributes>
@@ -305,5 +306,4 @@
   <editforminit></editforminit>
   <annotationform></annotationform>
   <attributeactions/>
-  <customproperties/>
 </qgis>
