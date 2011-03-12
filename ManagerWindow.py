@@ -35,6 +35,9 @@ class ManagerWindow(QDockWidget):
 	STYLE_GEOM_MODIF = "stile_geometrie_modificate.qml"
 	STYLE_FOTO = "stile_foto.qml"
 
+	SCALE_IDENTIFY = 5000
+	SCALE_MODIFY = 2000
+
 	DEFAULT_SRID = 3003
 
 	instance = None
@@ -69,7 +72,7 @@ class ManagerWindow(QDockWidget):
 		self.fotoPointEmitter = FeatureFinder()
 		QObject.connect(self.fotoPointEmitter, SIGNAL("pointEmitted"), self.identificaFoto)
 
-		self.connect( self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
+		self.connect(self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
 
 		self.connect(self.btnSelNuovaScheda, SIGNAL("clicked()"), self.identificaNuovaScheda)
 		self.connect(self.btnSelSchedaEsistente, SIGNAL("clicked()"), self.apriScheda)
@@ -80,6 +83,7 @@ class ManagerWindow(QDockWidget):
 		self.connect(self.btnRiepilogoSchede, SIGNAL("clicked()"), self.riepilogoSchede)
 		self.connect(self.btnSelFoto, SIGNAL("clicked()"), self.identificaFoto)
 		self.connect(self.btnAbout, SIGNAL("clicked()"), self.about)
+
 
 	def setupUi(self):
 		self.setObjectName( "rt_omero_dockwidget" )
@@ -107,7 +111,7 @@ class ManagerWindow(QDockWidget):
 		self.btnCreaNuovaGeometria.setCheckable(True)
 		gridLayout.addWidget(self.btnCreaNuovaGeometria, 3, 0, 1, 2)
 
-		text = QString.fromUtf8( "Spezza una geometria esistente" )
+		text = QString.fromUtf8( "Suddividi una geometria esistente" )
 		self.btnSpezzaGeometriaEsistente = QPushButton( QIcon(":/icons/spezza_geometria.png"), text, self.child )
 		self.btnSpezzaGeometriaEsistente.setCheckable(True)
 		gridLayout.addWidget(self.btnSpezzaGeometriaEsistente, 4, 0, 1, 2)
@@ -135,9 +139,11 @@ class ManagerWindow(QDockWidget):
 		from DlgAbout import DlgAbout
 		DlgAbout(self).exec_()
 
+
 	def toolChanged(self, tool):
 		if tool == None:
 			return
+
 		self.btnSelNuovaScheda.setChecked( self.nuovaPointEmitter.isActive() )
 		self.btnSelSchedaEsistente.setChecked( self.isApriScheda and self.esistentePointEmitter.isActive() )
 		self.btnEliminaScheda.setChecked( not self.isApriScheda and self.esistentePointEmitter.isActive() )
@@ -145,14 +151,22 @@ class ManagerWindow(QDockWidget):
 		self.btnSpezzaGeometriaEsistente.setChecked( self.lineDrawer.isActive() )
 		self.btnSelFoto.setChecked( self.fotoPointEmitter.isActive() )
 
+
+	def permettiAzione(self, btn, maxScale):
+		if self.canvas.scale() > maxScale:
+			QMessageBox.warning( self, "Azione non permessa", QString.fromUtf8( u"L'azione \"%s\" è ammessa solo dalla scala 1:%d" % (btn.text(), maxScale) ) )
+			return False
+		return True
+
+
 	def riepilogoSchede(self):
 		from DlgRiepilogoSchede import DlgRiepilogoSchede
 		return DlgRiepilogoSchede(self).exec_()
 
 
 	def identificaNuovaScheda(self, point=None, button=None):
-		if point == None:
-			self.btnSelNuovaScheda.setChecked(True)
+
+		if not self.permettiAzione( self.btnSelNuovaScheda, self.SCALE_IDENTIFY ) or point == None:
 			return self.nuovaPointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
@@ -203,23 +217,19 @@ class ManagerWindow(QDockWidget):
 
 	def identificaSchedaEsistente(self, point=None, button=None):
 
-		def setButtonChecked(checked):
-			if self.isApriScheda:
-				self.btnSelSchedaEsistente.setChecked(checked)
-			else:
-				self.btnEliminaScheda.setChecked(checked)
+		def getButton():
+			return self.btnSelSchedaEsistente if self.isApriScheda else self.btnEliminaScheda
 
-		if point == None:
-			setButtonChecked(True)
+		if not self.permettiAzione( getButton(), self.SCALE_IDENTIFY ) or point == None:
 			return self.esistentePointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
-			setButtonChecked(False)
+			getButton().setChecked(False)
 			return
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
 		if layerModif == None:
-			setButtonChecked(False)
+			getButton().setChecked(False)
 			return
 
 		feat = self.esistentePointEmitter.findAtPoint(layerModif, point)
@@ -234,7 +244,7 @@ class ManagerWindow(QDockWidget):
 					self.apriScheda( codice )
 				else:
 					self.eliminaScheda( codice )
-				setButtonChecked(False)
+				getButton().setChecked(False)
 				return
 
 			# NO, non esiste alcuna scheda associata a tale geometria
@@ -245,8 +255,8 @@ class ManagerWindow(QDockWidget):
 
 
 	def identificaFoto(self, point=None, button=None):
-		if point == None:
-			self.btnSelFoto.setChecked(True)
+
+		if not self.permettiAzione( self.btnSelFoto, self.SCALE_IDENTIFY ) or point == None:
 			return self.fotoPointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
@@ -284,9 +294,11 @@ class ManagerWindow(QDockWidget):
 
 			return newID
 
-
+		if not self.permettiAzione( self.btnSpezzaGeometriaEsistente, self.SCALE_MODIFY ):
+			self.lineDrawer.stopCapture()
+			self.btnSpezzaGeometriaEsistente.setChecked(False)
+			return
 		if line == None:
-			self.btnSpezzaGeometriaEsistente.setChecked(True)
 			return self.lineDrawer.startCapture()
 
 		#TODO: fai qui i test sulla linea
@@ -374,8 +386,12 @@ class ManagerWindow(QDockWidget):
 		return True
 
 	def creaNuovaGeometria(self, polygon=None):
+
+		if not self.permettiAzione( self.btnCreaNuovaGeometria, self.SCALE_MODIFY ):
+			self.polygonDrawer.stopCapture()
+			self.btnCreaNuovaGeometria.setChecked(False)
+			return
 		if polygon == None:
-			self.btnCreaNuovaGeometria.setChecked(True)
 			return self.polygonDrawer.startCapture()
 
 		# TODO: fai qui i test sul poligono
@@ -559,7 +575,7 @@ class ManagerWindow(QDockWidget):
 
 	def getPathToDB(self, forceDialog=False):
 		settings = QSettings()
-		pathToSqliteDB = settings.value( "/omero_RT/pathToSqliteDB", QVariant("") ).toString()
+		pathToSqliteDB = AutomagicallyUpdater._getPathToDb()
 
 		if pathToSqliteDB.isEmpty() or not QFileInfo(pathToSqliteDB).exists() or forceDialog:
 			newPath = QFileDialog.getOpenFileName(self, "Seleziona il DB", pathToSqliteDB, "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
@@ -567,7 +583,7 @@ class ManagerWindow(QDockWidget):
 				return None
 
 			pathToSqliteDB = newPath
-			settings.setValue( "/omero_RT/pathToSqliteDB", QVariant(pathToSqliteDB) )
+			AutomagicallyUpdater._setPathToDb( pathToSqliteDB )
 
 		return pathToSqliteDB
 
@@ -813,7 +829,7 @@ class ManagerWindow(QDockWidget):
 		TemporaryFile.clear()
 		ConnectionManager.closeConnection()
 
-		self.disconnect( self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
+		self.disconnect(self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
 		self.nuovaPointEmitter.stopCapture()
 		self.esistentePointEmitter.stopCapture()
 		self.fotoPointEmitter.stopCapture()

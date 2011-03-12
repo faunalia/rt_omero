@@ -54,6 +54,16 @@ class AutomagicallyUpdater:
 		return settings.value( "/omero_RT/lastIDRilevatore", QVariant("") ).toString()
 
 	@classmethod
+	def _getPathToDb(self):
+		settings = QSettings()
+		return settings.value( "/omero_RT/pathToSqliteDB", QVariant("") ).toString()
+
+	@classmethod
+	def _setPathToDb(self, path):
+		settings = QSettings()
+		settings.setValue( "/omero_RT/pathToSqliteDB", QVariant(path) )
+
+	@classmethod
 	def _getLastUsedDir(self, key):
 		settings = QSettings()
 		lastProjectDir = settings.value( "/UI/lastProjectDir", QVariant(".") ).toString()

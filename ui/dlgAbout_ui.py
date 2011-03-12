@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/dlgAbout.ui'
 #
-# Created: Tue Mar  1 17:53:34 2011
+# Created: Sat Mar 12 13:02:31 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,12 +12,12 @@ from PyQt4 import QtCore, QtGui
 class Ui_DlgAbout(object):
     def setupUi(self, DlgAbout):
         DlgAbout.setObjectName("DlgAbout")
-        DlgAbout.resize(566, 398)
+        DlgAbout.resize(639, 473)
         self.gridLayout = QtGui.QGridLayout(DlgAbout)
         self.gridLayout.setObjectName("gridLayout")
         self.buttonBox = QtGui.QDialogButtonBox(DlgAbout)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close|QtGui.QDialogButtonBox.Help)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 2)
         self.txt = QtGui.QTextBrowser(DlgAbout)
@@ -41,8 +41,10 @@ class Ui_DlgAbout(object):
 "<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-style:italic;\">Sistema Informativo Territoriale Ambientale</span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">http://www.regione.toscana.it/ambienteeterritorio</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Questo plugin è distribuito con licenza (?? da definire ??)</p>\n"
+"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Questo plugin è distribuito con licenza GPLv2</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Database<span style=\" font-weight:600;\"> v. $DB_VER$ </span>   Ultima modifica<span style=\" font-weight:600;\"> $DB_REV$ </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Database<span style=\" font-weight:600;\"> v. $DB_VER$ </span>   ultima modifica<span style=\" font-weight:600;\"> $DB_REV$ </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">$DB_PATH$ </span></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Versione Quantum GIS $QGIS_VER$ (r$QGIS_REV$)</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 

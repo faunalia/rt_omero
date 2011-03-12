@@ -32,6 +32,8 @@ class DlgAbout(QDialog, Ui_DlgAbout):
 		text = text.replace( "$QGIS_VER$", QGis.QGIS_VERSION )
 		text = text.replace( "$QGIS_REV$", QGis.QGIS_SVN_VERSION )
 
+		text = text.replace( "$DB_PATH$" , AutomagicallyUpdater._getPathToDb() )
+
 		query = AutomagicallyUpdater.Query( "SELECT DB_VERSION_MAIOR || '.' || DB_VERSION_MINOR, DB_LAST_DATE_USAGE FROM ZZ_DISCLAIMER" )
 		query = query.getQuery()
 		if query.exec_() and query.next():

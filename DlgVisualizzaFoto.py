@@ -22,7 +22,7 @@ class DlgVisualizzaFoto(QDialog, Ui_Dialog):
 		if len(ids) <= 0:
 			return False
 		if len(ids) == 1:
-			return self.apriFotoByRowid( ids[0] )
+			return self.apriFotoByRowid( ids[0], None )
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
@@ -49,23 +49,12 @@ class DlgVisualizzaFoto(QDialog, Ui_Dialog):
 		return QDialog.exec_(self)
 
 
-	def apriFotoByRowid(self, rowid):
+	def apriFotoByRowid(self, rowid, tempKey=Utils.TemporaryFile.KEY_VISUALIZZAFOTO):
 		imgData = AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ROWID = ?", [rowid] ).getFirstResult()
-		if imgData == None:
+		filename = Utils.TemporaryFile.salvaDati(imgData, tempKey)
+		if filename == None:
 			return False
-
-		tmp = Utils.TemporaryFile.getNewFile( 'DlgVisualizzaFoto.apriFoto' )
-		if not tmp.open():
-			Utils.TemporaryFile.delFile( tmp, 'DlgVisualizzaFoto.apriFoto' )
-			return False
-
-		outfile = open( tmp.fileName().toUtf8(), "wb" )
-		outfile.write( str(imgData) )
-		outfile.close()
-
-		tmp.close()
-
-		url = QUrl.fromLocalFile( tmp.fileName() )
+		url = QUrl.fromLocalFile( filename )
 		QDesktopServices.openUrl( url )
 		return True
 
@@ -76,4 +65,9 @@ class DlgVisualizzaFoto(QDialog, Ui_Dialog):
 		if not self.view2id.has_key( picViewer ):
 			return False
 		return self.apriFotoByRowid( self.view2id[picViewer] )
+
+
+	def closeEvent(self, event):
+		Utils.TemporaryFile.delAllFiles( Utils.TemporaryFile.KEY_VISUALIZZAFOTO )
+		return QDialog.closeEvent(self, event)
 

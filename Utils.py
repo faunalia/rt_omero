@@ -278,6 +278,10 @@ class TemporaryFile:
 	# gestisci i file temporanei, eliminandoli alla chiusura del plugin
 	tmpFiles = {}
 
+	KEY_SCHEDAEDIFICIO = 'SchedaEdificio'
+	KEY_SCHEDAEDIFICIO2HTML = 'SchedaEdificio2Html'
+	KEY_VISUALIZZAFOTO = 'DlgVisualizzaFoto'
+
 	@staticmethod
 	def getNewFile(key=None):
 		tmp = QTemporaryFile()
@@ -314,4 +318,22 @@ class TemporaryFile:
 				del tmp
 			del tmpList
 		TemporaryFile.tmpFiles = {}
+
+
+	@staticmethod
+	def salvaDati(dati, tempKey=None):
+		if dati == None:
+			return
+
+		tmp = TemporaryFile.getNewFile( tempKey )
+		if not tmp.open():
+			TemporaryFile.delFile( tmp, tempKey )
+			return
+
+		outfile = open( tmp.fileName().toUtf8(), "wb" )
+		outfile.write( str(dati) )
+		outfile.close()
+
+		tmp.close()
+		return tmp.fileName()
 

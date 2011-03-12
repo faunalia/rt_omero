@@ -79,8 +79,8 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 		finally:
 			# rimuovi i file temporanei collegati alla scheda
-			import Utils
-			Utils.TemporaryFile.delAllFiles( 'SchedaEdificio' )
+			from Utils import TemporaryFile
+			TemporaryFile.delAllFiles( TemporaryFile.KEY_SCHEDAEDIFICIO )
 
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
@@ -108,4 +108,4 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 %s %s %s %s %s %s %s %s 
 </body>
 </html>
-""" % (css, giunta, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO_EDIFICIOID.toHtml() )
+""" % (css, giunta, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO.toHtml() )

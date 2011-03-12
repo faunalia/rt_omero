@@ -39,7 +39,7 @@ body {
 	page-break-inside: avoid;
 }
 
-.newPage, #sez3.block, #sez4.block, #sez5.block, #sez7.block, #sez8.block, {
+.newPage, #sez3.block, #sez4.block, #sez5.block, #sez7.block, #sez8.block {
 	page-break-before: always;
 }
 

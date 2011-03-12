@@ -201,6 +201,10 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 				self.webView.print_(printer)
 
 			del printer
+			# rimuovi i file temporanei collegati alla generazione dell'html
+			from Utils import TemporaryFile
+			TemporaryFile.delAllFiles( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML )
+
 
 		# stampa il successivo
 		self.printNext()
