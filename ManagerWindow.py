@@ -516,6 +516,7 @@ class ManagerWindow(QDockWidget):
 			
 		self.scheda.show()
 		QApplication.restoreOverrideCursor()
+		return True
 
 	def recuperaScheda(self, uvID):
 		query = AutomagicallyUpdater.Query( "SELECT SCHEDA_EDIFICIOID FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [ uvID ] )
@@ -571,6 +572,7 @@ class ManagerWindow(QDockWidget):
 
 		# aggiorna il layer con le geometrie modificate
 		self.aggiornaLayerModif()
+		return True
 
 
 	def getPathToDB(self, forceDialog=False):

@@ -28,7 +28,9 @@ class DlgRiepilogoSchede(QDialog, Ui_Dialog):
 		AutomagicallyUpdater.loadTables( self.schedeList, AutomagicallyUpdater.Query( self.createQuerySchede(), None, 1 ) )
 
 		self.connect(self.apriBtn, SIGNAL("clicked()"), self.apriScheda)
+		self.connect(self.eliminaBtn, SIGNAL("clicked()"), self.eliminaScheda)
 		self.connect(self.stampaBtn, SIGNAL("clicked()"), self.stampaSchede)
+		self.connect(self.centraBtn, SIGNAL("clicked()"), self.centraUV)
 		self.connect(self.schedeList, SIGNAL("itemSelectionChanged()"), self.aggiornaPulsanti)
 
 		self.aggiornaPulsanti()
@@ -108,8 +110,11 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 
 
 	def aggiornaPulsanti(self):
-		self.apriBtn.setEnabled( AutomagicallyUpdater.getValue(self.schedeList) != None )
-		self.stampaBtn.setEnabled( AutomagicallyUpdater.getValue(self.schedeList) != None )
+		enabled = AutomagicallyUpdater.getValue(self.schedeList) != None
+		self.apriBtn.setEnabled( enabled )
+		self.eliminaBtn.setEnabled( enabled )
+		self.centraBtn.setEnabled( False )#enabled )
+		self.stampaBtn.setEnabled( enabled )
 
 	def recuperaUvID(self, schedaID):
 		query = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID = ?", [ schedaID ] )
@@ -123,8 +128,26 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 			return
 
 		from ManagerWindow import ManagerWindow
-		ManagerWindow.instance.apriScheda(uvID)
-		self.close()
+		if ManagerWindow.instance.apriScheda(uvID):
+			self.close()
+
+	def eliminaScheda(self):
+		schedaID = AutomagicallyUpdater.getValue( self.schedeList )
+		uvID = self.recuperaUvID( schedaID )
+		if uvID == None:
+			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
+			return
+
+		from ManagerWindow import ManagerWindow
+		if ManagerWindow.instance.eliminaScheda(uvID):
+			self.close()
+
+	def centraUV(self):
+		schedaID = AutomagicallyUpdater.getValue( self.schedeList )
+		uvID = self.recuperaUvID( schedaID )
+		if uvID == None:
+			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
+			return
 
 	def stampaSchede(self):
 		self.invalidPrint = []
