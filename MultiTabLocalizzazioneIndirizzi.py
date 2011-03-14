@@ -87,3 +87,12 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 				self._insertValue( values, self._tableName, None )
 
 		return True
+
+	def delete(self):
+		# elimina i valori delle tabelle collegate
+		for widget in self._recursiveChildrenRefs():
+			if not isinstance(widget, MappingOne2One):
+				continue
+			if not widget.delete():
+				return False
+		return True

@@ -178,8 +178,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self._deleteValue(self._parentRef._tableName, filters)
 
 		# elimina solo se non sono presenti altri riferimenti a questo oggetto
-		query = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] )
-		value = query.getFirstResult()
+		value = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
 		if value == None or int(value) > 1:
 			return
 
