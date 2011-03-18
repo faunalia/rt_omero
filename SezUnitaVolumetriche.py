@@ -135,9 +135,10 @@ class SezUnitaVolumetriche(MultiTabSection):
 				return
 
 	def toHtml(self):
-		return """
+		return QString( u"""
 <div id="sez3" class="block">
 <p class="section">SEZIONE A3 - IDENTIFICAZIONE DELLE UNITA' VOLUMETRICHE</p>
 %s
 </div>
 """ % MultiTabSection.toHtml(self)
+)

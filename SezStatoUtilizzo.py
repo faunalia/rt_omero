@@ -53,17 +53,16 @@ class SezStatoUtilizzo(QWidget, MappingOne2One, Ui_Form):
 		self.aggiornaListaRiepilogo(self.CATEGORIA_USO_ALTRI_PIANI, self.catUsoAltriPianiList)
 
 	def aggiornaListaRiepilogo(self, listaConValori, listaDiRiepilogo):
-		values = listaConValori.getValues()
-		values = map( lambda x: "'%s'" % x, values )
-		query = AutomagicallyUpdater.Query( "SELECT * FROM " + listaConValori._tableWithValues + " WHERE ID IN (" + ",".join(values) + ") ORDER BY DESCRIZIONE ASC" )
+		values = map( lambda x: "'%s'" % x, listaConValori.getValues() )
+		query = AutomagicallyUpdater.Query( "SELECT * FROM %s WHERE ID IN (%s) ORDER BY DESCRIZIONE ASC" % ( listaConValori._tableWithValues, ",".join(values) ), None, 0 )
 		self.loadTables(listaDiRiepilogo, query)
 
 	def toHtml(self):
-		uso_prevalente = map( str, self.CATEGORIA_USO_PREVALENTE.getValues(False) )
-		uso_terra = map( str, self.CATEGORIA_USO_PIANO_TERRA.getValues(False) )
-		uso_altri = map( str, self.CATEGORIA_USO_ALTRI_PIANI.getValues(False) )
+		uso_prevalente = QStringList() << self.CATEGORIA_USO_PREVALENTE.getValues(False)
+		uso_terra = QStringList() << self.CATEGORIA_USO_PIANO_TERRA.getValues(False)
+		uso_altri = QStringList() << self.CATEGORIA_USO_ALTRI_PIANI.getValues(False)
 		descrizione = self.getValue(self.DESCRIZIONE_VISIVA)
-		return """
+		return QString( u"""
 <div id="sez5" class="block">
 <p class="section">SEZIONE A5 - STATO E UTILIZZO</p>
 <table class="white border">
@@ -89,5 +88,5 @@ class SezStatoUtilizzo(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 </table>
 </div>
-"""	% ( self.ZZ_TIPOLOGIA_EDILIZIAID.currentText(), "<br>".join(uso_prevalente), "<br>".join(uso_terra), "<br>".join(uso_altri), self.ZZ_STATO_EDIFICIOID.currentText(), self.ZZ_FRUIZIONE_TEMPORALEID.currentText(), descrizione if descrizione != None else '' )
-
+"""	% ( self.ZZ_TIPOLOGIA_EDILIZIAID.currentText(), uso_prevalente.join("<br>"), uso_terra.join("<br>"), uso_altri.join("<br>"), self.ZZ_STATO_EDIFICIOID.currentText(), self.ZZ_FRUIZIONE_TEMPORALEID.currentText(), descrizione if descrizione != None else '' )
+)

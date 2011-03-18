@@ -177,7 +177,8 @@ class PySLQuery:
 	def clear(self):
 		self._sql = QString()
 		self._query = QString()
-		self._params = []
+		self._markParams = []
+		self._namedParams = {}
 		self._error = PySLError()
 		self._value = None
 
@@ -202,7 +203,10 @@ class PySLQuery:
 		return QVariant(value) if value != None else QVariant()
 
 	def addBindValue(self, value):
-		self._params.append( self.escapeValue(value) )
+		self._markParams.append( self.escapeValue(value) )
+
+	def bindValue(self, key, value):
+		self._namedParams[key] = self.escapeValue(value)
 
 	def setQuery(self, sql):
 		self.clear()
@@ -214,7 +218,8 @@ class PySLQuery:
 			self.setQuery(sql)
 
 		try:
-			self._cursor.execute(u"%s" % self._query, self._params)
+			params = self._namedParams if len(self._namedParams) > 0 else self._markParams
+			self._cursor.execute(u"%s" % self._query, params)
 		except sqlite.Error, e:
 			self._error = PySLError( str(e) )
 			return False
@@ -234,7 +239,8 @@ class PySLQuery:
 	def value(self, index):
 		if index < len(self._value):
 			val = self._value[index]
-			return QVariant(val) if val != None else QVariant()
+			from AutomagicallyUpdater import AutomagicallyUpdater
+			return self.convertResult( AutomagicallyUpdater._getRealValue(val) )
 		return None
 
 	def lastInsertId(self):

@@ -21,7 +21,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
 			self.comuneCombo: AutomagicallyUpdater.Query( "SELECT com.ISTATCOM, com.NOME || ' (' || prov.NOME || ')' FROM ZZ_PROVINCE AS prov JOIN ZZ_COMUNI AS com ON prov.ISTATPROV = com.ZZ_PROVINCEISTATPROV ORDER BY com.NOME, prov.NOME ASC" ),
-			self.rilevatoriTable: AutomagicallyUpdater.Query( "SELECT ID, COGNOME, NOME FROM RILEVATORE WHERE ID LIKE ? ORDER BY COGNOME, NOME ASC", [ None ] )
+			self.rilevatoriTable: AutomagicallyUpdater.Query( "SELECT ID, COGNOME, NOME FROM RILEVATORE WHERE ID LIKE ? ORDER BY COGNOME, NOME ASC", [ None ], 0 )
 		}
 		self.setupTablesUpdater(tablesDict)
 		self.loadTables()

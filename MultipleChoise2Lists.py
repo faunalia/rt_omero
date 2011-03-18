@@ -19,8 +19,8 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
-			self.nonSelezionateList: AutomagicallyUpdater.ZZTable( self._tableWithValues ), 
-			self.selezionateList: AutomagicallyUpdater.ZZTable( self._tableWithValues )
+			self.nonSelezionateList: AutomagicallyUpdater.ZZTable( self._tableWithValues, None, None, 0 ), 
+			self.selezionateList: AutomagicallyUpdater.ZZTable( self._tableWithValues, None, None, 0 )
 		}
 		self.setupTablesUpdater(tablesDict)
 		self.loadTablesAndInit()

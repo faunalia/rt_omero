@@ -45,6 +45,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 
 	def caricaImmagine(self, filename):
+		# TODO: recupera metadati tramite osgeo.gdal
 		rl = qgis.core.QgsRasterLayer( filename )
 		if not rl.isValid():
 			return False
@@ -125,7 +126,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		georef_y = self.getValue(self.GEOREF_PROIET_Y)
 		georef = '%s , %s' % ( str(georef_x), str(georef_y) ) if georef_x != None and georef_y != None else ''
 		
-		return """
+		return QString( u"""
 <table class="border %s">
 	<tr>
 		<td>Foto #%d</td><td class="value">%s</td>
@@ -141,4 +142,4 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 </table>
 """ % ( 'newPage' if index > 0 and index%2 == 0 else '', index+1, fronte_edificio, filename, georef, annotazione if annotazione != None else '' )
-
+)

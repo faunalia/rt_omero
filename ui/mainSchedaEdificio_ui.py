@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/mainSchedaEdificio.ui'
 #
-# Created: Sat Mar 12 01:59:33 2011
+# Created: Fri Mar 18 00:35:59 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -40,6 +40,7 @@ class Ui_SchedaEdificio(object):
         sizePolicy.setHeightForWidth(self.sectionsList.sizePolicy().hasHeightForWidth())
         self.sectionsList.setSizePolicy(sizePolicy)
         self.sectionsList.setAlternatingRowColors(True)
+        self.sectionsList.setSelectionRectVisible(True)
         self.sectionsList.setObjectName("sectionsList")
         QtGui.QListWidgetItem(self.sectionsList)
         QtGui.QListWidgetItem(self.sectionsList)

@@ -38,7 +38,7 @@ class SezCaratteristicheArchitettoniche(QWidget, MappingOne2One, Ui_Form):
 		self.setupValuesUpdater(childrenList)
 
 	def toHtml(self):
-		return """
+		return QString( u"""
 <div id="sez7" class="block">
 <p class="section">SEZIONE A7 - CARATTERISTICHE ARCHITETTONICHE</p>
 <table class="yellow border">
@@ -49,3 +49,4 @@ class SezCaratteristicheArchitettoniche(QWidget, MappingOne2One, Ui_Form):
 %s %s %s %s %s %s %s 
 </div>
 """ % ( self.ZZ_PROSPETTO_PREVALENTEID.currentText(), self.PARAMENTIID.toHtml(), self.BALCONIID.toHtml(), self.OSCURAMENTIID.toHtml(), self.INFISSIID.toHtml(), self.GRONDAID.toHtml(), self.ELEMENTI_DECORATIVIID.toHtml(), self.SUPERFETAZIONI_INCONGRUENZEID.toHtml() )
+)

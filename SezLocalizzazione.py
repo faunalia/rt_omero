@@ -33,11 +33,11 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 		self.setupValuesUpdater(childrenList)
 
 	def toHtml(self):
-		catastali = self.PARTICELLE_CATASTALI.getValues()
-		fogli = map(lambda x: str(x[0] if x[0] != None else ""), catastali)
-		particelle = map(lambda x: str(x[1] if x[1] != None else ""), catastali)
+		catastali = self.PARTICELLE_CATASTALI.getValues(False)
+		fogli = QStringList() << map(lambda x: x[0] if x[0] != None else "", catastali)
+		particelle = QStringList() << map(lambda x: x[1] if x[1] != None else "", catastali)
 		isolato = self.getValue(self.EDIFICIO_ISOLATO)
-		return """
+		return QString( u"""
 <div id="sez2" class="block">
 <p class="section">SEZIONE A2 - LOCALIZZAZIONE DELL'EDIFICIO</p>
 <div class="border">
@@ -59,4 +59,5 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 </table>
 </div>
 </div>
-""" % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), "<br>".join(fogli), "<br>".join(particelle), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETA_PREVALENTEID.currentText() )
+""" % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), fogli.join("<br>"), particelle.join("<br>"), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETA_PREVALENTEID.currentText() )
+)

@@ -178,8 +178,8 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self._deleteValue(self._parentRef._tableName, filters)
 
 		# elimina solo se non sono presenti altri riferimenti a questo oggetto
-		value = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
-		if value == None or int(value) > 1:
+		count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
+		if count == None or int(count) > 0:
 			return
 
 		#elimina i numeri civici
@@ -200,15 +200,19 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 					# non salvare duplicati: controlla che la via non esista già
 					if value != None:
 						index = self.VIA.findData( value )
-						if index >= 0:
+						if index >= 0:	# è una via esistente
 							ID = value
 							break
+
+						if self._ID != None:	# la via è stata modificata
+							count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
+							if count != None and int(count) > 1:	# salva un nuovo indirizzo
+								self._ID = None
 
 					if value == None:
 						value = ''	#self.COMUNE_NON_VALIDO
 
-					query = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s = ? AND %s = ?" % (self._pkColumn, self._tableName, self.ZZ_COMUNIISTATCOM.objectName(), self.VIA.objectName()), [self.getValue(self.ZZ_COMUNIISTATCOM), value], 1 )
-					ID = query.getFirstResult()
+					ID = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s = ? AND %s = ?" % (self._pkColumn, self._tableName, self.ZZ_COMUNIISTATCOM.objectName(), self.VIA.objectName()), [self.getValue(self.ZZ_COMUNIISTATCOM), value]).getFirstResult()
 					if ID != None:
 						break
 
@@ -228,8 +232,9 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 
 	def toHtml(self, index):
-		civici = map(lambda x: str( (x[0] if x[0] != None else "") + (x[1] if x[1] != None else "") ), self.NUMERI_CIVICI.getValues())
-		return """
+		civici = self.NUMERI_CIVICI.getValues(False)
+		civici = QStringList() << map(lambda x: (x[0] if x[0] != None else "") + (x[1] if x[1] != None else ""), civici)
+		return QString( u"""
 <table class="blue">
 	<tr class="line">
 		<td>Provincia</td><td class="value">%s</td>
@@ -240,5 +245,5 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		<td class="line">Num. Civici</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.ZZ_COMUNIISTATCOM.currentText(), self.ZZ_PROVINCEISTATPROV.currentText(), self.VIA.currentText(), ", ".join(civici) )
-
+""" % ( self.ZZ_COMUNIISTATCOM.currentText(), self.ZZ_PROVINCEISTATPROV.currentText(), self.VIA.currentText(), civici.join(", ") )
+)

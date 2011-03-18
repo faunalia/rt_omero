@@ -86,6 +86,9 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 				}
 				self._insertValue( values, self._tableName, None )
 
+		# elimina i figli orfani
+		self._deleteValue( self.firstTab._tableName, None, "%s NOT IN (SELECT %s FROM %s)" % (self.firstTab._pkColumn, self._pkColumn, self._tableName) )
+
 		return True
 
 	def delete(self):

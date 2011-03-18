@@ -71,18 +71,17 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		pass
 
 	def toHtml(self):
-		valori = self.ZZ_TIPO.getValues(False)
+		valori = QStringList() << self.ZZ_TIPO.getValues(False)
 		if self.ALTRO.isEnabled():
 			for v in valori:
 				if v.endsWith("Altro"):
 					valori.remove(v)
 					break
-			valori.append( self.getValue(self.ALTRO) )
-		valori = map( str, valori )
+			valori << self.getValue(self.ALTRO)
 
 		incongruenze = self.getValue(self.DESCRIZIONI_INCONGRUENZE)
 
-		return """
+		return QString( u"""
 <table class="yellow border">
 	<tr class="line">
 		<td class="subtitle">%s</td><td class="value">%s</td>
@@ -92,5 +91,5 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		<td>Presenza di elementi incogruenti</td><td class="value">%s</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.getNomeCaratteristica(), "<br>".join(valori), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), 'class="hidden"' if not self.otherInfos else '', "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) else "NO", incongruenze if incongruenze != None else '' )
-
+""" % ( self.getNomeCaratteristica(), valori.join("<br>"), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), 'class="hidden"' if not self.otherInfos else '', "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) else "NO", incongruenze if incongruenze != None else '' )
+)

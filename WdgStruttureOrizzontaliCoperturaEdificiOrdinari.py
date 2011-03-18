@@ -36,7 +36,7 @@ class WdgStruttureOrizzontaliCoperturaEdificiOrdinari(QWidget, MappingOne2One, U
 		self.setupValuesUpdater(childrenList)
 
 	def toHtml(self):
-		return """
+		return QString( u"""
 <table class="green border">
 	<tr>
 		<td class="title" colspan="4">Strutture orizzontali - Copertura > Edifici ordinari</td>
@@ -53,4 +53,4 @@ class WdgStruttureOrizzontaliCoperturaEdificiOrdinari(QWidget, MappingOne2One, U
 	</tr>
 </table>
 """ % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), self.ZZ_TIPOLOGIA_COSTRUTTIVA_COPERTURA_EDIFICI_ORDINARIID.currentText(), self.ZZ_COMPORTAMENTO_STRUTTURALE_COPERTURAID.currentText(), self.ZZ_STATO_CONSERVAZIONE_COPERTURA_EDIFICI_ORDINARIID.currentText() )
-
+)

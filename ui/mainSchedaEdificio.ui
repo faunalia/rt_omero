@@ -52,6 +52,9 @@
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
+          <property name="selectionRectVisible">
+           <bool>true</bool>
+          </property>
           <property name="currentRow">
            <number>0</number>
           </property>

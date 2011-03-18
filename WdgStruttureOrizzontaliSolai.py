@@ -38,8 +38,8 @@ class WdgStruttureOrizzontaliSolai(QWidget, MappingOne2One, Ui_Form):
 		self.setupValuesUpdater(childrenList)
 
 	def toHtml(self, index):
-		tipologia = map( str, self.ZZ_TIPOLOGIA_COSTRUTTIVA_ORIZZONTALE_PREVALENTEID.getValues(False) )
-		return """
+		tipologia = QStringList() << self.ZZ_TIPOLOGIA_COSTRUTTIVA_ORIZZONTALE_PREVALENTEID.getValues(False)
+		return QString( u"""
 <table class="green border">
 	<tr>
 		<td class="title" colspan="4">Strutture orizzontali solai</td>
@@ -54,5 +54,5 @@ class WdgStruttureOrizzontaliSolai(QWidget, MappingOne2One, Ui_Form):
 		<td>Stato di conservazione</td><td colspan="3" class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), "<br>".join(tipologia), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText() )
-
+""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), tipologia.join("<br>"), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText() )
+)

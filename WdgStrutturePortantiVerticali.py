@@ -53,8 +53,8 @@ class WdgStrutturePortantiVerticali(QWidget, MappingOne2One, Ui_Form):
 		self.ZZ_INCATENAMENTIID.setEnabled(enabler)
 
 	def toHtml(self):
-		tipologia = map( str, self.ZZ_TIPOLOGIA_COSTRUTTIVAID.getValues(False) )
-		return """
+		tipologia = QStringList() << self.ZZ_TIPOLOGIA_COSTRUTTIVAID.getValues(False)
+		return QString( u"""
 <table class="green border">
 	<tr>
 		<td class="title" colspan="4">Strutture portanti verticali</td>
@@ -83,4 +83,5 @@ class WdgStrutturePortantiVerticali(QWidget, MappingOne2One, Ui_Form):
 		<td>Piano debole</td><td colspan="3" class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), "<br>".join(tipologia), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText(), self.ZZ_APPARECCHIATURA_MURARIAID.currentText(), self.ZZ_INCATENAMENTIID.currentText(), self.ZZ_TAMPONATURE_DISTRIBUZIONEID.currentText(), self.ZZ_TAMPONATURE_TIPOLOGIAID.currentText(), self.ZZ_TAMPONATURE_PRESENZA_PIANO_DEBOLEID.currentText() )
+""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), tipologia.join("<br>"), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText(), self.ZZ_APPARECCHIATURA_MURARIAID.currentText(), self.ZZ_INCATENAMENTIID.currentText(), self.ZZ_TAMPONATURE_DISTRIBUZIONEID.currentText(), self.ZZ_TAMPONATURE_TIPOLOGIAID.currentText(), self.ZZ_TAMPONATURE_PRESENZA_PIANO_DEBOLEID.currentText() )
+)

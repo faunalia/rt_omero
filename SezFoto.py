@@ -42,10 +42,11 @@ class SezFoto(QWidget, MappingPart, Ui_Form):
 		if not self.listaFoto.hasTabs():
 			return ""
 
-		return """
+		return QString( u"""
 <div id="sez8" class="block">
 <p class="section">SEZIONE A8 - FOTOGRAFIE</p>
 %s
 </div>
 """ % ( self.listaFoto.toHtml() ) 
+)
 

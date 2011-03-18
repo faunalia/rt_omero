@@ -86,12 +86,12 @@ class MultiTabSection(QWidget, MappingOne2Many, Ui_MultiTabSection):
 		self.addTab()
 		return True
 
-	def setupUpdater(self, ID=None):
-		MappingOne2Many.setupUpdater(ID)
-		self.tabWidget.setCurrentIndex(0)
+	#def setupLoader(self, ID=None):
+	#	MappingOne2Many.setupUpdater(self, ID)
+	#	self.tabWidget.setCurrentIndex(0)
 
 	def toHtml(self):
-		html = ""
+		html = QString()
 		for index in range(self.tabWidget.count()):
 			html += self.tabWidget.widget(index).toHtml(index)
 		return html

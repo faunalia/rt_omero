@@ -9,6 +9,8 @@ from ConnectionManager import ConnectionManager
 class AutomagicallyUpdater:
 
 	DEBUG = False
+
+	DEFAULT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 
 	PROGRESSIVO_ID = -1
@@ -81,9 +83,11 @@ class AutomagicallyUpdater:
 
 
 	class Query():
-		def __init__(self, query, params=None, conntype=0):
+		def __init__(self, query, params=None, conntype=None):
 			self.query = query
 			self.setParams(params)
+			if conntype == None:
+				conntype = AutomagicallyUpdater.DEFAULT_CONN_TYPE
 			self.connType = conntype
 
 		def setParams(self, params=None):
@@ -114,7 +118,7 @@ class AutomagicallyUpdater:
 			return AutomagicallyUpdater._getRealValue( query.value(0) )
 
 	class Table(Query):
-		def __init__(self, table, filters=None, params=None):
+		def __init__(self, table, filters=None, params=None, conntype=None):
 			self.table = table
 			if filters == None:
 				filters = []
@@ -123,10 +127,10 @@ class AutomagicallyUpdater:
 			for f in filters:
 				query += " " + f
 
-			AutomagicallyUpdater.Query.__init__(self, query, params)
+			AutomagicallyUpdater.Query.__init__(self, query, params, conntype)
 
 	class ZZTable(Table):
-		def __init__(self, table, pk=None, orderByField=None):
+		def __init__(self, table, pk=None, orderByField=None, conntype=None):
 			if pk == None:
 				pk = "ID"
 			where = "WHERE %s <> '%s'" % (pk, AutomagicallyUpdater.VALORE_NON_INSERITO)
@@ -134,7 +138,7 @@ class AutomagicallyUpdater:
 				orderByField = 'DESCRIZIONE'
 			orderByFilter = "ORDER BY %s ASC" % orderByField
 
-			AutomagicallyUpdater.Table.__init__(self, table, [where, orderByFilter])
+			AutomagicallyUpdater.Table.__init__(self, table, [where, orderByFilter], None, conntype)
 
 	NONE = 0x0
 	REQUIRED = 0x1
@@ -963,10 +967,10 @@ class MappingOne2One(AutomagicallyUpdater):
 			return
 
 		if not hasattr(self._ID, '__iter__'):
-			query.bindValue( ':id', self._ID )
+			query.bindValue( 'id', self._ID )
 		else:
 			for i, ID in enumerate(self._ID):
-				query.bindValue( ':id%s' % i, ID )
+				query.bindValue( 'id%s' % i, ID )
 		return query
 
 	def loadValues(self, widget=None, action=None):

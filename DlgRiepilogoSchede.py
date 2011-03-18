@@ -2,7 +2,6 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from PyQt4.QtWebKit import *
 
 import qgis.gui
 import qgis.core
@@ -16,11 +15,6 @@ class DlgRiepilogoSchede(QDialog, Ui_Dialog):
 		QDialog.__init__(self, parent)
 		self.setAttribute(Qt.WA_DeleteOnClose)
 		self.setupUi(self)
-
-		# crea una webview per la stampa della scheda
-		self.webView = QWebView(self)
-		self.webView.setVisible(False)
-		QObject.connect(self.webView, SIGNAL("loadFinished(bool)"), self.loadFinished)
 
 		# su Win non funziona, probabile problema in QtSql 
 		#AutomagicallyUpdater.loadTables( self.schedeList, AutomagicallyUpdater.Query( self.createQuerySchede() ) )
@@ -36,7 +30,7 @@ class DlgRiepilogoSchede(QDialog, Ui_Dialog):
 		self.aggiornaPulsanti()
 
 
-	def createQuerySchede(self, lista=True):
+	def createQuerySchede(self):
 		"""
 		crea una query per recuperare l'intestazione (titolo) delle schede:
 		se 'lista' è True (default) di tutte le schede definite,
@@ -65,46 +59,29 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 		comune_non_valido = WdgLocalizzazioneIndirizzi.COMUNE_NON_VALIDO
 		via_civico_non_valido = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
 
-		if lista == True:
-			# query che recupera IDscheda, "via, civico - comune (provincia)"
-			query_localizzazione = """
-	SELECT 
-		sch.ID AS ID, 
-		CASE com.NOME IS NULL 
-			WHEN 0 THEN 
-				CASE ind.VIA = '' OR ind.VIA IS NULL 
-					WHEN 0 THEN 
-						CASE length(ind.VIA) > 50 WHEN 1 THEN substr(ind.VIA, 0, 50) || '...' ELSE ind.VIA END
-					ELSE '%s' 
-				END 
-				|| ', ' || 
-				CASE civ.CIVICO = '' OR civ.CIVICO IS NULL WHEN 0 THEN civ.CIVICO ELSE '%s' END 
-				|| ' - ' || com.NOME 
-			ELSE '%s' 
-		END AS INDIRIZZO 
-	FROM 
-		SCHEDA_EDIFICIO AS sch JOIN LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA loc_ind ON loc_ind.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = sch.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ 
-		JOIN (%s) AS ind ON ind.ID_INDIRIZZO = loc_ind.INDIRIZZO_VIAID_INDIRIZZO 
-		LEFT OUTER JOIN (%s) AS com ON com.ISTATCOM = ind.ZZ_COMUNIISTATCOM 
-		LEFT OUTER JOIN (%s) AS civ ON civ.INDIRIZZO_VIAID_INDIRIZZO = ind.ID_INDIRIZZO AND civ.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = sch.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ 
-	GROUP BY sch.ID
-	ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valido, comune_non_valido, query_indirizzi, query_comuni, query_ncivici)
-
-		else:
-			# query che recupera "istat_comune - via - civico" se tali campi sono tutti presenti altrimenti IDscheda
-			# richiede 1 parametro: l'IDscheda della scheda di cui si vuole recuperare tale informazione
-			query_localizzazione = """
-	SELECT 
-		CASE com.NOME IS NULL OR ind.VIA = '' OR ind.VIA IS NULL OR civ.CIVICO = '' OR civ.CIVICO IS NULL 
-			WHEN 1 THEN sch.ID 
-			ELSE com.ISTATCOM || ' - ' || ind.VIA || ' - ' || civ.CIVICO 
-		END AS INDIRIZZO
-	FROM 
-		SCHEDA_EDIFICIO AS sch JOIN LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA loc_ind ON loc_ind.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = sch.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ 
-		JOIN (%s) AS ind ON ind.ID_INDIRIZZO = loc_ind.INDIRIZZO_VIAID_INDIRIZZO 
-		LEFT OUTER JOIN (%s) AS com ON com.ISTATCOM = ind.ZZ_COMUNIISTATCOM 
-		LEFT OUTER JOIN (%s) AS civ ON civ.INDIRIZZO_VIAID_INDIRIZZO = ind.ID_INDIRIZZO AND civ.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = sch.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ
-	WHERE sch.ID = ?""" % (query_indirizzi, query_comuni, query_ncivici)
+		# query che recupera IDscheda, "via, civico - comune (provincia)"
+		query_localizzazione = """
+SELECT 
+	sch.ID AS ID, 
+	CASE com.NOME IS NULL 
+		WHEN 0 THEN 
+			CASE ind.VIA = '' OR ind.VIA IS NULL 
+				WHEN 0 THEN 
+					CASE length(ind.VIA) > 50 WHEN 1 THEN substr(ind.VIA, 0, 50) || '...' ELSE ind.VIA END
+				ELSE '%s' 
+			END 
+			|| ', ' || 
+			CASE civ.CIVICO = '' OR civ.CIVICO IS NULL WHEN 0 THEN civ.CIVICO ELSE '%s' END 
+			|| ' - ' || com.NOME 
+		ELSE '%s' 
+	END AS INDIRIZZO 
+FROM 
+	SCHEDA_EDIFICIO AS sch JOIN LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA loc_ind ON loc_ind.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = sch.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ 
+	JOIN (%s) AS ind ON ind.ID_INDIRIZZO = loc_ind.INDIRIZZO_VIAID_INDIRIZZO 
+	LEFT OUTER JOIN (%s) AS com ON com.ISTATCOM = ind.ZZ_COMUNIISTATCOM 
+	LEFT OUTER JOIN (%s) AS civ ON civ.INDIRIZZO_VIAID_INDIRIZZO = ind.ID_INDIRIZZO AND civ.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = sch.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ 
+GROUP BY sch.ID
+ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valido, comune_non_valido, query_indirizzi, query_comuni, query_ncivici)
 
 		return query_localizzazione
 
@@ -154,18 +131,13 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 		self.toPrint = []
 		self.currentIndex = -1
 
-		self.outFn = "%s.pdf"
-		lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
-
 		if len(self.schedeList.selectedItems()) > 1:
 			# permetti all'utente di selezionare la directory di output
+			lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
 			lastDir = QFileDialog.getExistingDirectory(self, "Salvataggio le schede", lastDir, QFileDialog.ShowDirsOnly )
 			if lastDir.isEmpty():
 				return
 			AutomagicallyUpdater._setLastUsedDir( 'pdf', lastDir )
-
-		import os.path
-		self.outFn = os.path.join( str(lastDir), self.outFn )
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
@@ -191,43 +163,22 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 			return self.printNext()
 		
 		from ManagerWindow import ManagerWindow
-		scheda = ManagerWindow.instance.recuperaScheda(uvID)
-		if scheda == None:	# impossibile recuperare la scheda
+		self.currentScheda = ManagerWindow.instance.recuperaScheda(uvID)
+		if self.currentScheda == None:	# impossibile recuperare la scheda
 			self.invalidPrint.append( schedaID )
 			return self.printNext()
 
-		# genera la scheda in HTML
-		self.webView.setHtml( scheda.toHtml() )
+		self.connect(self.currentScheda, SIGNAL("printFinished"), self.printFinished)
+		previewOnPrinting = len(self.toPrint) == 1
+		self.currentScheda.stampaScheda( previewOnPrinting )
 
-	def loadFinished(self, ok):
-		schedaID = self.toPrint[self.currentIndex]
-		fn = AutomagicallyUpdater.Query( self.createQuerySchede(False), [schedaID], 1 ).getFirstResult()
-
+	def printFinished(self, ok, schedaID):
 		if not ok:
 			self.invalidPrint.append( schedaID )
-		else:
-			printer = QPrinter()
-			printer.setOutputFormat( QPrinter.PdfFormat )
-			printer.setOutputFileName( self.outFn % fn )
 
-			if len(self.toPrint) == 1:	# solo una scheda, mostra la preview
-				printDlg = QPrintPreviewDialog(printer, self)
-				QObject.connect(printDlg, SIGNAL("paintRequested(QPrinter *)"), self.webView.print_)
-				QApplication.restoreOverrideCursor()
-
-				if printDlg.exec_():
-					AutomagicallyUpdater._setLastUsedDir( 'pdf', printer.outputFileName() )
-
-				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-
-			else:	# stampa direttamente su pdf
-				self.webView.print_(printer)
-
-			del printer
-			# rimuovi i file temporanei collegati alla generazione dell'html
-			from Utils import TemporaryFile
-			TemporaryFile.delAllFiles( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML )
-
+		# elimina la scheda
+		self.currentScheda.close()
+		del self.currentScheda
 
 		# stampa il successivo
 		self.printNext()
