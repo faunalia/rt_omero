@@ -574,6 +574,27 @@ class ManagerWindow(QDockWidget):
 		self.aggiornaLayerModif()
 		return True
 
+	def selezionaScheda(self, uvID, centra=True):
+		if uvID == None:
+			return
+
+		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
+		if layerModif == None:
+			return
+
+		geomID = AutomagicallyUpdater.Query( "SELECT ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [uvID] ).getFirstResult()
+
+		if geomID == None:
+			layerModif.removeSelection()
+			return
+
+		layerModif.removeSelection(False)
+		layerModif.select(int(geomID), not centra)
+		if centra:
+			self.canvas.zoomToSelected( layerModif )
+
+		return True
+
 
 	def getPathToDB(self, forceDialog=False):
 		settings = QSettings()

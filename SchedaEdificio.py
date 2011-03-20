@@ -19,9 +19,6 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		self.setupUi(self)
 		self.sectionsStacked.setCurrentIndex(0)
 
-		# salva il titolo predefinito della finestra
-		self.defaultTitle = self.windowTitle()
-
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
 			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.ZZ_PROPRIETA_PREVALENTEID: AutomagicallyUpdater.ZZTable( "ZZ_PROPRIETA_PREVALENTE" )
@@ -46,12 +43,11 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		self.setupValuesUpdater(childrenList)
 
 		self.connect(self.sectionsList, SIGNAL("itemSelectionChanged()"), self.currentSectionChanged)
+		self.connect(self.PRINCIPALE.printBtn, SIGNAL("clicked()"), self.stampaScheda)
 
 		# aggiorna il titolo della scheda con l'indirizzo del primo tab indirizzi
 		indirizzo = self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.firstTab
-		self.connect(indirizzo, SIGNAL("indirizzoChanged(const QString &)"), self.impostaTitolo)
-
-		self.connect(self.PRINCIPALE.printBtn, SIGNAL("clicked()"), self.stampaScheda)
+		self.connect(indirizzo, SIGNAL("indirizzoChanged"), self.aggiornaTitolo)
 
 		# carica i dati della scheda
 		self.setupLoader( schedaID )
@@ -61,19 +57,31 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			return
 		self.sectionsStacked.setCurrentIndex(self.sectionsList.currentRow())
 
-	def impostaTitolo(self, title=QString()):
-		if not title.isEmpty():
-			self.setWindowTitle( title )
-		else:
-			self.setWindowTitle( self.defaultTitle )
+	def aggiornaTitolo(self):
+		indirizzo = self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.firstTab
 
+		comune = indirizzo.ZZ_COMUNIISTATCOM.currentText()
+		provincia = indirizzo.ZZ_PROVINCEISTATPROV.currentText()
+		via = indirizzo.VIA.currentText()
+		civico = indirizzo.NUMERI_CIVICI.rowToString()
+
+		from WdgLocalizzazioneIndirizzi import WdgLocalizzazioneIndirizzi
+		indirizzo_non_valido = WdgLocalizzazioneIndirizzi.INDIRIZZO_NON_VALIDO
+		indirizzo_non_inserito = WdgLocalizzazioneIndirizzi.INDIRIZZO_NON_INSERITO
+
+		if comune != '':
+			via = u"%s, %s" % (via, civico) if via != '' and civico != '' else indirizzo_non_inserito
+			titolo = u"%s - %s (%s)" % (via, comune, provincia)
+		else:
+			titolo = indirizzo_non_valido
+		self.setWindowTitle( titolo )
 
 	def getTitoloStampa(self):
 		indirizzo = self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.firstTab
 
 		istatcom = self.getValue(indirizzo.ZZ_COMUNIISTATCOM)
 		via = indirizzo.VIA.currentText()
-		civico = indirizzo.NUMERI_CIVICI.rowToString(0)
+		civico = indirizzo.NUMERI_CIVICI.rowToString()
 
 		if istatcom != None and via != '' and civico != '':
 			return u"%s - %s - %s" % ( istatcom, via, civico )

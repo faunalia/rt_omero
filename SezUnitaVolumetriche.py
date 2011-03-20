@@ -19,56 +19,70 @@ class SezUnitaVolumetriche(MultiTabSection):
 		MultiTabSection.__init__(self, parent, WdgSezUnitaVolumetriche, "UV", "SCHEDA_UNITA_VOLUMETRICA", None, "SCHEDA_EDIFICIOID")
 		self.connect(self.tabWidget, SIGNAL( "currentChanged(int)" ), self.currentTabChanged)
 
-		self.pluginManager = ManagerWindow.instance
-		self.iface = self.pluginManager.iface
+		self.statusBar = ManagerWindow.instance.iface.mainWindow().statusBar()
 		self.firstTab = self.tabWidget.widget(0)
 
 		self.pointEmitter = Utils.FeatureFinder()
 		QObject.connect(self.pointEmitter, SIGNAL("pointEmitted"), self.clickedOnCanvas)
 
-		self.firstTab.setCurrentUV(self.pluginManager.uvScheda)
+		self.firstTab.setUV(ManagerWindow.instance.uvScheda)
 		self.currentTabChanged(0)
 
 	def assegnaGeomNuova(self, feat):
-		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-
-		index = self.addTab()
-		currentTab = self.tabWidget.widget(index)
-
-		ID = self.pluginManager.copiaGeometria(feat)
-		currentTab.setCurrentUV(ID)
-		self.pluginManager.scheda.show()
-		self.tabWidget.setCurrentIndex(index)
-
-		QApplication.restoreOverrideCursor()
+		ID = ManagerWindow.instance.copiaGeometria(feat)
+		self.assegnaGeomEsistenteByUvID( ID )
 
 	def assegnaGeomEsistente(self, feat=None):
+		codice = feat.attributeMap()[0].toString()
+		self.assegnaGeomEsistenteByUvID( codice )
+
+	def assegnaGeomEsistenteByUvID(self, uvID=None):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
 		index = self.addTab()
 		currentTab = self.tabWidget.widget(index)
+		currentTab.setUV( uvID )	# aggiorna le info di DEBUG sulla UV
 
-		codice = feat.attributeMap()[0].toString()
-		currentTab.setCurrentUV(codice)
-		self.pluginManager.scheda.show()
+		# imposta la geometria come abbinata a scheda
+		try:
+			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+			ConnectionManager.startTransaction()
+			AutomagicallyUpdater._updateValue( { "ABBINATO_A_SCHEDA" : '1' }, "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE", "ID_UV_NEW", uvID )
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return
+
+		finally:
+			ConnectionManager.endTransaction()
+			QApplication.restoreOverrideCursor()
+
+		# mostra la scheda
+		scheda = ManagerWindow.instance.scheda
+		scheda.setWindowState( scheda.windowState() & ~Qt.WindowMinimized )
 		self.tabWidget.setCurrentIndex(index)
 
 		QApplication.restoreOverrideCursor()
 
 	def startCapture(self):
-		self.iface.mainWindow().statusBar().showMessage( QString( u"Seleziona l'unità volumetrica da associare alla scheda" ) )
-		self.pluginManager.scheda.hide()
+		self.statusBar.showMessage( QString( u"Seleziona l'unità volumetrica da associare alla scheda" ) )
+
+		# minimizza la scheda
+		scheda = ManagerWindow.instance.scheda
+		scheda.setWindowState( scheda.windowState() | Qt.WindowMinimized )
+
 		return self.pointEmitter.startCapture()
 
 	def stopCapture(self):
 		self.pointEmitter.stopCapture()
-		self.iface.mainWindow().statusBar().clearMessage()
+		self.statusBar.clearMessage()
 
 	def clickedOnCanvas(self, point=None, button=None):
 		self.stopCapture()
 
 		if button != Qt.LeftButton:
-			self.pluginManager.scheda.show()
+			# mostra la scheda
+			scheda = ManagerWindow.instance.scheda
+			scheda.setWindowState( scheda.windowState() & ~Qt.WindowMinimized )
 			return
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
@@ -122,7 +136,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 		if refreshCanvas:
 			# aggiorna il layer con le geometrie modificate
-			self.pluginManager.aggiornaLayerModif()
+			ManagerWindow.instance.aggiornaLayerModif()
 
 	def setupLoader(self, ID=None):
 		MultiTabSection.setupLoader(self, ID)
@@ -130,7 +144,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 		# seleziona il tab contenente l'UV selezionata in canvas
 		for index in range(self.tabWidget.count()):
 			uvWidget = self.tabWidget.widget(index)
-			if uvWidget.uvID == self.pluginManager.uvScheda:
+			if uvWidget.uvID == ManagerWindow.instance.uvScheda:
 				self.tabWidget.setCurrentIndex(index)
 				return
 

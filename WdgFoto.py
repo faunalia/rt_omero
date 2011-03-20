@@ -20,6 +20,12 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 		self.SCHEDA_EDIFICIOID.hide()
 
+		# imposta i validatori
+		self.GEOREF_EPSG4326_X.setValidator( QDoubleValidator(self) )
+		self.GEOREF_EPSG4326_Y.setValidator( QDoubleValidator(self) )
+		self.GEOREF_PROIET_X.setValidator( QDoubleValidator(self) )
+		self.GEOREF_PROIET_Y.setValidator( QDoubleValidator(self) )
+
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
 			self.ZZ_FRONTE_EDIFICIOID: AutomagicallyUpdater.ZZTable( "ZZ_FRONTE_EDIFICIO" )
@@ -75,12 +81,14 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 			self.setValue( self.GEOREF_EPSG4326_X, str(point4326.x()) )
 			self.setValue( self.GEOREF_EPSG4326_Y, str(point4326.y()) )
 
-			fromCrs = qgis.core.QgsCoordinateReferenceSystem( 4236, qgis.core.QgsCoordinateReferenceSystem.EpsgCrsId )
-			toCrs = qgis.core.QgsCoordinateReferenceSystem( 3003, qgis.core.QgsCoordinateReferenceSystem.EpsgCrsId )
-			point3003 = qgis.core.QgsCoordinateTransform( fromCrs, toCrs ).transform( point4326 )
-		
-			self.setValue( self.GEOREF_PROIET_X, str(point3003.x()) )
-			self.setValue( self.GEOREF_PROIET_Y, str(point3003.y()) )
+		from ManagerWindow import ManagerWindow
+		uvID = ManagerWindow.instance.scheda.UNITA_VOLUMETRICHE.firstTab.getUV()
+		query = AutomagicallyUpdater.Query( "SELECT X(point), Y(point) FROM (SELECT PointOnSurface(geometria) AS point FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?) AS sub", [uvID]).getQuery()
+		if not query.exec_() or not query.next():
+			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
+		else:
+			self.setValue( self.GEOREF_PROIET_X, query.value(0) )
+			self.setValue( self.GEOREF_PROIET_Y, query.value(1) )
 
 		self.setValue(self.FILENAME, filename)
 		self.setValue(self.IMAGE, filename)	# mostra la preview
@@ -88,9 +96,23 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		return True
 
 	def getValue(self, widget):
-		if self._getRealWidget(widget) != self.IMAGE or self._ID == None:
-			return MappingOne2One.getValue(widget)
-		return AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ID = ?", [self._ID] ).getFirstResult()
+		widget = self._getRealWidget(widget)
+
+		if widget == self.IMAGE and self._ID != None:
+			return AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ID = ?", [self._ID] ).getFirstResult()
+
+		if widget == self.GEOREF_EPSG4326_X or widget == self.GEOREF_EPSG4326_Y or \
+				widget == self.GEOREF_PROIET_X or widget == self.GEOREF_PROIET_Y:
+			# il validatore QDoubleValidator permette di inserire valori 
+			# non completi (es. "-" o "."), restitusci None in quei casi
+			value = MappingOne2One.getValue(widget)
+			try:
+				value = str( float( str(value) ) )
+			except ValueError:
+				value = None
+			return value
+
+		return MappingOne2One.getValue(widget)
 
 	def setValue(self, widget, value):
 		MappingOne2One.setValue(widget, value)

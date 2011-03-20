@@ -24,7 +24,7 @@ class DlgRiepilogoSchede(QDialog, Ui_Dialog):
 		self.connect(self.apriBtn, SIGNAL("clicked()"), self.apriScheda)
 		self.connect(self.eliminaBtn, SIGNAL("clicked()"), self.eliminaScheda)
 		self.connect(self.stampaBtn, SIGNAL("clicked()"), self.stampaSchede)
-		self.connect(self.centraBtn, SIGNAL("clicked()"), self.centraUV)
+		self.connect(self.centraBtn, SIGNAL("clicked()"), self.centraScheda)
 		self.connect(self.schedeList, SIGNAL("itemSelectionChanged()"), self.aggiornaPulsanti)
 
 		self.aggiornaPulsanti()
@@ -56,8 +56,8 @@ FROM NUMERI_CIVICI ORDER BY ROWID DESC
 """
 
 		from WdgLocalizzazioneIndirizzi import WdgLocalizzazioneIndirizzi
-		comune_non_valido = WdgLocalizzazioneIndirizzi.COMUNE_NON_VALIDO
-		via_civico_non_valido = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
+		indirizzo_non_valido = WdgLocalizzazioneIndirizzi.INDIRIZZO_NON_VALIDO
+		indirizzo_non_inserito = WdgLocalizzazioneIndirizzi.INDIRIZZO_NON_INSERITO
 
 		# query che recupera IDscheda, "via, civico - comune (provincia)"
 		query_localizzazione = """
@@ -65,13 +65,12 @@ SELECT
 	sch.ID AS ID, 
 	CASE com.NOME IS NULL 
 		WHEN 0 THEN 
-			CASE ind.VIA = '' OR ind.VIA IS NULL 
+			CASE ind.VIA = '' OR ind.VIA IS NULL OR civ.CIVICO = '' OR civ.CIVICO IS NULL
 				WHEN 0 THEN 
 					CASE length(ind.VIA) > 50 WHEN 1 THEN substr(ind.VIA, 0, 50) || '...' ELSE ind.VIA END
-				ELSE '%s' 
+					|| ', ' || civ.CIVICO
+				ELSE '%s'
 			END 
-			|| ', ' || 
-			CASE civ.CIVICO = '' OR civ.CIVICO IS NULL WHEN 0 THEN civ.CIVICO ELSE '%s' END 
 			|| ' - ' || com.NOME 
 		ELSE '%s' 
 	END AS INDIRIZZO 
@@ -81,7 +80,7 @@ FROM
 	LEFT OUTER JOIN (%s) AS com ON com.ISTATCOM = ind.ZZ_COMUNIISTATCOM 
 	LEFT OUTER JOIN (%s) AS civ ON civ.INDIRIZZO_VIAID_INDIRIZZO = ind.ID_INDIRIZZO AND civ.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = sch.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ 
 GROUP BY sch.ID
-ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valido, comune_non_valido, query_indirizzi, query_comuni, query_ncivici)
+ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valido, query_indirizzi, query_comuni, query_ncivici)
 
 		return query_localizzazione
 
@@ -90,18 +89,29 @@ ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valid
 		enabled = AutomagicallyUpdater.getValue(self.schedeList) != None
 		self.apriBtn.setEnabled( enabled )
 		self.eliminaBtn.setEnabled( enabled )
-		self.centraBtn.setEnabled( False )#enabled )
+		self.centraBtn.setEnabled( enabled )
 		self.stampaBtn.setEnabled( enabled )
 
 	def recuperaUvID(self, schedaID):
 		query = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID = ?", [ schedaID ] )
 		return query.getFirstResult()
 
-	def apriScheda(self):
+	def centraScheda(self):
 		schedaID = AutomagicallyUpdater.getValue( self.schedeList )
 		uvID = self.recuperaUvID( schedaID )
 		if uvID == None:
 			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
+			return
+
+		from ManagerWindow import ManagerWindow
+		if not ManagerWindow.instance.selezionaScheda(uvID):
+			return
+		return uvID
+
+
+	def apriScheda(self):
+		uvID = self.centraScheda()
+		if uvID == None:
 			return
 
 		from ManagerWindow import ManagerWindow
@@ -109,22 +119,14 @@ ORDER BY com.NOME, ind.VIA ASC""" % (via_civico_non_valido, via_civico_non_valid
 			self.close()
 
 	def eliminaScheda(self):
-		schedaID = AutomagicallyUpdater.getValue( self.schedeList )
-		uvID = self.recuperaUvID( schedaID )
+		uvID = self.centraScheda()
 		if uvID == None:
-			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
 			return
 
 		from ManagerWindow import ManagerWindow
 		if ManagerWindow.instance.eliminaScheda(uvID):
 			self.close()
 
-	def centraUV(self):
-		schedaID = AutomagicallyUpdater.getValue( self.schedeList )
-		uvID = self.recuperaUvID( schedaID )
-		if uvID == None:
-			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
-			return
 
 	def stampaSchede(self):
 		self.invalidPrint = []

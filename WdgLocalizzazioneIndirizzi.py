@@ -13,8 +13,8 @@ from ManagerWindow import ManagerWindow
 
 class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
-	COMUNE_NON_VALIDO = 'INDIRIZZO NON VALIDO'
-	VIA_CIVICO_NON_VALIDO = '...'
+	INDIRIZZO_NON_VALIDO = 'INDIRIZZO NON VALIDO'
+	INDIRIZZO_NON_INSERITO = '<indirizzo non inserito>'
 
 	def __init__(self, parent=None):
 		QWidget.__init__(self, parent)
@@ -41,7 +41,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 		self.connect(self.ZZ_PROVINCEISTATPROV, SIGNAL("currentIndexChanged(int)"), self.caricaComuni)
 		self.connect(self.ZZ_COMUNIISTATCOM, SIGNAL("currentIndexChanged(int)"), self.caricaVie)
-		self.connect(self.VIA, SIGNAL("editTextChanged(const QString &)"), self.caricaCivici)
+		#self.connect(self.VIA, SIGNAL("editTextChanged(const QString &)"), self.caricaCivici)
 		self.connect(self.NUMERI_CIVICI, SIGNAL( "dataChanged()" ), self.aggiornaTitoloScheda)
 
 		self.caricaComuni()
@@ -65,6 +65,9 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self.loadTables( self.ZZ_COMUNIISTATCOM, AutomagicallyUpdater.Query( "SELECT ISTATCOM, NOME FROM ZZ_COMUNI WHERE ZZ_PROVINCEISTATPROV = ? ORDER BY NOME ASC", [provincia] ) )
 
 	def caricaVie(self):
+		# aggiorna il comune visualizzato nel titolo della scheda
+		self.aggiornaTitoloScheda()
+
 		self.VIA.clear()
 		self.VIA.setCurrentIndex(-1)
 
@@ -97,25 +100,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self.NUMERI_CIVICI.loadValues( AutomagicallyUpdater.Query( "SELECT IDNUMEROCIVICO, N_CIVICO, MOD_CIVICO FROM NUMERI_CIVICI WHERE INDIRIZZO_VIAID_INDIRIZZO = ? AND LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ = ?", [via, self._parentRef._ID] ) )
 
 	def aggiornaTitoloScheda(self):
-		indirizzo = WdgLocalizzazioneIndirizzi.COMUNE_NON_VALIDO
-
-		comune = self.ZZ_COMUNIISTATCOM.currentText()
-		if not comune.isEmpty():
-			provincia = self.ZZ_PROVINCEISTATPROV.currentText()
-			comune = u"%s (%s)" % (comune, provincia)
-
-			via = self.VIA.currentText()
-			if via.isEmpty():
-				indirizzo = u"<indirizzo non inserito>"
-			else:
-				civico = self.NUMERI_CIVICI.rowToString()
-				if civico.isEmpty():
-					civico = WdgLocalizzazioneIndirizzi.VIA_CIVICO_NON_VALIDO
-				indirizzo = u"%s, %s" % (via, civico)
-
-			indirizzo = u"%s - %s" % (indirizzo, comune)
-
-		self.emit( SIGNAL("indirizzoChanged(const QString &)"), QString(indirizzo) )
+		self.emit( SIGNAL("indirizzoChanged") )
 
 
 	def getValue(self, widget):
@@ -211,6 +196,8 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 					if value == None:
 						value = ''	#self.COMUNE_NON_VALIDO
+						if self._ID != None:	# salva un nuovo indirizzo
+							self._ID = None
 
 					ID = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s = ? AND %s = ?" % (self._pkColumn, self._tableName, self.ZZ_COMUNIISTATCOM.objectName(), self.VIA.objectName()), [self.getValue(self.ZZ_COMUNIISTATCOM), value]).getFirstResult()
 					if ID != None:

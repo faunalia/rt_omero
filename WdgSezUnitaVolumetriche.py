@@ -21,7 +21,6 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 		if not AutomagicallyUpdater.DEBUG:
 			self.SCHEDA_EDIFICIOID.hide()
 
-		self.geomID = None
 		self.uvID = None
 
 		# carica i widget multivalore con i valori delle relative tabelle
@@ -58,9 +57,9 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 		self.edificioOrdinarioRadio.setChecked( enabler )
 		self.edificioGrandiLuciRadio.setChecked( not enabler )
 
-		# aggiorna le informazioni sulla UV
-		query = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE ID_SCHEDA_UV = ?", [ID] )
-		self.setCurrentUV( query.getFirstResult() )
+		# aggiorna le info di DEBUG sulla UV
+		uvID = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA WHERE ID_SCHEDA_UV = ?", [ID] ).getFirstResult()
+		self.setUV( uvID )
 
 	def save(self):
 		if self.uvID == None:
@@ -109,30 +108,6 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 		self._ID = ID
 		return True
 
-
-	def setCurrentUV(self, uvID=None):
-		self.uvID = uvID
-		self.geomID = None
-
-		query = AutomagicallyUpdater.Query( "SELECT ROWID, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [self.uvID] )
-		query = query.getQuery()
-		if not query.exec_() or not query.next():
-			self.setValue(self.debugInfo, '')
-		else:
-			self.geomID = self._getRealValue( query.value(0).toString() )
-			IDoldUV = query.value(1).toString()
-			self.setValue(self.debugInfo, self.uvID + "\t" + IDoldUV)
-
-	def selectUV(self):
-		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
-		if layerModif == None:	
-			return
-		
-		layerModif.removeSelection()
-		if self.geomID == None:
-			return
-		layerModif.select( int(self.geomID) )
-
 	def delete(self):
 		MappingOne2One.delete(self)
 
@@ -145,6 +120,24 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 			return self._deleteGeometria(self.uvID)
 
 		return False
+
+
+	def getUV(self):
+		return self.uvID
+
+	def setUV(self, uvID=None):
+		self.uvID = uvID
+
+		IDoldUV = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [self.uvID] ).getFirstResult()
+		if IDoldUV == None:
+			self.setValue(self.debugInfo, '')
+		else:
+			self.setValue(self.debugInfo, self.uvID + "\t" + IDoldUV)
+
+	def selectUV(self):
+		# seleziona l'UV ma non centrarla
+		ManagerWindow.instance.selezionaScheda(self.uvID, False)
+
 
 	def toHtml(self, index):
 		strutture_oriz_copertura = self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID.toHtml() if self.getValue(self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID) != None else self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_GRANDI_LUCIID.toHtml()
