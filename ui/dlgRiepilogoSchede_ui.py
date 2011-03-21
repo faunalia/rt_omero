@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/dlgRiepilogoSchede.ui'
 #
-# Created: Sat Mar 12 19:38:39 2011
+# Created: Mon Mar 21 20:29:05 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -50,7 +50,7 @@ class Ui_Dialog(object):
         self.eliminaBtn.setObjectName("eliminaBtn")
         self.gridLayout.addWidget(self.eliminaBtn, 3, 0, 1, 1)
         self.schedeList = QtGui.QListWidget(self.listaSchedeGroup)
-        self.schedeList.setSelectionMode(QtGui.QAbstractItemView.MultiSelection)
+        self.schedeList.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.schedeList.setObjectName("schedeList")
         self.gridLayout.addWidget(self.schedeList, 1, 0, 1, 3)
         self.gridLayout_3.addWidget(self.listaSchedeGroup, 1, 0, 1, 2)

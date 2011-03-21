@@ -80,7 +80,7 @@
       <item row="1" column="0" colspan="3">
        <widget class="QListWidget" name="schedeList">
         <property name="selectionMode">
-         <enum>QAbstractItemView::MultiSelection</enum>
+         <enum>QAbstractItemView::ExtendedSelection</enum>
         </property>
        </widget>
       </item>
