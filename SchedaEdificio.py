@@ -51,6 +51,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 		# carica i dati della scheda
 		self.setupLoader( schedaID )
+		self.aggiornaTitolo()
 
 	def currentSectionChanged(self):
 		if self.sectionsList.currentRow() < 0:
@@ -159,8 +160,29 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 	def toHtml(self):
 		import os.path
 		currentPath = os.path.dirname(__file__)
+
 		css = os.path.join( currentPath, "docs", "default.css" )
-		giunta = os.path.join( currentPath, "docs", "RTgiunta_logo.jpg" )
+
+		dbPath = AutomagicallyUpdater._getPathToDb()
+		logo = QFileInfo( dbPath ).dir().filePath( "omero_stampa_logo.jpg" )
+		if not QFile.exists( logo ):
+			logoOrig = os.path.join( currentPath, "docs", "omero_stampa_logo.jpg" )
+			if not QFile.copy( logoOrig, logo ):
+				logo = logoOrig
+
+		comune = AutomagicallyUpdater.Query( "SELECT NOME FROM ZZ_COMUNI WHERE ISTATCOM = ?", [AutomagicallyUpdater._getIDComune()] ).getFirstResult()
+
+		indirizzo = self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.firstTab
+		via = indirizzo.VIA.currentText()
+		civico = indirizzo.NUMERI_CIVICI.rowToString()
+
+		if via != '' and civico != '':
+			via = u"%s, %s" % (via, civico)
+		else:
+			via = ''
+
+		data = QDate.currentDate().toString( "dd/MM/yyyy" )
+
 		return QString( u"""
 <html>
 <head>
@@ -170,14 +192,16 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 <body>
 
 <div id="header">
-	<img id="rt_giunta" src="%s" alt="RT Giunta regionale">
-	<p><span id="ter_amb">Direzione Generale Politiche Territoriali e Ambientali</span><br>
-		<span id="sigta">Sistema Informativo per il Governo del Territorio e dell'Ambiente</span>
-	</p>
-	<p id="mude">Indagine sperimentale per la implementazione del DB Topografico attraverso rilievi sul campo sugli edifici e aggiornamento tramite il MUDE</p>
+	<img id="logo" src="%s" alt="Logo">
+	<p id="comune">Comune di %s</p>
+	<p id="titolo">Scheda edificio</p>
+	<p id="via">%s</p>
+	<p id="idscheda">ID Scheda: %s</p>
+	<p id="data">scheda stampata il %s</p>
+	<p id="info">(QuantumGIS - plugin omero - Regione Toscana - S.I.T.A.)</p>
 </div>
 %s %s %s %s %s %s %s %s 
 </body>
 </html>
-""" % (css, giunta, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO.toHtml() )
+""" % (css, logo, comune, via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO.toHtml() )
 )

@@ -8,20 +8,34 @@ body {
 }
 
 #header {
+	margin-top: 300px;
 	text-align: center;
-	font-size: 16px;
-}
-
-#rt_giunta {
-	width: 280px;
-}
-#ter_amb {
 	font-size: 18px;
 }
-#sigta {
+
+#logo {
+	width: 280px;
+}
+
+#comune {
+	font-size: 22px;
+	font-variant: small-caps;
+}
+#titolo {
 	font-weight: bold;
 }
-#mude {
+#via {
+	margin-top: 50px;
+}
+#idscheda {
+	font-size: 16px;
+}
+#data {
+	font-size: 16px;
+	margin-top: 50px;
+}
+
+#info {
 	font-variant: small-caps;
 }
 
@@ -39,7 +53,7 @@ body {
 	page-break-inside: avoid;
 }
 
-.newPage, #sez3.block, #sez4.block, #sez5.block, #sez7.block, #sez8.block {
+.newPage, #sez1.block, #sez3.block, #sez4.block, #sez5.block, #sez7.block, #sez8.block {
 	page-break-before: always;
 }
 
