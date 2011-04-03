@@ -22,7 +22,6 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		self.setupUi(self)
 
 		# mostra le vie che corrispondono all'input dell'utente
-		self.VIA.setInsertPolicy(QComboBox.NoInsert)
 		self.VIA.completer().setCompletionMode(QCompleter.PopupCompletion)
 
 		# carica i widget multivalore con i valori delle relative tabelle
@@ -113,7 +112,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			index = self.VIA.findData( value )
 			if index >= 0:
 				return value
-			value = value.simplified()
+			value = value.simplified().toUpper()
 
 		index = self.VIA.findText( value if value != None else QString(), Qt.MatchFixedString )
 		if index >= 0:
@@ -121,7 +120,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			if ID != None:
 				return ID
 
-		return value
+		return self._getRealValue( value )
 
 	def setValue(self, widget, value):
 		value = self._getRealValue(value)
@@ -188,15 +187,12 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 						if index >= 0:	# è una via esistente
 							ID = value
 							break
+					else:
+						value = QString()
 
-						if self._ID != None:	# la via è stata modificata
-							count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
-							if count != None and int(count) > 1:	# salva un nuovo indirizzo
-								self._ID = None
-
-					if value == None:
-						value = ''	#self.COMUNE_NON_VALIDO
-						if self._ID != None:	# salva un nuovo indirizzo
+					if self._ID != None:	# la via è stata modificata
+						count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
+						if count != None and int(count) > 1:	# salva un nuovo indirizzo
 							self._ID = None
 
 					ID = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s = ? AND %s = ?" % (self._pkColumn, self._tableName, self.ZZ_COMUNIISTATCOM.objectName(), self.VIA.objectName()), [self.getValue(self.ZZ_COMUNIISTATCOM), value]).getFirstResult()
@@ -234,3 +230,4 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 </table>
 """ % ( self.ZZ_COMUNIISTATCOM.currentText(), self.ZZ_PROVINCEISTATPROV.currentText(), self.VIA.currentText(), civici.join(", ") )
 )
+

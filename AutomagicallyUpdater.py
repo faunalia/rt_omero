@@ -18,17 +18,17 @@ class AutomagicallyUpdater:
 
 	@classmethod
 	def _reset(self):
-		self.PROGRESSIVO_ID = -1
-		self.MAC_ADDRESS = None
+		AutomagicallyUpdater.PROGRESSIVO_ID = -1
+		AutomagicallyUpdater.MAC_ADDRESS = None
 
 	@classmethod
 	def _getProgressivoID(self):
-		self.PROGRESSIVO_ID = (self.PROGRESSIVO_ID + 1) % 100000
-		return self.PROGRESSIVO_ID
+		AutomagicallyUpdater.PROGRESSIVO_ID = (AutomagicallyUpdater.PROGRESSIVO_ID + 1) % 100000
+		return AutomagicallyUpdater.PROGRESSIVO_ID
 
 	@classmethod
 	def _getMacAddress(self):
-		if self.MAC_ADDRESS == None:
+		if AutomagicallyUpdater.MAC_ADDRESS == None:
 			settings = QSettings()
 			macAddress = settings.value( "/omero_RT/mac3chars", QVariant("") ).toString()
 			if macAddress.isEmpty():
@@ -42,8 +42,8 @@ class AutomagicallyUpdater:
 					value = random.randint(0x0, 0xFFFF)
 					macAddress = hex(value)[2:]
 				settings.setValue( "/omero_RT/mac3chars", QVariant(macAddress) )
-			self.MAC_ADDRESS = macAddress
-		return self.MAC_ADDRESS
+			AutomagicallyUpdater.MAC_ADDRESS = macAddress
+		return AutomagicallyUpdater.MAC_ADDRESS
 
 	@classmethod
 	def _getIDComune(self):
@@ -192,6 +192,35 @@ class AutomagicallyUpdater:
 					name = query.value(1).toString()
 					widget.addItem( name, QVariant(ID) )
 
+		elif isinstance(widget, QTableWidget):
+			if isinstance(action, AutomagicallyUpdater.Query):
+				widget.setRowCount(0)
+				widget.setSortingEnabled(False)
+
+				if widget.columnCount() == 0:
+					firstLoad = True
+					# set columns' name as table header
+					widget.setColumnCount( query.record().count() - 1 )
+					for col in range(widget.columnCount()):
+						colname = QTableWidgetItem( query.record().field(col+1).name() )
+						widget.setHorizontalHeaderItem(col, colname)
+
+				while query.next():
+					row = widget.rowCount()
+					widget.insertRow( row )
+					ID = query.value(0)
+					for col in range(widget.columnCount()):
+						item = QTableWidgetItem()
+						if query.value(col+1).type() == QVariant.Int and query.value(col+1).toInt()[1]:
+							value = query.value(col+1).toInt()[0]
+						else:
+							value = query.value(col+1).toString()
+						item.setData( Qt.DisplayRole, value )
+						item.setData( Qt.UserRole, ID )
+						widget.setItem( row, col, item )
+
+				widget.setSortingEnabled(True)
+
 		elif isinstance(widget, QTableView):
 			if isinstance(action, AutomagicallyUpdater.Query):
 				if isinstance(widget.model(), QSqlQueryModel):
@@ -283,7 +312,7 @@ class AutomagicallyUpdater:
 		elif isinstance(widget, QSpinBox):
 			value = QString.number( widget.value() )
 
-		elif isinstance(widget, QListWidget):
+		elif isinstance(widget, QTableWidget) or isinstance(widget, QListWidget):
 			selItems = widget.selectedItems()
 			if len(selItems) > 0:
 				value = selItems[0].data(Qt.UserRole).toString()
@@ -385,6 +414,24 @@ class AutomagicallyUpdater:
 				value = 0
 			widget.setValue(value)
 
+		elif isinstance(widget, QTableWidget):
+			# deseleziona le righe selezionate
+			widget.clearSelection()
+			if value == None:
+				return
+
+			# seleziona la riga che ha ID uguale a quello passato
+			for row in range(widget.rowCount()):
+				item = widget.item(row, 0)
+				if item == None:
+					continue
+				if value == item.data(Qt.UserRole):
+					if widget.selectionBehavior() == QAbstractItemView.SelectRows:
+						widget.selectRow( row )
+					else:
+						item.setSelected( True )
+					break
+
 		elif isinstance(widget, QTableView):
 			# deseleziona le righe selezionate
 			widget.clearSelection()
@@ -428,19 +475,10 @@ class AutomagicallyUpdater:
 	def _getRealWidget(self, widget):
 		if widget == None:
 			return
-
-		if not isinstance(widget, str):
+		if isinstance(widget, QWidget):
 			return widget
-
-		if hasattr(self, widget):
+		if isinstance(widget, str) and hasattr(self, widget):
 			return getattr(self, widget)
-
-		try:
-			exec( "found = %s" % widget )
-			return found
-		except:
-			pass
-
 		return
 
 	@classmethod
@@ -783,6 +821,12 @@ class MappingOne2One(AutomagicallyUpdater):
 
 		self._requiredChildren = []
 		self._widget2action = {}
+
+
+	def onClosing(self):
+		for widget in self._childrenRefs:
+			if isinstance(widget, MappingOne2One):
+				widget.onClosing()
 
 
 	def save(self):

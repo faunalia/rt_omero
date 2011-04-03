@@ -33,7 +33,7 @@ class ManagerWindow(QDockWidget):
 	STYLE_PATH = "styles"
 	STYLE_GEOM_ORIG = "stile_geometrie_originali.qml"
 	STYLE_GEOM_MODIF = "stile_geometrie_modificate.qml"
-	STYLE_FOTO = "stile_foto.qml"
+	STYLE_FOTO = "stile_fotografie.qml"
 
 	SCALE_IDENTIFY = 5000
 	SCALE_MODIFY = 2000
@@ -54,22 +54,30 @@ class ManagerWindow(QDockWidget):
 		self.uvScheda = None
 		self.isApriScheda = True
 		self.srid = ManagerWindow.DEFAULT_SRID
+		self.startedYet = False
+
+		# crea la label da visualizzare nella status bar
+		self.status = ManagerWindow.StatusWidget( self.iface.mainWindow().statusBar() )
 
 		MapTool.canvas = self.canvas
 
 		self.nuovaPointEmitter = FeatureFinder()
+		self.nuovaPointEmitter.registerStatusMsg( u"Click per identificare la geometria da associare alla nuova scheda" )
 		QObject.connect(self.nuovaPointEmitter, SIGNAL("pointEmitted"), self.identificaNuovaScheda)
 
 		self.esistentePointEmitter = FeatureFinder()
 		QObject.connect(self.esistentePointEmitter, SIGNAL("pointEmitted"), self.identificaSchedaEsistente)
 
 		self.polygonDrawer = PolygonDrawer()
+		self.polygonDrawer.registerStatusMsg( u"Click sx per disegnare la nuova gemetria, click dx per chiuderla" )
 		QObject.connect(self.polygonDrawer, SIGNAL("geometryEmitted"), self.creaNuovaGeometria)
 
 		self.lineDrawer = LineDrawer()
+		self.lineDrawer.registerStatusMsg( u"Click sx per disegnare la linea di taglio, click dx per chiuderla" )
 		QObject.connect(self.lineDrawer, SIGNAL("geometryEmitted"), self.spezzaGeometriaEsistente)
 
 		self.fotoPointEmitter = FeatureFinder()
+		self.fotoPointEmitter.registerStatusMsg( u"Click su una foto per visualizzarla" )
 		QObject.connect(self.fotoPointEmitter, SIGNAL("pointEmitted"), self.identificaFoto)
 
 		self.connect(self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
@@ -81,59 +89,95 @@ class ManagerWindow(QDockWidget):
 		self.connect(self.btnCreaNuovaGeometria, SIGNAL("clicked()"), self.creaNuovaGeometria)
 		self.connect(self.btnRipulisciGeometrie, SIGNAL("clicked()"), self.ripulisciGeometrie)
 		self.connect(self.btnRiepilogoSchede, SIGNAL("clicked()"), self.riepilogoSchede)
+		self.connect(self.btnStradario, SIGNAL("clicked()"), self.gestioneStradario)
 		self.connect(self.btnSelFoto, SIGNAL("clicked()"), self.identificaFoto)
 		self.connect(self.btnAbout, SIGNAL("clicked()"), self.about)
-
 
 	def setupUi(self):
 		self.setObjectName( "rt_omero_dockwidget" )
 		self.setWindowTitle( "Omero RT" )
-		self.child = QWidget()
-		gridLayout = QGridLayout(self.child)
 
-		text = QString.fromUtf8( "Identifica la geometria per la creazione \ndi una nuova scheda edificio" )
-		self.btnSelNuovaScheda = QPushButton( QIcon(":/icons/nuova_scheda.png"), text, self.child )
+		child = QWidget()
+		vLayout = QVBoxLayout( child )
+
+
+		group = QGroupBox( "Schede edificio", child )
+		vLayout.addWidget( group )
+		gridLayout = QGridLayout( group )
+
+		text = u"Nuova"
+		self.btnSelNuovaScheda = QPushButton( QIcon(":/icons/nuova_scheda.png"), text, group )
+		#text = u"Identifica la geometria per la creazione di una nuova scheda edificio"
+		text = u"Crea nuova scheda edificio"
+		self.btnSelNuovaScheda.setToolTip( text )
 		self.btnSelNuovaScheda.setCheckable(True)
-		gridLayout.addWidget(self.btnSelNuovaScheda, 0, 0, 1, 2)
+		gridLayout.addWidget(self.btnSelNuovaScheda, 0, 0, 1, 1)
 
-		text = QString.fromUtf8( "Identifica la geometria per l'apertura \ndi una scheda già esistente su di essa" )
-		self.btnSelSchedaEsistente = QPushButton( QIcon(":/icons/modifica_scheda.png"), text, self.child )
+		text = u"Modifica"
+		self.btnSelSchedaEsistente = QPushButton( QIcon(":/icons/modifica_scheda.png"), text, group )
+		#text = u"Identifica la geometria per l'apertura di una scheda già esistente su di essa"
+		text = u"Modifica scheda edificio esistente"
+		self.btnSelSchedaEsistente.setToolTip( text )
 		self.btnSelSchedaEsistente.setCheckable(True)
-		gridLayout.addWidget(self.btnSelSchedaEsistente, 1, 0, 1, 2)
+		gridLayout.addWidget(self.btnSelSchedaEsistente, 0, 1, 1, 1)
 
-		text = QString.fromUtf8( "Elimina scheda edificio" )
-		self.btnEliminaScheda = QPushButton( QIcon(":/icons/cancella_scheda.png"), text, self.child )
+		text = u"Elimina"
+		self.btnEliminaScheda = QPushButton( QIcon(":/icons/cancella_scheda.png"), text, group )
+		text = u"Elimina scheda edificio"
+		self.btnEliminaScheda.setToolTip( text )
 		self.btnEliminaScheda.setCheckable(True)
-		gridLayout.addWidget(self.btnEliminaScheda, 2, 0, 1, 2)
+		gridLayout.addWidget(self.btnEliminaScheda, 0, 2, 1, 1)
 
-		text = QString.fromUtf8( "Crea una nuova geometria" )
-		self.btnCreaNuovaGeometria = QPushButton( QIcon(":/icons/crea_geometria.png"), text, self.child )
+		text = u"Riepilogo schede edificio"
+		self.btnRiepilogoSchede = QPushButton( QIcon(":/icons/riepilogo_schede.png"), text, group )
+		self.btnRiepilogoSchede.setToolTip( text )
+		gridLayout.addWidget(self.btnRiepilogoSchede, 1, 0, 1, 3)
+
+
+		group = QGroupBox( "Geometrie", child )
+		vLayout.addWidget( group )
+		gridLayout = QGridLayout( group )
+
+		text = u"Crea nuova"
+		self.btnCreaNuovaGeometria = QPushButton( QIcon(":/icons/crea_geometria.png"), text, group )
+		text = u"Crea nuova geometria"
+		self.btnCreaNuovaGeometria.setToolTip( text )
 		self.btnCreaNuovaGeometria.setCheckable(True)
-		gridLayout.addWidget(self.btnCreaNuovaGeometria, 3, 0, 1, 2)
+		gridLayout.addWidget(self.btnCreaNuovaGeometria, 0, 0, 1, 1)
 
-		text = QString.fromUtf8( "Suddividi una geometria esistente" )
-		self.btnSpezzaGeometriaEsistente = QPushButton( QIcon(":/icons/spezza_geometria.png"), text, self.child )
+		text = u"Suddividi"
+		self.btnSpezzaGeometriaEsistente = QPushButton( QIcon(":/icons/spezza_geometria.png"), text, group )
+		text = u"Suddividi una geometria"
+		self.btnSpezzaGeometriaEsistente.setToolTip( text )
 		self.btnSpezzaGeometriaEsistente.setCheckable(True)
-		gridLayout.addWidget(self.btnSpezzaGeometriaEsistente, 4, 0, 1, 2)
+		gridLayout.addWidget(self.btnSpezzaGeometriaEsistente, 0, 1, 1, 1)
 
-		text = QString.fromUtf8( "Ripulisci geometrie non associate" )
-		self.btnRipulisciGeometrie = QPushButton( QIcon(":/icons/ripulisci.png"), text, self.child )
-		gridLayout.addWidget(self.btnRipulisciGeometrie, 5, 0, 1, 2)
+		text = u"Ripulisci geometrie non associate"
+		self.btnRipulisciGeometrie = QPushButton( QIcon(":/icons/ripulisci.png"), text, group )
+		self.btnRipulisciGeometrie.setToolTip( text )
+		gridLayout.addWidget(self.btnRipulisciGeometrie, 1, 0, 1, 2)
 
-		text = QString.fromUtf8( "Riepilogo schede edificio" )
-		self.btnRiepilogoSchede = QPushButton( QIcon(":/icons/riepilogo_schede.png"), text, self.child )
-		gridLayout.addWidget(self.btnRiepilogoSchede, 6, 0, 1, 2)
 
-		text = QString.fromUtf8( "Visualizza foto" )
-		self.btnSelFoto = QPushButton( QIcon(":/icons/foto.png"), text, self.child )
+		text = u"Gestione stradario"
+		self.btnStradario = QPushButton( QIcon(":/icons/stradario.png"), text, child )
+		self.btnStradario.setToolTip( text )
+		vLayout.addWidget( self.btnStradario )
+		#gridLayout.addWidget(self.btnStradario, 6, 0, 1, 2)
+
+		text = u"Visualizza foto"
+		self.btnSelFoto = QPushButton( QIcon(":/icons/foto.png"), text, child )
+		self.btnSelFoto.setToolTip( text )
 		self.btnSelFoto.setCheckable(True)
-		gridLayout.addWidget(self.btnSelFoto, 7, 0, 1, 1)
+		vLayout.addWidget( self.btnSelFoto )
+		#gridLayout.addWidget(self.btnSelFoto, 7, 0, 1, 1)
 
-		text = QString.fromUtf8( "About" )
-		self.btnAbout = QPushButton( QIcon(":/icons/about.png"), text, self.child )
-		gridLayout.addWidget(self.btnAbout, 7, 1, 1, 1)
+		text = u"About"
+		self.btnAbout = QPushButton( QIcon(":/icons/about.png"), text, child )
+		self.btnAbout.setToolTip( text )
+		vLayout.addWidget( self.btnAbout )
+		#gridLayout.addWidget(self.btnAbout, 7, 1, 1, 1)
 
-		self.setWidget(self.child)
+		self.setWidget(child)
 
 	def about(self):
 		from DlgAbout import DlgAbout
@@ -141,20 +185,32 @@ class ManagerWindow(QDockWidget):
 
 
 	def toolChanged(self, tool):
+		self.status.clear()
 		if tool == None:
 			return
 
-		self.btnSelNuovaScheda.setChecked( self.nuovaPointEmitter.isActive() )
 		self.btnSelSchedaEsistente.setChecked( self.isApriScheda and self.esistentePointEmitter.isActive() )
+		if self.btnSelSchedaEsistente.isChecked():
+			self.status.show( u"Click per identificare la scheda da variare" )
+
 		self.btnEliminaScheda.setChecked( not self.isApriScheda and self.esistentePointEmitter.isActive() )
+		if self.btnEliminaScheda.isChecked():
+			self.status.show( u"Click per identificare la scheda da eliminare" )
+
+		self.btnSelNuovaScheda.setChecked( self.nuovaPointEmitter.isActive() )
 		self.btnCreaNuovaGeometria.setChecked( self.polygonDrawer.isActive() )
 		self.btnSpezzaGeometriaEsistente.setChecked( self.lineDrawer.isActive() )
 		self.btnSelFoto.setChecked( self.fotoPointEmitter.isActive() )
 
+		# imposta il messaggio di stato dei tool
+		for tool, statusMessage in MapTool.registeredToolStatusMsg.iteritems():
+			if tool.isActive():
+				self.status.show( statusMessage )
+
 
 	def permettiAzione(self, btn, maxScale):
-		if self.canvas.scale() > maxScale:
-			QMessageBox.warning( self, "Azione non permessa", QString.fromUtf8( u"L'azione \"%s\" è ammessa solo dalla scala 1:%d" % (btn.text(), maxScale) ) )
+		if int(self.canvas.scale()) > maxScale:
+			QMessageBox.warning( self, "Azione non permessa", u"L'azione \"%s\" è ammessa solo dalla scala 1:%d" % (btn.toolTip(), maxScale) )
 			return False
 		return True
 
@@ -162,6 +218,10 @@ class ManagerWindow(QDockWidget):
 	def riepilogoSchede(self):
 		from DlgRiepilogoSchede import DlgRiepilogoSchede
 		return DlgRiepilogoSchede(self).exec_()
+
+	def gestioneStradario(self):
+		from DlgStradario import DlgStradario
+		return DlgStradario(self).exec_()
 
 
 	def identificaNuovaScheda(self, point=None, button=None):
@@ -182,8 +242,8 @@ class ManagerWindow(QDockWidget):
 		if feat != None:
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
-			query = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] )
-			if int( query.getFirstResult() ) > 0:
+			numUV = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] ).getFirstResult()
+			if int( numUV ) > 0:
 				# NO, c'è già una scheda associata
 				QMessageBox.warning( self, "RT Omero", "La geometria selezionata appartiene ad un edificio gia' esistente" )
 				return self.nuovaPointEmitter.startCapture()
@@ -236,8 +296,8 @@ class ManagerWindow(QDockWidget):
 		if feat != None:
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
-			query = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] )
-			if int( query.getFirstResult() ) > 0:
+			numUV = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] ).getFirstResult()
+			if int( numUV ) > 0:
 				# OK, c'è già una scheda associata
 				codice = feat.attributeMap()[0].toString()
 				if self.isApriScheda:
@@ -454,8 +514,7 @@ class ManagerWindow(QDockWidget):
 
 			# avvisa l'utente segnalando quante UV si stanno per eliminare
 			# quindi chiedi se vuole davvero eliminarle
-			query = AutomagicallyUpdater.Query( "SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' /* non spezzate */ AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) /* senza scheda associata */ ) OR (gm1.ZZ_STATO_GEOMETRIAID = '2' /* spezzate */ AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE) /* fanno parte dello stesso edificio */ ) /* i cui pezzi sono tutti senza geometria associata */" )
-			numUV = query.getFirstResult()
+			numUV = AutomagicallyUpdater.Query( "SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' /* non spezzate */ AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) /* senza scheda associata */ ) OR (gm1.ZZ_STATO_GEOMETRIAID = '2' /* spezzate */ AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE) /* fanno parte dello stesso edificio */ ) /* i cui pezzi sono tutti senza geometria associata */" ).getFirstResult()
 		except:
 			raise
 		finally:
@@ -468,7 +527,7 @@ class ManagerWindow(QDockWidget):
 			QMessageBox.information(self, "Nessuna geometria trovata", "Non esistono geometrie senza scheda associata." )
 			return
 
-		if QMessageBox.Ok != QMessageBox.warning(self, "Eliminazione geometrie non associate", QString( u"Esistono %1 geometrie senza alcuna scheda associata. Vuoi eliminarle? L'operazione non è reversibile." ).arg( numUV ), QMessageBox.Ok|QMessageBox.Cancel ):
+		if QMessageBox.Ok != QMessageBox.warning(self, "Eliminazione geometrie non associate", u"Esistono %s geometrie senza alcuna scheda associata. Vuoi eliminarle? L'operazione non è reversibile." % numUV, QMessageBox.Ok|QMessageBox.Cancel ):
 			return
 
 		try:
@@ -543,15 +602,13 @@ class ManagerWindow(QDockWidget):
 
 		# avvisa l'utente segnalando quante UV sono collegate a questa scheda
 		# quindi chiedi se vuole davvero eliminare la scheda
-		query = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID IN (SELECT ed.ID FROM SCHEDA_EDIFICIO AS ed JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON uv.SCHEDA_EDIFICIOID = ed.ID WHERE uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?)", [codice] )
-
-		numUV = query.getFirstResult()
+		numUV = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE SCHEDA_EDIFICIOID IN (SELECT ed.ID FROM SCHEDA_EDIFICIO AS ed JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON uv.SCHEDA_EDIFICIOID = ed.ID WHERE uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?)", [codice] ).getFirstResult()
 
 		QApplication.restoreOverrideCursor()
 		if numUV == None:
 			return
 
-		if QMessageBox.Ok != QMessageBox.warning( self, "Eliminazione scheda", QString( u"La scheda ha %1 UV associate. Eliminare? L'operazione non è reversibile." ).arg( numUV ), QMessageBox.Ok|QMessageBox.Cancel ):
+		if QMessageBox.Ok != QMessageBox.warning( self, "Eliminazione scheda", u"La scheda ha %s UV associate. Eliminare? L'operazione non è reversibile." % numUV, QMessageBox.Ok|QMessageBox.Cancel ):
 			return
 
 		try:
@@ -642,9 +699,12 @@ class ManagerWindow(QDockWidget):
 
 		if not self.loadLayersInCanvas():
 			QMessageBox.critical(self, "RT Omero", "Impossibile caricare i layer richiesti dal database selezionato")
+			return False
+
+		self.startedYet = True
 
 
-	def loadLayersInCanvas(self):
+	def loadLayersInCanvas(self, loadLastExtent=True):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
 		# disabilita il rendering
@@ -746,35 +806,44 @@ class ManagerWindow(QDockWidget):
 			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
 
-
 		# carica il layer con le foto
-		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) == None:
-			ManagerWindow.VLID_FOTO = ''
+		self.loadLayerFoto()
 
-			query = "SELECT ROWID AS pk, ID, MakePoint(GEOREF_PROIET_X, GEOREF_PROIET_Y, 3003) AS geometria FROM FOTO_GEOREF WHERE geometria IS NOT NULL"
-
-			uri = QgsDataSourceURI()
-			uri.setDatabase(conn.databaseName())
-			uri.setDataSource('', "(%s)" % query, 'geometria', '', 'pk')
-			vl = QgsVectorLayer( uri.uri(), self.LAYER_FOTO, "spatialite" )
-			if vl != None and vl.isValid() and vl.setReadOnly(True):
-				# imposta lo stile del layer
-				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_FOTO )
-				(errorMsg, result) = vl.loadNamedStyle( style_path )
-				self.iface.legendInterface().refreshLayerSymbology(vl)
-
-				ManagerWindow.VLID_FOTO = vl.getLayerID()
-				QgsMapLayerRegistry.instance().addMapLayer(vl)
-
-
-		# imposta l'ultimo extent usato
-		self.loadLastUsedExtent()
+		if not self.startedYet:
+			# imposta l'ultimo extent usato
+			self.loadLastUsedExtent()
 
 		# ripristina il rendering
 		self.canvas.setRenderFlag( prevRenderFlag )
 
 		QApplication.restoreOverrideCursor()
 		return True
+
+	def loadLayerFoto(self):
+		# carica il layer con le foto
+		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) == None:
+			ManagerWindow.VLID_FOTO = ''
+
+			query = "SELECT ROWID AS pk, ID, MakePoint(GEOREF_PROIET_X, GEOREF_PROIET_Y, 3003) AS geometria FROM FOTO_GEOREF WHERE geometria IS NOT NULL"
+
+			conn = ConnectionManager.getConnection()
+			uri = QgsDataSourceURI()
+			uri.setDatabase(conn.databaseName())
+			uri.setDataSource('', "(%s)" % query, 'geometria', '', 'pk')
+			vl = QgsVectorLayer( uri.uri(), self.LAYER_FOTO, "spatialite" )
+			if vl == None or not vl.isValid() or not vl.setReadOnly(True):
+				return False
+
+			# imposta lo stile del layer
+			import os.path
+			style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_FOTO )
+			(errorMsg, result) = vl.loadNamedStyle( style_path )
+			self.iface.legendInterface().refreshLayerSymbology(vl)
+
+			ManagerWindow.VLID_FOTO = vl.getLayerID()
+			QgsMapLayerRegistry.instance().addMapLayer(vl)
+		return True
+
 
 	def removeLayersFromCanvas(self):
 		prevRenderFlag = self.canvas.renderFlag()
@@ -799,6 +868,7 @@ class ManagerWindow(QDockWidget):
 		QApplication.restoreOverrideCursor()
 		return True
 
+
 	@classmethod
 	def aggiornaLayerModif(self):
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
@@ -809,6 +879,15 @@ class ManagerWindow(QDockWidget):
 		layerModif.dataProvider().setSubsetString( "" )	# trick! aggiorna l'extent del provider
 		layerModif.triggerRepaint()
 		layerModif.updateExtents()
+
+	def aggiornaLayerFoto(self):
+		layerFoto = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO )
+		if layerFoto == None:
+			return self.loadLayerFoto()
+
+		# aggiorna il layer
+		layerFoto.triggerRepaint()
+		layerFoto.updateExtents()
 
 
 	def loadLastUsedExtent(self):
@@ -848,17 +927,49 @@ class ManagerWindow(QDockWidget):
 
 	def closeEvent(self, event):
 		self.storeLastUsedExtent()
+		self.chiudiSchedaAperta()
 		self.removeLayersFromCanvas()
 		TemporaryFile.clear()
 		ConnectionManager.closeConnection()
 
 		self.disconnect(self.iface.mapCanvas(), SIGNAL( "mapToolSet(QgsMapTool *)" ), self.toolChanged)
-		self.nuovaPointEmitter.stopCapture()
-		self.esistentePointEmitter.stopCapture()
-		self.fotoPointEmitter.stopCapture()
-		self.polygonDrawer.stopCapture()
-		self.lineDrawer.stopCapture()
+		del self.status
+
+		self.nuovaPointEmitter.deleteLater()
+		del self.nuovaPointEmitter
+		self.esistentePointEmitter.deleteLater()
+		del self.esistentePointEmitter
+		self.fotoPointEmitter.deleteLater()
+		del self.fotoPointEmitter
+		self.polygonDrawer.deleteLater()
+		del self.polygonDrawer
+		self.lineDrawer.deleteLater()
+		del self.lineDrawer
 
 		self.emit( SIGNAL("closed()") )
 		return QDockWidget.closeEvent(self, event)
+
+
+	class StatusWidget:
+		def __init__(self, statusBar):
+			self.statusBar = statusBar
+			self.widget = QLabel()
+			self.widget.clear()
+			self.statusBar.addWidget( self.widget )
+			self.statusBar.removeWidget( self.widget )
+
+		def show(self, msg):
+			self.widget.setText( msg )
+			self.statusBar.clearMessage()
+			self.statusBar.addWidget( self.widget )
+			self.widget.show()
+
+		def clear(self):
+			self.widget.clear()
+			self.statusBar.removeWidget( self.widget )
+
+		def __del__(self):
+			self.clear()
+			self.widget.deleteLater()
+			del self.widget
 

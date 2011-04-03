@@ -138,6 +138,10 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 
 	def closeEvent(self, event):
+		# rimuovi i file temporanei collegati alla scheda
+		from Utils import TemporaryFile
+		TemporaryFile.delAllFiles( TemporaryFile.KEY_SCHEDAEDIFICIO )
+
 		try:
 			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 			ConnectionManager.startTransaction()
@@ -150,12 +154,14 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			return
 
 		finally:
-			# rimuovi i file temporanei collegati alla scheda
-			from Utils import TemporaryFile
-			TemporaryFile.delAllFiles( TemporaryFile.KEY_SCHEDAEDIFICIO )
-
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
+			self.onClosing()
+
+		# carica il layer delle foto
+		from ManagerWindow import ManagerWindow
+		ManagerWindow.instance.aggiornaLayerFoto()
+
 
 	def toHtml(self):
 		import os.path

@@ -36,6 +36,10 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 			self.loadTables(self.RILEVATOREID, query)
 		
 		AutomagicallyUpdater.setValue(widget, value)
+
+	def setupLoader(self, ID=None):
+		MappingPart.setupLoader(self, ID)
+		self.setValue(self.schedaID, ID)
 		
 
 	def toHtml(self):

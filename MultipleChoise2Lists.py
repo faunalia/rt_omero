@@ -35,6 +35,14 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 
 		self.aggiornaPulsanti()
 
+	def onClosing(self):
+		for val in self.storedValues:
+			self.storedValues.remove(val)
+			del val
+		del self.storedValues
+		MappingMany2Many.onClosing(self)		
+
+
 	def selectionChanged(self):
 		self.emit( SIGNAL("selectionChanged()") )
 

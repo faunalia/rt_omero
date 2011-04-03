@@ -50,8 +50,13 @@ class DlgVisualizzaFoto(QDialog, Ui_Dialog):
 
 
 	def apriFotoByRowid(self, rowid, tempKey=Utils.TemporaryFile.KEY_VISUALIZZAFOTO):
-		imgData = AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ROWID = ?", [rowid] ).getFirstResult()
-		filename = Utils.TemporaryFile.salvaDati(imgData, tempKey)
+		query = AutomagicallyUpdater.Query( "SELECT IMAGE, FILENAME FROM FOTO_GEOREF WHERE ROWID = ?", [rowid] ).getQuery()
+		if not query.exec_() or not query.next():
+			return
+		imgData = query.value(0).toByteArray()
+		ext = QFileInfo( query.value(1).toString() ).suffix()
+
+		filename = Utils.TemporaryFile.salvaDati(imgData, tempKey, ext)
 		if filename == None:
 			return False
 		url = QUrl.fromLocalFile( filename )
@@ -68,6 +73,11 @@ class DlgVisualizzaFoto(QDialog, Ui_Dialog):
 
 
 	def closeEvent(self, event):
+		for view in self.view2id.keys():
+			del self.view2id[ view ]
+			del view
+		del self.view2id
+
 		Utils.TemporaryFile.delAllFiles( Utils.TemporaryFile.KEY_VISUALIZZAFOTO )
 		return QDialog.closeEvent(self, event)
 

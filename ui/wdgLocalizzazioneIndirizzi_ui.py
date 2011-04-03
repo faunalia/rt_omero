@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgLocalizzazioneIndirizzi.ui'
 #
-# Created: Wed Nov 24 15:49:42 2010
+# Created: Tue Mar 22 13:08:08 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -44,6 +44,7 @@ class Ui_Form(object):
         self.gridLayout_2.addWidget(self.label_4, 2, 0, 1, 1)
         self.VIA = QtGui.QComboBox(Form)
         self.VIA.setEditable(True)
+        self.VIA.setInsertPolicy(QtGui.QComboBox.NoInsert)
         self.VIA.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLength)
         self.VIA.setObjectName("VIA")
         self.gridLayout_2.addWidget(self.VIA, 2, 1, 1, 1)

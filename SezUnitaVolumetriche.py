@@ -19,14 +19,20 @@ class SezUnitaVolumetriche(MultiTabSection):
 		MultiTabSection.__init__(self, parent, WdgSezUnitaVolumetriche, "UV", "SCHEDA_UNITA_VOLUMETRICA", None, "SCHEDA_EDIFICIOID")
 		self.connect(self.tabWidget, SIGNAL( "currentChanged(int)" ), self.currentTabChanged)
 
-		self.statusBar = ManagerWindow.instance.iface.mainWindow().statusBar()
 		self.firstTab = self.tabWidget.widget(0)
-
-		self.pointEmitter = Utils.FeatureFinder()
-		QObject.connect(self.pointEmitter, SIGNAL("pointEmitted"), self.clickedOnCanvas)
 
 		self.firstTab.setUV(ManagerWindow.instance.uvScheda)
 		self.currentTabChanged(0)
+
+		self.pointEmitter = Utils.FeatureFinder()
+		self.pointEmitter.registerStatusMsg( u"Seleziona l'unità volumetrica da associare alla scheda" )
+		QObject.connect(self.pointEmitter, SIGNAL("pointEmitted"), self.clickedOnCanvas)
+
+	def onClosing(self):
+		del self.firstTab
+		self.pointEmitter.deleteLater()
+		del self.pointEmitter
+		MultiTabSection.onClosing(self)
 
 	def assegnaGeomNuova(self, feat):
 		ID = ManagerWindow.instance.copiaGeometria(feat)
@@ -63,18 +69,16 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 		QApplication.restoreOverrideCursor()
 
-	def startCapture(self):
-		self.statusBar.showMessage( QString( u"Seleziona l'unità volumetrica da associare alla scheda" ) )
 
+	def startCapture(self):
 		# minimizza la scheda
 		scheda = ManagerWindow.instance.scheda
 		scheda.setWindowState( scheda.windowState() | Qt.WindowMinimized )
-
 		return self.pointEmitter.startCapture()
 
 	def stopCapture(self):
 		self.pointEmitter.stopCapture()
-		self.statusBar.clearMessage()
+
 
 	def clickedOnCanvas(self, point=None, button=None):
 		self.stopCapture()
@@ -96,7 +100,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 			query = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] )
 			if int( query.getFirstResult() ) > 0:
 				# NO, c'è già una scheda associata
-				QMessageBox.warning( self, "RT Omero", "La geometria selezionata appartiene ad un edificio gia' esistente" )
+				QMessageBox.warning( self, "RT Omero", u"La geometria selezionata appartiene ad un edificio già esistente" )
 				return self.startCapture()
 			else:
 				# OK, non esiste alcuna scheda associata a tale geometria

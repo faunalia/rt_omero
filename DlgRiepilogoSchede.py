@@ -16,10 +16,7 @@ class DlgRiepilogoSchede(QDialog, Ui_Dialog):
 		self.setAttribute(Qt.WA_DeleteOnClose)
 		self.setupUi(self)
 
-		# su Win non funziona, probabile problema in QtSql 
-		#AutomagicallyUpdater.loadTables( self.schedeList, AutomagicallyUpdater.Query( self.createQuerySchede() ) )
-		# workaround, usa pyspatialite
-		AutomagicallyUpdater.loadTables( self.schedeList, AutomagicallyUpdater.Query( self.createQuerySchede(), None, 1 ) )
+		self.loadListaSchede()
 
 		self.connect(self.apriBtn, SIGNAL("clicked()"), self.apriScheda)
 		self.connect(self.eliminaBtn, SIGNAL("clicked()"), self.eliminaScheda)
@@ -29,13 +26,15 @@ class DlgRiepilogoSchede(QDialog, Ui_Dialog):
 
 		self.aggiornaPulsanti()
 
+	def loadListaSchede(self):
+		# su Win non funziona, probabile problema in QtSql 
+		#AutomagicallyUpdater.loadTables( self.schedeList, AutomagicallyUpdater.Query( self.createQuerySchede() ) )
+		# workaround, usa pyspatialite
+		AutomagicallyUpdater.loadTables( self.schedeList, AutomagicallyUpdater.Query( self.createQuerySchede(), None, 1 ) )
+
 
 	def createQuerySchede(self):
-		"""
-		crea una query per recuperare l'intestazione (titolo) delle schede:
-		se 'lista' è True (default) di tutte le schede definite,
-		altrimenti solo di una (la query si aspetta come parametro ? l'ID della scheda)
-		"""
+		""" crea una query per recuperare l'intestazione (titolo) delle schede """
 
 		# recupera il primo indirizzo di ogni scheda edificio
 		query_indirizzi = """
@@ -100,7 +99,7 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 		schedaID = AutomagicallyUpdater.getValue( self.schedeList )
 		uvID = self.recuperaUvID( schedaID )
 		if uvID == None:
-			QMessageBox.warning(self, "Errore", "La scheda selezionata non ha alcuna UV associata! ")
+			QMessageBox.warning(self, u"Errore", u"La scheda selezionata non ha alcuna UV associata!")
 			return
 
 		from ManagerWindow import ManagerWindow
@@ -125,7 +124,7 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 
 		from ManagerWindow import ManagerWindow
 		if ManagerWindow.instance.eliminaScheda(uvID):
-			self.close()
+			self.loadListaSchede()
 
 
 	def stampaSchede(self):
@@ -136,12 +135,10 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 		if len(self.schedeList.selectedItems()) > 1:
 			# permetti all'utente di selezionare la directory di output
 			lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
-			lastDir = QFileDialog.getExistingDirectory(self, "Salvataggio le schede", lastDir, QFileDialog.ShowDirsOnly )
+			lastDir = QFileDialog.getExistingDirectory(self, u"Salvataggio le schede", lastDir, QFileDialog.ShowDirsOnly )
 			if lastDir.isEmpty():
 				return
 			AutomagicallyUpdater._setLastUsedDir( 'pdf', lastDir )
-
-		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
 		# recupera tutte le schede selezionate
 		for item in self.schedeList.selectedItems():
@@ -151,9 +148,12 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 		self.printNext()
 
 	def printNext(self):
+		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.currentIndex = self.currentIndex + 1
 
 		if self.currentIndex >= len(self.toPrint):	# stampa completata
+			del self.toPrint
+			del self.invalidPrint
 			QApplication.restoreOverrideCursor()
 			return
 
@@ -172,6 +172,8 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 
 		self.connect(self.currentScheda, SIGNAL("printFinished"), self.printFinished)
 		previewOnPrinting = len(self.toPrint) == 1
+
+		QApplication.restoreOverrideCursor()
 		self.currentScheda.stampaScheda( previewOnPrinting )
 
 	def printFinished(self, ok, schedaID):

@@ -122,7 +122,8 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 
 	def apriFoto(self):
-		filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO )
+		ext = QFileInfo( self.getValue(self.FILENAME) ).suffix()
+		filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO, ext )
 		if filename == None:
 			return False
 		url = QUrl.fromLocalFile( filename )
@@ -140,7 +141,8 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 
 	def toHtml(self, index):
-		filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO2HTML )
+		ext = QFileInfo( self.getValue(self.FILENAME) ).suffix()
+		filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
 		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''
 		annotazione = self.getValue(self.ANNOTAZIONE)
 

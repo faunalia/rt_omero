@@ -32,6 +32,17 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		self.connect(self.table, SIGNAL("itemChanged(QTableWidgetItem *)"), self.dataChanged )
 		self.aggiornaPulsanti()
 
+	def onClosing(self):
+		for col in self.columnFields:
+			self.columnFields.remove(col)
+			del col
+		del self.columnFields
+		for col in self.columnNames:
+			self.columnNames.remove(col)
+			del col
+		del self.columnNames
+		MappingMany2Many.onClosing(self)
+
 	def dataChanged(self):
 		self.emit( SIGNAL("dataChanged()") )
 

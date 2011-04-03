@@ -40,7 +40,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 		enabler = self.getValue(self.comuneCombo) != None
 		self.nuovoRilevatoreGroup.setEnabled( enabler )
 
-		enabler = not (self.nomeEdit.text().isEmpty() or self.nomeEdit.text().isEmpty())
+		enabler = not self.nomeEdit.text().isEmpty() and not self.cognomeEdit.text().isEmpty()
 		self.addRilevatoreBtn.setEnabled( enabler )
 
 		enabler = self.getValue(self.rilevatoriTable) != None
@@ -68,16 +68,39 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 			return
 
 		# elimina il rilevatore
-		if None == self._deleteValue( 'RILEVATORE', { 'ID' : ID } ):
-			return
-		self.loadTables(self.rilevatoriTable)
+		try:
+			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+			ConnectionManager.startTransaction()
+			if not self._deleteValue( 'RILEVATORE', { 'ID' : ID } ):
+				return
+
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return False
+
+		finally:
+			ConnectionManager.endTransaction()
+			QApplication.restoreOverrideCursor()
+
+		self.loadTables( self.rilevatoriTable )
 
 	def aggiungiRilevatore(self):
 		if self.nomeEdit.text().isEmpty() or self.cognomeEdit.text().isEmpty():
 			return
 
-		if None == self._insertRilevatore(self.nomeEdit.text(), self.cognomeEdit.text(), self.getValue(self.comuneCombo)):
-			return
+		try:
+			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+			ConnectionManager.startTransaction()
+			self._insertRilevatore(self.nomeEdit.text(), self.cognomeEdit.text(), self.getValue(self.comuneCombo))
+
+		except ConnectionManager.AbortedException, e:
+			QMessageBox.critical(self, "Errore", e.toString())
+			return False
+
+		finally:
+			ConnectionManager.endTransaction()
+			QApplication.restoreOverrideCursor()
+
 		self.loadTables(self.rilevatoriTable)
 
 		# pulisci i campi

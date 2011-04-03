@@ -18,9 +18,7 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 		MappingOne2One.__init__(self, "SCHEDA_UNITA_VOLUMETRICA")
 		self.setupUi(self)
 
-		if not AutomagicallyUpdater.DEBUG:
-			self.SCHEDA_EDIFICIOID.hide()
-
+		self.SCHEDA_EDIFICIOID.hide()
 		self.uvID = None
 
 		# carica i widget multivalore con i valori delle relative tabelle
@@ -129,10 +127,8 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 		self.uvID = uvID
 
 		IDoldUV = AutomagicallyUpdater.Query( "SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [self.uvID] ).getFirstResult()
-		if IDoldUV == None:
-			self.setValue(self.debugInfo, '')
-		else:
-			self.setValue(self.debugInfo, self.uvID + "\t" + IDoldUV)
+		self.setValue(self.codUvCensita, self.uvID)
+		self.setValue(self.codUvOriginale, IDoldUV)
 
 	def selectUV(self):
 		# seleziona l'UV ma non centrarla

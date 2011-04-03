@@ -20,7 +20,7 @@ class DlgAbout(QDialog, Ui_DlgAbout):
 
 	def help(self):
 		import os.path
-		path = os.path.join( __file__, 'docs', 'index.html' )
+		path = os.path.join( os.path.dirname(__file__), 'docs', 'manuale_uso.pdf' )
 		QDesktopServices.openUrl( QUrl.fromLocalFile(path) )
 
 	def showVersions(self):

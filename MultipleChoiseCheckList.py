@@ -28,6 +28,14 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 
 		self.connect(self.list, SIGNAL("itemChanged(QListWidgetItem *)"), self.selectionChanged)
 
+	def onClosing(self):
+		for val in self.storedValues:
+			self.storedValues.remove(val)
+			del val
+		del self.storedValues
+		MappingMany2Many.onClosing(self)
+
+
 	def selectionChanged(self):
 		self.emit( SIGNAL("selectionChanged()") )
 

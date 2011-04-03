@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgSezUnitaVolumetriche.ui'
 #
-# Created: Thu Mar 10 23:29:02 2011
+# Created: Mon Mar 28 13:36:23 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -44,13 +44,13 @@ class Ui_Form(object):
         self.ZZ_MORFOLOGIA_COPERTURAID.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLength)
         self.ZZ_MORFOLOGIA_COPERTURAID.setObjectName("ZZ_MORFOLOGIA_COPERTURAID")
         self.gridLayout_5.addWidget(self.ZZ_MORFOLOGIA_COPERTURAID, 3, 2, 1, 3)
-        self.debugInfo = QtGui.QLineEdit(Form)
+        self.codUvCensita = QtGui.QLineEdit(Form)
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.debugInfo.setFont(font)
-        self.debugInfo.setReadOnly(True)
-        self.debugInfo.setObjectName("debugInfo")
-        self.gridLayout_5.addWidget(self.debugInfo, 0, 0, 1, 5)
+        self.codUvCensita.setFont(font)
+        self.codUvCensita.setReadOnly(True)
+        self.codUvCensita.setObjectName("codUvCensita")
+        self.gridLayout_5.addWidget(self.codUvCensita, 0, 2, 1, 3)
         self.FUORITERR_NPIANI = QtGui.QSpinBox(Form)
         self.FUORITERR_NPIANI.setObjectName("FUORITERR_NPIANI")
         self.gridLayout_5.addWidget(self.FUORITERR_NPIANI, 2, 3, 1, 1)
@@ -96,6 +96,19 @@ class Ui_Form(object):
         self.gridLayout_5.addItem(spacerItem2, 6, 2, 1, 1)
         spacerItem3 = QtGui.QSpacerItem(20, 10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
         self.gridLayout_5.addItem(spacerItem3, 4, 0, 1, 1)
+        self.codUvOriginale = QtGui.QLineEdit(Form)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.codUvOriginale.setFont(font)
+        self.codUvOriginale.setReadOnly(True)
+        self.codUvOriginale.setObjectName("codUvOriginale")
+        self.gridLayout_5.addWidget(self.codUvOriginale, 1, 2, 1, 3)
+        self.label_2 = QtGui.QLabel(Form)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout_5.addWidget(self.label_2, 0, 0, 1, 2)
+        self.label_3 = QtGui.QLabel(Form)
+        self.label_3.setObjectName("label_3")
+        self.gridLayout_5.addWidget(self.label_3, 1, 0, 1, 2)
 
         self.retranslateUi(Form)
         self.tabWidget.setCurrentIndex(0)
@@ -110,6 +123,8 @@ class Ui_Form(object):
         self.edificioOrdinarioRadio.setText(QtGui.QApplication.translate("Form", "Edificio ordinario", None, QtGui.QApplication.UnicodeUTF8))
         self.edificioGrandiLuciRadio.setText(QtGui.QApplication.translate("Form", "Edificio con grandi luci (capannoni, palestre, piscine, etc.)", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("Form", "Strutture orizzontali - Copertura", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText(QtGui.QApplication.translate("Form", "Codice geom. UV censita", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_3.setText(QtGui.QApplication.translate("Form", "Codice geom. UV originale", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..WdgStruttureOrizzontaliCoperturaEdificiOrdinari import WdgStruttureOrizzontaliCoperturaEdificiOrdinari
 from ..WdgMantoCoperturaUnitaVolumetrica import WdgMantoCoperturaUnitaVolumetrica

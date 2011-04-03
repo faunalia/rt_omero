@@ -9,6 +9,7 @@ import qgis.gui
 
 class MapTool(QObject):
 	canvas = None
+	registeredToolStatusMsg = {}
 
 	def __init__(self, mapToolClass, canvas=None):
 		QObject.__init__(self)
@@ -24,6 +25,23 @@ class MapTool(QObject):
 
 		self.tool = mapToolClass( self.canvas )
 		QObject.connect(self.tool, SIGNAL( "geometryDrawingEnded" ), self.onEnd)
+
+	def deleteLater(self):
+		self.unregisterStatusMsg()
+		self.stopCapture()
+		self.tool.deleteLater()
+		del self.tool
+		return QObject.deleteLater(self)
+
+
+	def registerStatusMsg(self, statusMessage):
+		MapTool.registeredToolStatusMsg[self] = statusMessage
+
+	def unregisterStatusMsg(self):
+		if not MapTool.registeredToolStatusMsg.has_key( self ):
+			return
+		del MapTool.registeredToolStatusMsg[self]
+
 
 	def onEnd(self, geometry):
 		self.stopCapture()
@@ -53,6 +71,11 @@ class MapTool(QObject):
 			self.snapper = qgis.gui.QgsMapCanvasSnapper( self.canvas )
 
 			self.isEmittingPoints = False
+
+		def __del__(self):
+			del self.rubberBand
+			del self.snapper
+			self.deleteLater()
 
 		def reset(self):
 			self.isEmittingPoints = False
@@ -283,8 +306,10 @@ class TemporaryFile:
 	KEY_VISUALIZZAFOTO = 'DlgVisualizzaFoto'
 
 	@staticmethod
-	def getNewFile(key=None):
+	def getNewFile(key=None, ext=None):
 		tmp = QTemporaryFile()
+		if ext != None:
+			tmp.setFileTemplate( tmp.fileTemplate().append( ".%s" % ext ) )
 		if not TemporaryFile.tmpFiles.has_key( key ):
 			TemporaryFile.tmpFiles[ key ] = [ tmp ]
 		else:
@@ -293,16 +318,20 @@ class TemporaryFile:
 
 	@staticmethod
 	def delFile(tmp, key=None):
+
+		def deleteTempFile(tmp, key):
+			TemporaryFile.tmpFiles[ key ].remove( tmp )
+			tmp.deleteLater()
+			del tmp
+
 		if not TemporaryFile.tmpFiles.has_key( key ):
 			return False
 		if tmp != None:	# rimuovi solo il file passato
 			if TemporaryFile.tmpFiles[ key ].count( tmp ) > 0:
-				TemporaryFile.tmpFiles[ key ].remove( tmp )
-				del tmp
+				deleteTempFile(tmp, key)
 		else:	# rimuovi tutti i file che hanno quella chiave
 			for tmp in TemporaryFile.tmpFiles[ key ]:
-				TemporaryFile.tmpFiles[ key ].remove( tmp )
-				del tmp
+				deleteTempFile(tmp, key)
 			del TemporaryFile.tmpFiles[ key ]
 		return True
 
@@ -312,28 +341,28 @@ class TemporaryFile:
 
 	@staticmethod
 	def clear():
-		for key, tmpList in TemporaryFile.tmpFiles.iteritems():
-			for tmp in tmpList:
-				TemporaryFile.tmpFiles[ key ].remove( tmp )
-				del tmp
-			del tmpList
+		for key in TemporaryFile.tmpFiles.keys():
+			TemporaryFile.delAllFiles(key)
 		TemporaryFile.tmpFiles = {}
 
 
 	@staticmethod
-	def salvaDati(dati, tempKey=None):
+	def salvaDati(dati, tempKey=None, ext=None):
 		if dati == None:
 			return
 
-		tmp = TemporaryFile.getNewFile( tempKey )
+		tmp = TemporaryFile.getNewFile( tempKey, ext )
 		if not tmp.open():
 			TemporaryFile.delFile( tmp, tempKey )
 			return
-
-		outfile = open( tmp.fileName().toUtf8(), "wb" )
-		outfile.write( str(dati) )
-		outfile.close()
-
+		filename = tmp.fileName()
 		tmp.close()
-		return tmp.fileName()
+
+		outfile = open( filename.toUtf8(), "wb" )
+		try:
+			outfile.write( str(dati) )
+		finally:
+			outfile.close()
+
+		return filename
 
