@@ -24,7 +24,7 @@ class ConnectionManager:
 
 		# connessione tramite QtSql
 		conn = QSqlDatabase.database( self.defaultConnName )
-		if conn.isValid():
+		if conn != None and conn.isValid():
 			return True
 
 		conn = QSqlDatabase.addDatabase( self.defaultConnType, self.defaultConnName )
@@ -37,7 +37,7 @@ class ConnectionManager:
 		self.connPySL = None
 
 		conn = QSqlDatabase.database( self.defaultConnName )
-		if conn.isValid():
+		if conn != None and conn.isValid():
 			QSqlDatabase.removeDatabase( self.defaultConnName )
 
 	@classmethod
@@ -47,7 +47,7 @@ class ConnectionManager:
 		else:
 			conn = QSqlDatabase.database( self.defaultConnName, True )
 
-		if not conn.isValid():
+		if conn == None or not conn.isValid():
 			return None
 		return conn
 

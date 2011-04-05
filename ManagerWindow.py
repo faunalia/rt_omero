@@ -667,12 +667,25 @@ class ManagerWindow(QDockWidget):
 			if dbpath.isEmpty():
 				return
 
-			import os.path
-			testDb = os.path.join(os.path.dirname(__file__), "docs", "demoDB.db3")
-			if not QFile.copy( testDb, dbpath ):
-				QMessageBox.critical(self, "Errore", "Impossibile copiare il database di test nel percorso indicato. \nVerificare che il percorso sia accessibile e non protetto da scrittura")
+			import os.path, zipfile
+			demoZip = os.path.join(os.path.dirname(__file__), "docs", "demo.zip")
+
+			try:
+				zf = zipfile.ZipFile( unicode(demoZip) )
+				if len( zf.namelist() ) <= 0:
+					raise zipfile.BadZipfile( "no files in the archive" )
+				
+				outfile = open( unicode(dbpath), 'wb' )
+				try:
+					outfile.write( zf.read( zf.namelist()[0] ) )
+				finally:
+					outfile.close()
+
+			except (IOError, zipfile.BadZipfile), e:
+				QMessageBox.critical( self, u"Errore", u"Impossibile estrarre l'archivio contenente il database di test.\n\nError message: %s" % unicode(str(e), 'utf8') )
 				return
 
+				
 			AutomagicallyUpdater._setPathToDb( dbpath )
 			return dbpath
 
