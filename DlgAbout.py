@@ -34,10 +34,11 @@ class DlgAbout(QDialog, Ui_DlgAbout):
 
 		text = text.replace( "$DB_PATH$" , AutomagicallyUpdater._getPathToDb() )
 
-		query = AutomagicallyUpdater.Query( "SELECT DB_VERSION_MAIOR || '.' || DB_VERSION_MINOR, DB_LAST_DATE_USAGE FROM ZZ_DISCLAIMER" )
+		query = AutomagicallyUpdater.Query( "SELECT DATABASE, DB_VERSION_MAIOR || '.' || DB_VERSION_MINOR, TARGET FROM ZZ_DISCLAIMER" )
 		query = query.getQuery()
 		if query.exec_() and query.next():
-			text = text.replace( "$DB_VER$", query.value(0).toString() )
-			text = text.replace( "$DB_REV$", query.value(1).toString() )
+			text = text.replace( "$DB_TYPE$", query.value(0).toString() )
+			text = text.replace( "$DB_VER$", query.value(1).toString() )
+			text = text.replace( "$DB_TARGET$", query.value(2).toString() )
 
 		self.txt.setHtml(text)

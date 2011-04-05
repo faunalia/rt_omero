@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/dlgAbout.ui'
 #
-# Created: Sat Mar 26 13:52:07 2011
+# Created: Wed Apr  6 00:18:04 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -43,8 +43,8 @@ class Ui_DlgAbout(object):
 "<p style=\"-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Questo plugin è distribuito con licenza GPLv2</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Database<span style=\" font-weight:600;\"> v. $DB_VER$ </span>   ultima modifica<span style=\" font-weight:600;\"> $DB_REV$ </span></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">$DB_PATH$ </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Database<span style=\" font-weight:600;\"> $DB_TYPE$ </span>  v.<span style=\" font-weight:600;\"> $DB_VER$ - $DB_TARGET$ </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Posizione: <span style=\" font-weight:600;\">$DB_PATH$ </span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Versione Quantum GIS $QGIS_VER$ (r$QGIS_REV$)</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
