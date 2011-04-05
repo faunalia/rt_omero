@@ -654,18 +654,43 @@ class ManagerWindow(QDockWidget):
 
 
 	def getPathToDB(self, forceDialog=False):
-		settings = QSettings()
-		pathToSqliteDB = AutomagicallyUpdater._getPathToDb()
+		def selezionaDB(path):
+			dbpath = QFileDialog.getOpenFileName(self, "Seleziona il DB da utilizzare", path, "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
+			if dbpath.isEmpty():
+				return
+			AutomagicallyUpdater._setPathToDb( dbpath )
+			return dbpath
 
-		if pathToSqliteDB.isEmpty() or not QFileInfo(pathToSqliteDB).exists() or forceDialog:
-			newPath = QFileDialog.getOpenFileName(self, "Seleziona il DB", pathToSqliteDB, "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
-			if newPath.isEmpty():
-				return None
+		def copiaDemoDB(path):
+			# copia il database di test nella directory indicata dall'utente
+			dbpath = QFileDialog.getSaveFileName(self, "Salva il DB di test", path, "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
+			if dbpath.isEmpty():
+				return
 
-			pathToSqliteDB = newPath
-			AutomagicallyUpdater._setPathToDb( pathToSqliteDB )
+			import os.path
+			testDb = os.path.join(os.path.dirname(__file__), "docs", "demoDB.db3")
+			if not QFile.copy( testDb, dbpath ):
+				QMessageBox.critical(self, "Errore", "Impossibile copiare il database di test nel percorso indicato. \nVerificare che il percorso sia accessibile e non protetto da scrittura")
+				return
 
-		return pathToSqliteDB
+			AutomagicallyUpdater._setPathToDb( dbpath )
+			return dbpath
+
+
+		pathToDB = AutomagicallyUpdater._getPathToDb()
+
+		if pathToDB.isEmpty() or not QFileInfo( pathToDB ).exists():
+			ret = QMessageBox.question(self, "Necessario un database", u"E' necessario selezionare il database da utilizzare. \nSe non si ha il database, è possibile utilizzare quello di test. \n\nVuoi usare il database di test?", QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+			if ret == QMessageBox.Yes:
+				return copiaDemoDB( pathToDB )
+			elif ret == QMessageBox.No:
+				return selezionaDB( pathToDB )
+			return
+
+		if forceDialog:
+			return selezionaDB( pathToDB )
+
+		return pathToDB
 
 
 	def setDBConnection(self):
@@ -693,15 +718,15 @@ class ManagerWindow(QDockWidget):
 
 		from DlgSceltaRilevatore import DlgSceltaRilevatore
 		if not DlgSceltaRilevatore().exec_():
+			if not self.startedYet:
+				ConnectionManager.closeConnection()
 			return
 
 		self.iface.addDockWidget(Qt.LeftDockWidgetArea, self)
 
 		if not self.loadLayersInCanvas():
 			QMessageBox.critical(self, "RT Omero", "Impossibile caricare i layer richiesti dal database selezionato")
-			return False
-
-		self.startedYet = True
+			return
 
 
 	def loadLayersInCanvas(self, loadLastExtent=True):
@@ -812,6 +837,7 @@ class ManagerWindow(QDockWidget):
 		if not self.startedYet:
 			# imposta l'ultimo extent usato
 			self.loadLastUsedExtent()
+			self.startedYet = True
 
 		# ripristina il rendering
 		self.canvas.setRenderFlag( prevRenderFlag )

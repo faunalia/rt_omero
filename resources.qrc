@@ -9,5 +9,7 @@
         <file>icons/ripulisci.png</file>
         <file>icons/spezza_geometria.png</file>
         <file>icons/about.png</file>
+        <file>icons/stradario.png</file>
+        <file>icons/foto.png</file>
     </qresource>
 </RCC>

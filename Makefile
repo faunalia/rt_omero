@@ -17,4 +17,4 @@ clean:
 	rm -f $(GEN_FILES) *.pyc
 
 package:
-	cd .. && ln -sTf trunk rt_omero && rm -f rt_omero.zip && zip -r rt_omero.zip rt_omero -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\*
+	cd .. && ln -sTf trunk rt_omero && rm -f rt_omero.zip && zip -r rt_omero.zip rt_omero -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\* && rm -f rt_omero

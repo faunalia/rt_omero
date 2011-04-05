@@ -1,22 +1,22 @@
 <!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
-<qgis version="1.7.0-Trunk" minimumScale="0" maximumScale="1e+08" hasScaleBasedVisibilityFlag="0">
+<qgis version="1.7.0-Wroclaw" minimumScale="0" maximumScale="1e+08" hasScaleBasedVisibilityFlag="0">
   <transparencyLevelInt>255</transparencyLevelInt>
   <renderer-v2 type="RuleRenderer">
     <rules>
-      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '1'" symbol="0" scalemindenom="25000" label="1:25k - oltre : UV abbinate a scheda"/>
-      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '0'" symbol="1" scalemindenom="25000" label="1:25k - oltre : UV non abbinate a scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="2" scalemindenom="2000" label="1:2k - 1:25k : UV invariate e abbinate a scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="3" scalemindenom="2000" label="1:2k - 1:25k : UV modificate e abbinate a scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="4" scalemindenom="2000" label="1:2k - 1:25k : UV nuove e abbinate a scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="5" scalemindenom="2000" label="1:2k - 1:25k : UV invariate e non abbinate a scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="6" scalemindenom="2000" label="1:2k - 1:25k : UV modificate e non abbinate a scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="7" scalemindenom="2000" label="1:2k - 1:25k : UV nuove e non abbinate a scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="8" scalemindenom="1" label="1:1 - 1:2k : UV invariate e abbinate a scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="9" scalemindenom="1" label="1:1 - 1:2k : UV modificate e abbinate a scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="10" scalemindenom="1" label="1:1 - 1:2k - UV nuove e abbinate a scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="11" scalemindenom="1" label="1:1 - 1:2k : UV invariate e non abbinate a scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="12" scalemindenom="1" label="1:1 - 1:2k : UV modificate e non abbinate a scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="13" scalemindenom="1" label="1:1 - 1:2k : UV nuove e non abbinate a scheda"/>
+      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '1'" symbol="0" scalemindenom="25000" label="1:25k - oltre : UV con scheda"/>
+      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '0'" symbol="1" scalemindenom="25000" label="1:25k - oltre : UV senza scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="2" scalemindenom="2000" label="1:2k - 1:25k : UV invariate con scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="3" scalemindenom="2000" label="1:2k - 1:25k : UV modif. con scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="4" scalemindenom="2000" label="1:2k - 1:25k : UV nuove con scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="5" scalemindenom="2000" label="1:2k - 1:25k : UV invariate senza scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="6" scalemindenom="2000" label="1:2k - 1:25k : UV modif. senza scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="7" scalemindenom="2000" label="1:2k - 1:25k : UV nuove senza scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="8" scalemindenom="1" label="1:1 - 1:2k : UV invariate con scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="9" scalemindenom="1" label="1:1 - 1:2k : UV modif. con scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="10" scalemindenom="1" label="1:1 - 1:2k - UV nuove con scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="11" scalemindenom="1" label="1:1 - 1:2k : UV invariate senza scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="12" scalemindenom="1" label="1:1 - 1:2k : UV modif. senza scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="13" scalemindenom="1" label="1:1 - 1:2k : UV nuove senza scheda"/>
     </rules>
     <symbols>
       <symbol outputUnit="MM" alpha="1" type="fill" name="0">
@@ -244,7 +244,7 @@
       <symbol outputUnit="MM" alpha="1" type="marker" name="@1@0">
         <layer pass="0" class="SimpleMarker" locked="0">
           <prop k="angle" v="0"/>
-          <prop k="color" v="255,85,0,255"/>
+          <prop k="color" v="255,162,2,255"/>
           <prop k="color_border" v="255,85,0,255"/>
           <prop k="name" v="circle"/>
           <prop k="offset" v="0,0"/>
@@ -300,6 +300,7 @@
     <edittype type="0" name="ABBINATO_A_SCHEDA"/>
     <edittype type="0" name="GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE"/>
     <edittype type="0" name="ID_UV_NEW"/>
+    <edittype type="0" name="NOTA"/>
     <edittype type="0" name="ZZ_STATO_GEOMETRIAID"/>
   </edittypes>
   <editform></editform>
