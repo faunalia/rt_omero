@@ -3,12 +3,15 @@
 """
 /***************************************************************************
 Name                 : Omero RT
-Description          : Work done for Regione Toscana SIGTA
+Description          : Omero plugin
 Date                 : August 15, 2010 
 copyright            : (C) 2010 by Giuseppe Sucameli (Faunalia)
 email                : brush.tyler@gmail.com
-
  ***************************************************************************/
+
+Omero plugin
+Works done from Faunalia (http://www.faunalia.it) with funding from Regione 
+Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.html)
 
 /***************************************************************************
  *                                                                         *
@@ -31,7 +34,7 @@ def icon():
 	return "icons/rt_omero.png"
 
 def version():
-	return "Version 0.2.4"
+	return "Version 0.2.7"
 
 def qgisMinimumVersion():
 	return "1.6.0"

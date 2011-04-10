@@ -2,10 +2,6 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from PyQt4.QtSql import *
-
-import qgis.gui
-import qgis.core
 
 from ui.mainSchedaEdificio_ui import Ui_SchedaEdificio
 from AutomagicallyUpdater import *

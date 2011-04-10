@@ -1,11 +1,32 @@
 # -*- coding: utf-8 -*-
 
+"""
+/***************************************************************************
+Name                 : Omero RT
+Description          : Omero plugin
+Date                 : August 15, 2010 
+copyright            : (C) 2010 by Giuseppe Sucameli (Faunalia)
+email                : sucameli@faunalia.it
+ ***************************************************************************/
+
+Omero plugin
+Works done from Faunalia (http://www.faunalia.it) with funding from Regione 
+Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.html)
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+"""
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from qgis.core import *
-import qgis.gui
-
 import resources
 
 from ConnectionManager import ConnectionManager
@@ -654,54 +675,16 @@ class ManagerWindow(QDockWidget):
 
 
 	def getPathToDB(self, forceDialog=False):
-		def selezionaDB(path):
-			dbpath = QFileDialog.getOpenFileName(self, "Seleziona il DB da utilizzare", path, "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
-			if dbpath.isEmpty():
-				return
-			AutomagicallyUpdater._setPathToDb( dbpath )
-			return dbpath
-
-		def copiaDemoDB(path):
-			# copia il database di test nella directory indicata dall'utente
-			dbpath = QFileDialog.getSaveFileName(self, "Salva il DB di test", path, "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
-			if dbpath.isEmpty():
-				return
-
-			import os.path, zipfile
-			demoZip = os.path.join(os.path.dirname(__file__), "docs", "demo.zip")
-
-			try:
-				zf = zipfile.ZipFile( unicode(demoZip) )
-				if len( zf.namelist() ) <= 0:
-					raise zipfile.BadZipfile( "no files in the archive" )
-				
-				outfile = open( unicode(dbpath), 'wb' )
-				try:
-					outfile.write( zf.read( zf.namelist()[0] ) )
-				finally:
-					outfile.close()
-
-			except (IOError, zipfile.BadZipfile), e:
-				QMessageBox.critical( self, u"Errore", u"Impossibile estrarre l'archivio contenente il database di test.\n\nError message: %s" % unicode(str(e), 'utf8') )
-				return
-
-				
-			AutomagicallyUpdater._setPathToDb( dbpath )
-			return dbpath
-
+		from DlgSelezionaDB import DlgSelezionaDB
 
 		pathToDB = AutomagicallyUpdater._getPathToDb()
-
 		if pathToDB.isEmpty() or not QFileInfo( pathToDB ).exists():
-			ret = QMessageBox.question(self, "Necessario un database", u"E' necessario selezionare il database da utilizzare. \nSe non si ha il database, è possibile utilizzare quello di test. \n\nVuoi usare il database di test?", QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-			if ret == QMessageBox.Yes:
-				return copiaDemoDB( pathToDB )
-			elif ret == QMessageBox.No:
-				return selezionaDB( pathToDB )
-			return
+			if not DlgSelezionaDB( self ).exec_():
+				return
+			return AutomagicallyUpdater._getPathToDb()
 
 		if forceDialog:
-			return selezionaDB( pathToDB )
+			return DlgSelezionaDB.selezionaDB( self )
 
 		return pathToDB
 
@@ -737,12 +720,15 @@ class ManagerWindow(QDockWidget):
 
 		self.iface.addDockWidget(Qt.LeftDockWidgetArea, self)
 
-		if not self.loadLayersInCanvas():
+		loadLastExtent = not self.startedYet
+		self.startedYet = True
+
+		if not self.loadLayersInCanvas( loadLastExtent ):
 			QMessageBox.critical(self, "RT Omero", "Impossibile caricare i layer richiesti dal database selezionato")
 			return
 
 
-	def loadLayersInCanvas(self, loadLastExtent=True):
+	def loadLayersInCanvas(self, reloadExtent=True):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
 		# disabilita il rendering
@@ -847,10 +833,9 @@ class ManagerWindow(QDockWidget):
 		# carica il layer con le foto
 		self.loadLayerFoto()
 
-		if not self.startedYet:
+		if reloadExtent:
 			# imposta l'ultimo extent usato
 			self.loadLastUsedExtent()
-			self.startedYet = True
 
 		# ripristina il rendering
 		self.canvas.setRenderFlag( prevRenderFlag )
@@ -932,18 +917,17 @@ class ManagerWindow(QDockWidget):
 	def loadLastUsedExtent(self):
 		# recupera l'extent memorizzato
 		query = AutomagicallyUpdater.Query( "SELECT XMIN, YMIN, XMAX, YMAX FROM ZZ_DISCLAIMER" ).getQuery()
-		if query.exec_():
-			if query.next():
-				xmin, ok1 = query.value(0).toDouble()
-				ymin, ok2 = query.value(1).toDouble()
-				xmax, ok3 = query.value(2).toDouble()
-				ymax, ok4 = query.value(3).toDouble()
+		if query.exec_() and query.next():
+			xmin, ok1 = query.value(0).toDouble()
+			ymin, ok2 = query.value(1).toDouble()
+			xmax, ok3 = query.value(2).toDouble()
+			ymax, ok4 = query.value(3).toDouble()
 
-				# imposta l'extent memorizzato come attuale
-				if ok1 and ok2 and ok3 and ok4:
-					extent = QgsRectangle( xmin, ymin, xmax, ymax )
-					self.canvas.setExtent( extent )
-					return
+			# imposta l'extent memorizzato come attuale
+			if ok1 and ok2 and ok3 and ok4:
+				extent = QgsRectangle( xmin, ymin, xmax, ymax )
+				self.canvas.setExtent( extent )
+				return
 
 		# nessuno extent memorizzato o extent non valido, 
 		# fai zoom all'estenzione del layer delle geometrie originali

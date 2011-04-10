@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DlgSelezionaDB</class>
+ <widget class="QDialog" name="DlgSelezionaDB">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>589</width>
+    <height>352</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Necessario un database</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Vuoi utilizzare il DB dimostrativo (DB DEMO)</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>oppure disponi di un DB di lavoro (DB WORK)?</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QPushButton" name="btnDbWork">
+     <property name="text">
+      <string>Usa DB WORK</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPushButton" name="btnDbDemo">
+     <property name="text">
+      <string>Usa DB DEMO</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0" colspan="2">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Informazioni</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QScrollArea" name="scrollArea">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarAsNeeded</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="scrollAreaWidgetContents">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>524</width>
+           <height>436</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Il plugin Omero-RT impiega un database in formato sqlite/spatialite con una ben precisa struttura di tabelle al suo interno.
+Tale database al momento con questa versione di Omero-RT viene prodotto direttamente dal Servizio S.I.T.A. di Regione Toscana che provvede a creare la base dati e a pre-caricarla con tutti i dati necessari al suo funzionamento tra cui le geometrie di Unita-Volumetriche attinenti al territorio da indagare già codificate con gli opportuni codici regionali da mantenere.
+
+Nel caso si disponga di un database così predisposto per funzionare con il plugin Omero-RT assicurarsi che sia collocato in una cartella in cui si dispone dei diritti di scrittura.
+
+Per permettere di provare l’operativita’ del programma nel caso che non si disponga di un proprio database delle geometrie originali come sopra descritto, il plugin prevede alla partenza l'opzione di scegliere l'impiego di un database dimostrativo (DB DEMO) avente la struttura gia' impostata, i dati precaricati e un centinaio di geometrie precaricate.
+La versione dimostrativa non ha alcuna limitazione salvo il numero di geometrie precaricate limitate per ragioni di spazio a un centinaio di geometrie di unita-volumetriche.
+
+Una avvertenza: 
+Il database sqlite/spatialite impiegato con Omero-RT va impiegato esclusivamente con il plugin in questione. In nessun caso va editato con altri strumenti per non alterare irrimediabilmente i contenuti della base dati stessa.</string>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>DlgSelezionaDB</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>DlgSelezionaDB</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
