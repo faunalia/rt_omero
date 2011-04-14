@@ -31,3 +31,12 @@ class WdgParticelleCatastali(Wdg2FieldsTable):
 		columns = ( ("FOGLIO", "Foglio"), ("PARTICELLA", "Particella") )
 		Wdg2FieldsTable.__init__(self, parent, "RIFERIMENTI_CATASTALI_SCHEDA_EDIFICIO", "SCHEDA_EDIFICIOID", "RIFERIMENTI_CATASTALIIDREF_CATAST", "RIFERIMENTI_CATASTALI", "IDREF_CATAST", columns)
 
+	def _saveValue(self, name2valueDict, table, pk, ID=None):
+		# converti i valori nulli per foglio e particella in stringhe vuote
+		for c in self.columnFields:
+			if name2valueDict.has_key( c ):
+				value = name2valueDict[c]
+				name2valueDict[c] = value if value != None else ''
+
+		return Wdg2FieldsTable._saveValue(name2valueDict, table, pk, ID)
+
