@@ -970,9 +970,6 @@ class ManagerWindow(QDockWidget):
 		self.lineDrawer.deleteLater()
 		del self.lineDrawer
 
-		# remove the reference to the connection
-		del ConnectionManager
-
 		self.emit( SIGNAL("closed()") )
 		return QDockWidget.closeEvent(self, event)
 

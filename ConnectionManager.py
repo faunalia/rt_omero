@@ -57,6 +57,7 @@ class ConnectionManager:
 
 	@classmethod
 	def closeConnection(self):
+		del self.connPySL
 		self.connPySL = None
 
 		conn = QSqlDatabase.database( self.defaultConnName )
@@ -171,6 +172,7 @@ class PySLDatabase:
 	def __del__(self):
 		if self.connection != None:
 			del self.connection
+		self.connection = None
 
 	def isValid(self):
 		return self._error.isEmpty()
