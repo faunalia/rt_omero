@@ -29,6 +29,7 @@ body {
 }
 #idscheda {
 	font-size: 16px;
+	margin-top: 150px;
 }
 #data {
 	font-size: 16px;
@@ -120,6 +121,10 @@ td.line {
 .tooltip {
 	font-style: normal;
 	font-size: 9px;
+}
+.mapContainer {
+	overflow: hidden;
+	text-align: center;
 }
 .foto {
 	max-width: 100%;

@@ -105,3 +105,7 @@ class WdgElencoFoto(MultiTabSection):
 		else:
 			self.deleteTab()
 
+	def toHtml(self):
+		if not self.hasTabs():
+			return ""
+		return MultiTabSection.toHtml(self)

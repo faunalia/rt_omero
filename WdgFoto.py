@@ -186,5 +186,5 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		<td>Annotazioni</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % ( 'newPage' if index > 0 and index%2 == 0 else '', index+1, fronte_edificio, filename, georef, annotazione if annotazione != None else '' )
+""" % ( 'newPage' if index%2 == 0 else '', index+1, fronte_edificio, filename, georef, annotazione if annotazione != None else '' )
 )

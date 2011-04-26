@@ -10,9 +10,9 @@
 	<p id="comune">Comune di Prato</p>
 	<p id="titolo">Scheda edificio</p>
 	<p id="via">via 17 Marzo, 10</p>
-	<p id="idscheda">ID Scheda: 09050026-20110304215314-4717-1_09050026-1</p>
+	<p id="idscheda">Scheda: 09050026-20110304215314-4717-1_09050026-1</p>
 	<p id="data">scheda stampata il 10/03/2011</p>
-	<p id="info">(QuantumGIS - plugin omero - Regione Toscana - S.I.T.A.)</p>
+	<p id="info">(QuantumGIS - Omero - Regione Toscana - S.I.T.A.)</p>
 </div>
 
 <div id="sez1" class="block">
@@ -312,7 +312,25 @@
 
 <div id="sez8" class="block">
 <p class="section">SEZIONE A8 - FOTOGRAFIE</p>
+
 <table class="border">
+	<tr>
+		<td colspan="4">Stralcio cartografico dell'edificio</td>
+	</tr>
+	<tr>
+		<td colspan="4" class="mapContainer"><img class="map border" style="width: 800px; height: 800px;" src="foto.jpg" alt="foto"></td>
+	</tr>
+	<tr>
+		<td>xmin</td><td class="value">%s</td>
+		<td>ymin</td><td class="value">%s</td>
+	</tr>
+	<tr>
+		<td>xmax</td><td class="value">%s</td>
+		<td>ymax</td><td class="value">%s</td>
+	</tr>
+</table>
+
+<table class="newPage block border">
 	<tr>
 		<td>Foto #1</td><td class="value">annotazioni fotografia</td>
 	</tr>
@@ -325,7 +343,6 @@
 		<td colspan="2" class="value">percorso fotografia</td>
 	</tr>
 </table>
-</div>
 
 <table class="block border">
 	<tr>
@@ -344,7 +361,7 @@
 <!-- max 2 foto per pagina, usa class="newPage" per inserire una nuova linea -->
 <table class="newPage block border">
 	<tr>
-		<td>Foto</td><td class="value">annotazioni fotografia</td>
+		<td>Foto #3</td><td class="value">annotazioni fotografia</td>
 	</tr>
 	<tr>
 		<td colspan="2"><img class="foto border" src="foto.jpg" alt="foto"></td>
@@ -355,6 +372,7 @@
 		<td colspan="2" class="value">percorso fotografia</td>
 	</tr>
 </table>
+</div>
 
 </body>
 </html>

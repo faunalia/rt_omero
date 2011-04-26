@@ -762,7 +762,7 @@ class ManagerWindow(QDockWidget):
 			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 		else:
 			while query.next():
-				order = query.value(0).toString()
+				order = query.value(0).toInt()[0]
 				title = query.value(1).toString()
 				url = query.value(2).toString()
 				layers = query.value(3).toString()
@@ -783,6 +783,7 @@ class ManagerWindow(QDockWidget):
 
 				ManagerWindow.RLID_WMS[order] = str(rl.getLayerID())
 				QgsMapLayerRegistry.instance().addMapLayer(rl)
+				self.iface.legendInterface().setLayerVisible( rl, False )
 
 		import os.path
 		conn = ConnectionManager.getConnection()
@@ -968,6 +969,9 @@ class ManagerWindow(QDockWidget):
 		del self.polygonDrawer
 		self.lineDrawer.deleteLater()
 		del self.lineDrawer
+
+		# remove the reference to the connection
+		del ConnectionManager
 
 		self.emit( SIGNAL("closed()") )
 		return QDockWidget.closeEvent(self, event)

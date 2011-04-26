@@ -3,6 +3,9 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+from qgis.core import *
+import qgis.gui
+
 from ui.mainSchedaEdificio_ui import Ui_SchedaEdificio
 from AutomagicallyUpdater import *
 
@@ -133,6 +136,116 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		self.emit( SIGNAL("printFinished"), ok, self._ID )
 
 
+	def creaStralcioCartografico( self, renderSize, renderScale, ext="png", factor=1 ):
+
+		def renderScaleLabel(painter, scale, factor=1):
+			text = "1:%s" % (scale*factor)
+
+			fontSize = 10*factor
+			font = QFont( "helvetica", fontSize )
+			painter.setFont( font )
+			fontMetrics = QFontMetrics( font )
+
+			margin = 20*factor
+			bufferSize = 1
+			backColor = Qt.white
+			foreColor = Qt.black
+    
+			painter.setPen( backColor )
+			fontWidth = fontMetrics.width( text )
+			fontHeight = fontMetrics.height()
+			#first the buffer
+			for i in range(-bufferSize, bufferSize+1):
+				for j in range(-bufferSize, bufferSize+1):
+					painter.drawText( i + margin, j + margin, text )
+
+			#then the text itself
+			painter.setPen( foreColor );
+			painter.drawText( margin, margin, text )
+
+
+		from ManagerWindow import ManagerWindow
+		#canvas = ManagerWindow.instance.iface.mapCanvas()
+		canvas = qgis.gui.QgsMapCanvas()
+		canvas.setCanvasColor( Qt.white )
+		canvas.show()
+		canvas.setFixedSize( renderSize.width(), renderSize.height() )
+		canvas.setRenderFlag( False )
+
+		settings = QSettings()
+		canvas.enableAntiAliasing( settings.value( "/qgis/enable_anti_aliasing", QVariant(False) ).toBool() )
+		canvas.useImageToRender( settings.value( "/qgis/use_qimage_to_render", QVariant(False) ).toBool() )
+
+		renderer = ManagerWindow.instance.iface.mapCanvas().mapRenderer()
+		canvas.mapRenderer().setDestinationSrs( renderer.destinationSrs() )
+		canvas.mapRenderer().setMapUnits( renderer.mapUnits() )
+
+		canvasLayers = []
+
+		# add WMS layers
+		for order, rlid in sorted( ManagerWindow.RLID_WMS.iteritems() ):
+			layer = QgsMapLayerRegistry.instance().mapLayer( rlid )
+			if layer != None and ManagerWindow.instance.iface.legendInterface().isLayerVisible( layer ):
+				cl = qgis.gui.QgsMapCanvasLayer(layer)
+				canvasLayers.insert(0, cl)
+
+		# add other layers
+		layers = [ManagerWindow.VLID_GEOM_ORIG, ManagerWindow.VLID_GEOM_MODIF, ManagerWindow.VLID_FOTO]
+		for vlid in layers:
+			layer = QgsMapLayerRegistry.instance().mapLayer( vlid )
+			if layer != None:
+				layer.removeSelection()
+				cl = qgis.gui.QgsMapCanvasLayer(layer)
+				canvasLayers.insert(0, cl)
+
+		canvas.setLayerSet( canvasLayers )
+
+		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
+		if layerModif != None:
+			# select the geometries
+			query = AutomagicallyUpdater.Query( "SELECT gmod.ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gmod JOIN SCHEDA_UNITA_VOLUMETRICA AS suv ON gmod.ID_UV_NEW = suv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE SCHEDA_EDIFICIOID = ?", [ self._ID ] ).getQuery()
+			if query.exec_():
+				selIds = []
+				while query.next():
+					selIds.append( query.value(0).toInt()[0] )
+				layerModif.setSelectedFeatures( selIds )
+
+			canvas.zoomToSelected( layerModif )
+		canvas.zoomScale( renderScale )
+
+		# override the selection color
+		prevColor = QgsRenderer.selectionColor()
+		newColor = QColor( Qt.yellow )
+		newColor.setAlpha(127)
+		QgsRenderer.setSelectionColor( newColor )
+
+		# save the map to a file
+		from Utils import TemporaryFile
+		tmp = TemporaryFile.getNewFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+		if not tmp.open():
+			TemporaryFile.delFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+			return QString(), None
+		filename = tmp.fileName()
+		tmp.close()
+
+		renderFunc = lambda x: renderScaleLabel(x, renderScale, factor)
+		self.connect(canvas, SIGNAL("renderComplete(QPainter *)"), renderFunc)
+		canvas.setRenderFlag( True )
+		canvas.saveAsImage( filename, None, ext.upper() )
+		extent = canvas.extent()
+		self.disconnect(canvas, SIGNAL("renderComplete(QPainter *)"), renderFunc)
+		canvas.deleteLater()
+		del canvas
+
+		# remove the wordfile create by canvas.saveAsImage()
+		wordfile = QFile( filename[:-4] + filename[-4:].toUpper() + "w" )
+		if wordfile.exists():
+			wordfile.remove()
+
+		# restore the selection color
+		QgsRenderer.setSelectionColor( prevColor )
+		return filename, extent
+
 	def closeEvent(self, event):
 		# rimuovi i file temporanei collegati alla scheda
 		from Utils import TemporaryFile
@@ -198,9 +311,9 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 	<p id="comune">Comune di %s</p>
 	<p id="titolo">Scheda edificio</p>
 	<p id="via">%s</p>
-	<p id="idscheda">ID Scheda: %s</p>
+	<p id="idscheda">Scheda: %s</p>
 	<p id="data">scheda stampata il %s</p>
-	<p id="info">(QuantumGIS - plugin omero - Regione Toscana - S.I.T.A.)</p>
+	<p id="info">(QuantumGIS - Omero - Regione Toscana - S.I.T.A.)</p>
 </div>
 %s %s %s %s %s %s %s %s 
 </body>
