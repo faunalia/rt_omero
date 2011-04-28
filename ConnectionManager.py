@@ -170,8 +170,6 @@ class PySLDatabase:
 		return PySLQuery(self)
 
 	def __del__(self):
-		if self.connection != None:
-			del self.connection
 		self.connection = None
 
 	def isValid(self):
@@ -184,7 +182,10 @@ class PySLDatabase:
 		self.connection.rollback()
 
 	def commit(self):
-		self.connection.commit()
+		try:
+			self.connection.commit()
+		except sqlite.OperationalError, e:
+			pass
 
 class PySLError:
 	def __init__(self, msg=''):

@@ -23,8 +23,12 @@ class ManagerPlugin:
 			self.iface.addPluginToDatabaseMenu("&Omero RT", self.action)
 		else:
 			self.iface.addPluginToMenu("&Omero RT", self.action)
+
+		QObject.connect(self.iface, SIGNAL("projectRead()"), self.loadProject)
 	
 	def unload(self):
+		QObject.disconnect(self.iface, SIGNAL("projectRead()"), self.loadProject)
+
 		# Remove the plugin menu item and icon
 		if hasattr( self.iface, 'removePluginDatabaseMenu' ):
 			self.iface.removePluginDatabaseMenu("&Omero RT", self.action)
@@ -50,3 +54,13 @@ class ManagerPlugin:
 
 	def onDlgClosed(self):
 		self.dlg = None
+
+	def loadProject(self):
+		if self.dlg != None:
+			return
+
+		from ManagerWindow import ManagerWindow
+		dlg = ManagerWindow(self.iface.mainWindow(), self.iface)
+		if dlg.reloadLayersFromProject():
+			self.dlg = dlg
+			QObject.connect(self.dlg, SIGNAL("closed()"), self.onDlgClosed)

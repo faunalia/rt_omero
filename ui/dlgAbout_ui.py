@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/dlgAbout.ui'
 #
-# Created: Thu Apr  7 19:51:04 2011
+# Created: Thu Apr 28 23:27:54 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_DlgAbout(object):
     def setupUi(self, DlgAbout):
         DlgAbout.setObjectName("DlgAbout")
-        DlgAbout.resize(633, 512)
+        DlgAbout.resize(697, 505)
         self.gridLayout = QtGui.QGridLayout(DlgAbout)
         self.gridLayout.setObjectName("gridLayout")
         self.buttonBox = QtGui.QDialogButtonBox(DlgAbout)

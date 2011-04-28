@@ -114,6 +114,9 @@ class ManagerWindow(QDockWidget):
 		self.connect(self.btnSelFoto, SIGNAL("clicked()"), self.identificaFoto)
 		self.connect(self.btnAbout, SIGNAL("clicked()"), self.about)
 
+		self.connect(self.iface, SIGNAL("projectRead()"), self.reloadLayersFromProject)
+		self.connect(self.iface, SIGNAL("newProjectCreated()"), self.close)
+
 	def setupUi(self):
 		self.setObjectName( "rt_omero_dockwidget" )
 		self.setWindowTitle( "Omero RT" )
@@ -201,6 +204,8 @@ class ManagerWindow(QDockWidget):
 		self.setWidget(child)
 
 	def about(self):
+		if self.iface.mapCanvas().isDrawing():
+			return	# wait until the renderer ends
 		from DlgAbout import DlgAbout
 		DlgAbout(self).exec_()
 
@@ -237,10 +242,14 @@ class ManagerWindow(QDockWidget):
 
 
 	def riepilogoSchede(self):
+		if self.iface.mapCanvas().isDrawing():
+			return	# wait until the renderer ends
 		from DlgRiepilogoSchede import DlgRiepilogoSchede
 		return DlgRiepilogoSchede(self).exec_()
 
 	def gestioneStradario(self):
+		if self.iface.mapCanvas().isDrawing():
+			return	# wait until the renderer ends			
 		from DlgStradario import DlgStradario
 		return DlgStradario(self).exec_()
 
@@ -701,14 +710,14 @@ class ManagerWindow(QDockWidget):
 		return False
 
 
-	def exec_(self):
+	def startPlugin(self):
 		# controlla la presenza della patch per il layer in sola lettura
 		if QGis.QGIS_SVN_VERSION < 14451:
 			QMessageBox.critical(self, "RT Omero", "E' richiesto l'uso di QGis almeno alla versione 1.6 e alla revisione r14451")
-			return
+			return False
 
 		if not self.setDBConnection():
-			return
+			return False
 
 		AutomagicallyUpdater._reset()
 
@@ -716,9 +725,14 @@ class ManagerWindow(QDockWidget):
 		if not DlgSceltaRilevatore().exec_():
 			if not self.startedYet:
 				ConnectionManager.closeConnection()
-			return
+			return False
 
 		self.iface.addDockWidget(Qt.LeftDockWidgetArea, self)
+		return True
+
+	def exec_(self):
+		if not self.startPlugin():
+			return
 
 		loadLastExtent = not self.startedYet
 		self.startedYet = True
@@ -727,6 +741,35 @@ class ManagerWindow(QDockWidget):
 			QMessageBox.critical(self, "RT Omero", "Impossibile caricare i layer richiesti dal database selezionato")
 			return
 
+
+	def reloadLayersFromProject(self):
+		valid = False
+
+		# check for valid omero layers
+		for l in self.iface.legendInterface().layers():
+			prop = l.customProperty( "loadedByOmeroRTPlugin" )
+			if prop.isValid():
+				# setup the plugin vars
+				parts = prop.toString().split( " " )
+				key = parts[0]
+				if not key.startsWith( "RLID_" ) or not key.startsWith( "VLID_" ):
+					valid = True
+
+					if len(parts) > 1:
+						order = int(parts[1])
+						exec( "ManagerWindow.%s[%d] = l.getLayerID()" % (key, order) )
+					else:
+						exec( "ManagerWindow.%s = l.getLayerID()" % key )
+
+					# set the vector as a read-only layer
+					if isinstance( l, QgsVectorLayer ):
+						l.setReadOnly(True)
+
+		if not valid:
+			return False
+
+		# shoe the omero dock widget
+		return self.startPlugin()
 
 	def loadLayersInCanvas(self, reloadExtent=True):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -784,6 +827,8 @@ class ManagerWindow(QDockWidget):
 				ManagerWindow.RLID_WMS[order] = str(rl.getLayerID())
 				QgsMapLayerRegistry.instance().addMapLayer(rl)
 				self.iface.legendInterface().setLayerVisible( rl, False )
+				# set custom property
+				rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("RLID_WMS %s" % order) )
 
 		import os.path
 		conn = ConnectionManager.getConnection()
@@ -808,6 +853,8 @@ class ManagerWindow(QDockWidget):
 
 			ManagerWindow.VLID_GEOM_ORIG = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
+			# set custom property
+			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_ORIG") )
 
 
 		# carica il layer con le geometrie modificate
@@ -830,6 +877,8 @@ class ManagerWindow(QDockWidget):
 
 			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
+			# set custom property
+			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_MODIF") )
 
 		# carica il layer con le foto
 		self.loadLayerFoto()
@@ -867,6 +916,8 @@ class ManagerWindow(QDockWidget):
 
 			ManagerWindow.VLID_FOTO = vl.getLayerID()
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
+			# set custom property
+			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_FOTO") )
 		return True
 
 
@@ -950,6 +1001,9 @@ class ManagerWindow(QDockWidget):
 		AutomagicallyUpdater._updateValue( name2valueDict, "ZZ_DISCLAIMER", None, None )
 
 	def closeEvent(self, event):
+		self.disconnect(self.iface, SIGNAL("projectRead()"), self.reloadLayersFromProject)
+		self.disconnect(self.iface, SIGNAL("newProjectCreated()"), self.close)
+
 		self.storeLastUsedExtent()
 		self.chiudiSchedaAperta()
 		self.removeLayersFromCanvas()

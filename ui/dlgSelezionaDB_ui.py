@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/dlgSelezionaDB.ui'
 #
-# Created: Sun Apr 10 14:49:57 2011
+# Created: Thu Apr 28 23:30:49 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!

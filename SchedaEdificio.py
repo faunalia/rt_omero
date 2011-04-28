@@ -136,7 +136,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		self.emit( SIGNAL("printFinished"), ok, self._ID )
 
 
-	def creaStralcioCartografico( self, renderSize, renderScale, ext="png", factor=1 ):
+	def creaStralcioCartografico( self, size, scale, ext="png", factor=1):
 
 		def renderScaleLabel(painter, scale, factor=1):
 			text = "1:%s" % (scale*factor)
@@ -151,25 +151,36 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			backColor = Qt.white
 			foreColor = Qt.black
     
+			# first the buffer
 			painter.setPen( backColor )
 			fontWidth = fontMetrics.width( text )
 			fontHeight = fontMetrics.height()
-			#first the buffer
 			for i in range(-bufferSize, bufferSize+1):
 				for j in range(-bufferSize, bufferSize+1):
 					painter.drawText( i + margin, j + margin, text )
 
-			#then the text itself
+			# then the text itself
 			painter.setPen( foreColor );
 			painter.drawText( margin, margin, text )
 
+		# get a new temp file
+		from Utils import TemporaryFile
+		tmp = TemporaryFile.getNewFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+		if not tmp.open():
+			TemporaryFile.delFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+			return QString(), None
+		filename = tmp.fileName()
+		tmp.close()
 
 		from ManagerWindow import ManagerWindow
-		#canvas = ManagerWindow.instance.iface.mapCanvas()
-		canvas = qgis.gui.QgsMapCanvas()
+		mainCanvas = ManagerWindow.instance.iface.mapCanvas()
+		prevRenderFlag = mainCanvas.renderFlag()
+		mainCanvas.setRenderFlag( False )
+
+		canvas = qgis.gui.QgsMapCanvas( ManagerWindow.instance.iface.mainWindow() )
 		canvas.setCanvasColor( Qt.white )
 		canvas.show()
-		canvas.setFixedSize( renderSize.width(), renderSize.height() )
+		canvas.setFixedSize( size.width(), size.height() )
 		canvas.setRenderFlag( False )
 
 		settings = QSettings()
@@ -181,7 +192,6 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		canvas.mapRenderer().setMapUnits( renderer.mapUnits() )
 
 		canvasLayers = []
-
 		# add WMS layers
 		for order, rlid in sorted( ManagerWindow.RLID_WMS.iteritems() ):
 			layer = QgsMapLayerRegistry.instance().mapLayer( rlid )
@@ -200,8 +210,17 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 		canvas.setLayerSet( canvasLayers )
 
+		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
+		if layerOrig != None:
+			prevOrigState = ManagerWindow.instance.iface.legendInterface().isLayerVisible( layerOrig )
+			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerOrig, True )
+
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
 		if layerModif != None:
+			prevModifState = ManagerWindow.instance.iface.legendInterface().isLayerVisible( layerModif )
+			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerModif, True )
+			mainCanvas.setRenderFlag( True )
+			
 			# select the geometries
 			query = AutomagicallyUpdater.Query( "SELECT gmod.ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gmod JOIN SCHEDA_UNITA_VOLUMETRICA AS suv ON gmod.ID_UV_NEW = suv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE SCHEDA_EDIFICIOID = ?", [ self._ID ] ).getQuery()
 			if query.exec_():
@@ -211,7 +230,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 				layerModif.setSelectedFeatures( selIds )
 
 			canvas.zoomToSelected( layerModif )
-		canvas.zoomScale( renderScale )
+		canvas.zoomScale( scale )
 
 		# override the selection color
 		prevColor = QgsRenderer.selectionColor()
@@ -220,15 +239,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		QgsRenderer.setSelectionColor( newColor )
 
 		# save the map to a file
-		from Utils import TemporaryFile
-		tmp = TemporaryFile.getNewFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
-		if not tmp.open():
-			TemporaryFile.delFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
-			return QString(), None
-		filename = tmp.fileName()
-		tmp.close()
-
-		renderFunc = lambda x: renderScaleLabel(x, renderScale, factor)
+		renderFunc = lambda x: renderScaleLabel(x, scale)
 		self.connect(canvas, SIGNAL("renderComplete(QPainter *)"), renderFunc)
 		canvas.setRenderFlag( True )
 		canvas.saveAsImage( filename, None, ext.upper() )
@@ -242,8 +253,14 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		if wordfile.exists():
 			wordfile.remove()
 
-		# restore the selection color
+		# restore the original state and color
+		if layerOrig != None:
+			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerOrig, prevOrigState )
+		if layerModif != None:
+			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerModif, prevModifState )
 		QgsRenderer.setSelectionColor( prevColor )
+		mainCanvas.setRenderFlag( prevRenderFlag )
+
 		return filename, extent
 
 	def closeEvent(self, event):
@@ -296,6 +313,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		else:
 			via = ''
 
+		nome_edificio = self.getValue( self.PRINCIPALE.NOME_EDIFICIO )
 		data = QDate.currentDate().toString( "dd/MM/yyyy" )
 
 		return QString( u"""
@@ -310,7 +328,10 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 	<img id="logo" src="%s" alt="Logo">
 	<p id="comune">Comune di %s</p>
 	<p id="titolo">Scheda edificio</p>
-	<p id="via">%s</p>
+	<div id="edificio">
+		<p id="nomeedificio">%s</p>
+		<p id="via">%s</p>
+	</div>
 	<p id="idscheda">Scheda: %s</p>
 	<p id="data">scheda stampata il %s</p>
 	<p id="info">(QuantumGIS - Omero - Regione Toscana - S.I.T.A.)</p>
@@ -318,5 +339,5 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 %s %s %s %s %s %s %s %s 
 </body>
 </html>
-""" % (css, logo, comune, via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO.toHtml() )
+""" % (css, logo, comune, nome_edificio if nome_edificio != None else '', via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO.toHtml() )
 )

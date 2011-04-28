@@ -907,7 +907,7 @@ class MappingOne2One(AutomagicallyUpdater):
 		if query == None:
 			return
 		if not query.exec_():
-			self._onQueryError( query.lastQuery(), query.lastError().text(), widget )
+			self._onQueryError( query.lastQuery(), query.lastError().text(), None )
 			return
 
 		while query.next():

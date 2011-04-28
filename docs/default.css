@@ -17,27 +17,27 @@ body {
 	width: 280px;
 }
 
+.smallcaps {
+	font-variant: small-caps;
+}
+.smalltext {
+	font-size: 16px;
+}
+
 #comune {
 	font-size: 22px;
-	font-variant: small-caps;
 }
 #titolo {
 	font-weight: bold;
 }
-#via {
+#edificio {
 	margin-top: 50px;
 }
 #idscheda {
-	font-size: 16px;
 	margin-top: 150px;
 }
 #data {
-	font-size: 16px;
 	margin-top: 50px;
-}
-
-#info {
-	font-variant: small-caps;
 }
 
 .scheda {

@@ -39,7 +39,8 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		# mappa i widget con i campi delle tabelle
 		childrenList = [
 			self.DATA_COMPILAZIONE_SCHEDA, 
-			self.RILEVATOREID
+			self.RILEVATOREID, 
+			(self.NOME_EDIFICIO, AutomagicallyUpdater.OPTIONAL)
 		]
 		self.setupValuesUpdater(childrenList)
 
