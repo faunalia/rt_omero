@@ -28,16 +28,16 @@ def name():
 	return "RT Omero"
 
 def description():
-	return "RT Omero"
+	return "Omero plugin per la Regione Toscana"
 
 def icon():
 	return "icons/rt_omero.png"
 
 def version():
-	return "Version 0.2.13"
+	return "Version 1.0.1"
 
 def qgisMinimumVersion():
-	return "1.6.0"
+	return "1.7.0"
 
 def classFactory(iface):
 	from ManagerPlugin import ManagerPlugin

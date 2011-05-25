@@ -263,6 +263,13 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 		return filename, extent
 
+	def setMinimized(self, minimize=True):
+		if minimize:
+			self.setWindowState( self.windowState() | Qt.WindowMinimized )
+		else:
+			self.setWindowState( self.windowState() & ~Qt.WindowMinimized )
+			self.raise_()
+
 	def closeEvent(self, event):
 		# rimuovi i file temporanei collegati alla scheda
 		from Utils import TemporaryFile
@@ -283,11 +290,11 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
 			self.onClosing()
+			self.emit( SIGNAL("closed()") )
 
 		# carica il layer delle foto
 		from ManagerWindow import ManagerWindow
 		ManagerWindow.instance.aggiornaLayerFoto()
-
 
 	def toHtml(self):
 		import os.path

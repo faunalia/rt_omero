@@ -2,31 +2,36 @@
 
 # Form implementation generated from reading ui file 'ui/dlgAbout.ui'
 #
-# Created: Thu Apr 28 23:27:54 2011
-#      by: PyQt4 UI code generator 4.6
+# Created: Sat May  7 01:26:30 2011
+#      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
 
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    _fromUtf8 = lambda s: s
+
 class Ui_DlgAbout(object):
     def setupUi(self, DlgAbout):
-        DlgAbout.setObjectName("DlgAbout")
+        DlgAbout.setObjectName(_fromUtf8("DlgAbout"))
         DlgAbout.resize(697, 505)
         self.gridLayout = QtGui.QGridLayout(DlgAbout)
-        self.gridLayout.setObjectName("gridLayout")
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.buttonBox = QtGui.QDialogButtonBox(DlgAbout)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close|QtGui.QDialogButtonBox.Help)
-        self.buttonBox.setObjectName("buttonBox")
+        self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 2)
         self.txt = QtGui.QTextBrowser(DlgAbout)
-        self.txt.setObjectName("txt")
+        self.txt.setObjectName(_fromUtf8("txt"))
         self.gridLayout.addWidget(self.txt, 0, 0, 1, 2)
 
         self.retranslateUi(DlgAbout)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), DlgAbout.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), DlgAbout.reject)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), DlgAbout.accept)
+        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), DlgAbout.reject)
         QtCore.QMetaObject.connectSlotsByName(DlgAbout)
 
     def retranslateUi(self, DlgAbout):
@@ -46,7 +51,7 @@ class Ui_DlgAbout(object):
 "<p style=\" margin-top:5px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Database<span style=\" font-weight:600;\"> $DB_TYPE$ </span>  v.<span style=\" font-weight:600;\"> $DB_VER$ - $DB_TARGET$ </span></p>\n"
 "<p style=\" margin-top:5px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Posizione: <span style=\" font-weight:600;\">$DB_PATH$ </span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:5px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:5px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Versione Quantum GIS $QGIS_VER$ (r$QGIS_REV$)</p>\n"
+"<p style=\" margin-top:5px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Versione Quantum GIS $QGIS_VER$</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
 "<hr />\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"

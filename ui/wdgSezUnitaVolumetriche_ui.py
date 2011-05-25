@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgSezUnitaVolumetriche.ui'
 #
-# Created: Mon Mar 28 13:36:23 2011
+# Created: Sun May  1 01:49:37 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -45,6 +45,7 @@ class Ui_Form(object):
         self.ZZ_MORFOLOGIA_COPERTURAID.setObjectName("ZZ_MORFOLOGIA_COPERTURAID")
         self.gridLayout_5.addWidget(self.ZZ_MORFOLOGIA_COPERTURAID, 3, 2, 1, 3)
         self.codUvCensita = QtGui.QLineEdit(Form)
+        self.codUvCensita.setEnabled(False)
         font = QtGui.QFont()
         font.setPointSize(10)
         self.codUvCensita.setFont(font)
@@ -97,6 +98,7 @@ class Ui_Form(object):
         spacerItem3 = QtGui.QSpacerItem(20, 10, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
         self.gridLayout_5.addItem(spacerItem3, 4, 0, 1, 1)
         self.codUvOriginale = QtGui.QLineEdit(Form)
+        self.codUvOriginale.setEnabled(False)
         font = QtGui.QFont()
         font.setPointSize(10)
         self.codUvOriginale.setFont(font)

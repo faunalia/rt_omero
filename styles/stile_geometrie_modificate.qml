@@ -3,20 +3,20 @@
   <transparencyLevelInt>255</transparencyLevelInt>
   <renderer-v2 type="RuleRenderer">
     <rules>
-      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '1'" symbol="0" scalemindenom="25000" label="1:25k - oltre : UV con scheda"/>
-      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '0'" symbol="1" scalemindenom="25000" label="1:25k - oltre : UV senza scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="2" scalemindenom="2000" label="1:2k - 1:25k : UV invariate con scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="3" scalemindenom="2000" label="1:2k - 1:25k : UV modif. con scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="4" scalemindenom="2000" label="1:2k - 1:25k : UV nuove con scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="5" scalemindenom="2000" label="1:2k - 1:25k : UV invariate senza scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="6" scalemindenom="2000" label="1:2k - 1:25k : UV modif. senza scheda"/>
-      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="7" scalemindenom="2000" label="1:2k - 1:25k : UV nuove senza scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="8" scalemindenom="1" label="1:1 - 1:2k : UV invariate con scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="9" scalemindenom="1" label="1:1 - 1:2k : UV modif. con scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="10" scalemindenom="1" label="1:1 - 1:2k - UV nuove con scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="11" scalemindenom="1" label="1:1 - 1:2k : UV invariate senza scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="12" scalemindenom="1" label="1:1 - 1:2k : UV modif. senza scheda"/>
-      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="13" scalemindenom="1" label="1:1 - 1:2k : UV nuove senza scheda"/>
+      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '1'" symbol="0" scalemindenom="25000" label="1:25k - oltre : con scheda"/>
+      <rule scalemaxdenom="10000000" description="" filter="ABBINATO_A_SCHEDA = '0'" symbol="1" scalemindenom="25000" label="1:25k - oltre : senza scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="2" scalemindenom="2000" label="1:2k - 1:25k : invariate con scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="3" scalemindenom="2000" label="1:2k - 1:25k : modif. con scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="4" scalemindenom="2000" label="1:2k - 1:25k : nuove con scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="5" scalemindenom="2000" label="1:2k - 1:25k : invariate senza scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="6" scalemindenom="2000" label="1:2k - 1:25k : modif. senza scheda"/>
+      <rule scalemaxdenom="25000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="7" scalemindenom="2000" label="1:2k - 1:25k : nuove senza scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="8" scalemindenom="1" label="1:1 - 1:2k : invariate con scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="9" scalemindenom="1" label="1:1 - 1:2k : modif. con scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '1' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="10" scalemindenom="1" label="1:1 - 1:2k - nuove con scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '1'" symbol="11" scalemindenom="1" label="1:1 - 1:2k : invariate senza scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '2'" symbol="12" scalemindenom="1" label="1:1 - 1:2k : modif. senza scheda"/>
+      <rule scalemaxdenom="2000" description="" filter="ABBINATO_A_SCHEDA = '0' AND ZZ_STATO_GEOMETRIAID = '9'" symbol="13" scalemindenom="1" label="1:1 - 1:2k : nuove senza scheda"/>
     </rules>
     <symbols>
       <symbol outputUnit="MM" alpha="1" type="fill" name="0">
@@ -273,7 +273,9 @@
       </symbol>
     </symbols>
   </renderer-v2>
-  <customproperties/>
+  <customproperties>
+    <property key="loadedByOmeroRTPlugin" value="VLID_GEOM_MODIF"/>
+  </customproperties>
   <displayfield>ID_UV_NEW</displayfield>
   <label>0</label>
   <labelattributes>

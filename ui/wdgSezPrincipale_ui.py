@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgSezPrincipale.ui'
 #
-# Created: Thu Apr 28 23:27:55 2011
+# Created: Sun May  1 01:49:37 2011
 #      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -45,6 +45,7 @@ class Ui_Form(object):
         self.printBtn.setObjectName("printBtn")
         self.gridLayout_2.addWidget(self.printBtn, 5, 0, 1, 1)
         self.schedaID = QtGui.QLineEdit(Form)
+        self.schedaID.setEnabled(False)
         self.schedaID.setReadOnly(True)
         self.schedaID.setObjectName("schedaID")
         self.gridLayout_2.addWidget(self.schedaID, 3, 1, 1, 1)

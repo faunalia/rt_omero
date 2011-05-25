@@ -40,8 +40,8 @@ class ManagerWindow(QDockWidget):
 	TABLE_GEOM_MODIF = "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE".lower()
 
 	# nomi dei layer in TOC
-	LAYER_GEOM_ORIG = "Geom. Originali"
-	LAYER_GEOM_MODIF = "Geom. Suddivise o Ex-Novo"
+	LAYER_GEOM_ORIG = "Geometrie Originali"
+	LAYER_GEOM_MODIF = "Geom. per le schede (invar., suddiv., ex-novo)"
 	LAYER_FOTO = "Foto Edifici"
 
 	# ID dei layer contenenti geometrie e wms
@@ -272,8 +272,8 @@ class ManagerWindow(QDockWidget):
 		if feat != None:
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
-			numUV = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] ).getFirstResult()
-			if int( numUV ) > 0:
+			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
+			if abbinato:
 				# NO, c'è già una scheda associata
 				QMessageBox.warning( self, "RT Omero", "La geometria selezionata appartiene ad un edificio gia' esistente" )
 				return self.nuovaPointEmitter.startCapture()
@@ -326,8 +326,8 @@ class ManagerWindow(QDockWidget):
 		if feat != None:
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
-			numUV = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] ).getFirstResult()
-			if int( numUV ) > 0:
+			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
+			if abbinato:
 				# OK, c'è già una scheda associata
 				codice = feat.attributeMap()[0].toString()
 				if self.isApriScheda:
@@ -588,6 +588,7 @@ class ManagerWindow(QDockWidget):
 
 		self.uvScheda = uvID
 		self.scheda = self.recuperaScheda( uvID )
+		self.connect( self.scheda, SIGNAL("closed()"), self.onSchedaChiusa)
 		if self.scheda._ID == None:
 			# imposta la geometria come abbinata a scheda
 			try:
@@ -607,6 +608,9 @@ class ManagerWindow(QDockWidget):
 		QApplication.restoreOverrideCursor()
 		return True
 
+	def onSchedaChiusa(self):
+		self.scheda = None
+
 	def recuperaScheda(self, uvID):
 		query = AutomagicallyUpdater.Query( "SELECT SCHEDA_EDIFICIOID FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [ uvID ] )
 		schedaID = query.getFirstResult()
@@ -617,16 +621,30 @@ class ManagerWindow(QDockWidget):
 
 	def chiudiSchedaAperta(self):
 		if self.scheda != None:
-			try:
-				self.scheda.close()
-			except RuntimeError:
-				pass
+			self.scheda.close()
 			self.scheda = None
 
 	def eliminaScheda(self, codice=None):
 		if codice == None:
 			self.isApriScheda = False
 			return self.identificaSchedaEsistente()
+
+		# se c'è una scheda aperta verifica se si stia per eliminare quella
+		if self.scheda != None:
+			schedaID = AutomagicallyUpdater.Query( "SELECT SCHEDA_EDIFICIOID FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [ codice ] ).getFirstResult()
+			if schedaID != None:
+				# esiste una scheda uv associata alla geometria
+				aperta = schedaID == self.scheda._ID
+			else:
+				# geometria non associata a una scheda uv
+				# potrebbe però essere una nuova uv selezionata nella scheda 
+				# aperta e per questo non ancora salvata
+				aperta = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [ codice ] ).getFirstResult() == '1'
+				
+			if aperta:
+				QMessageBox.warning( self, "Eliminazione scheda", u"La geometria selezionata appartiene alla scheda edificio aperta. Prima di proseguire è necessario chiudere la scheda.", QMessageBox.Ok )
+				self.scheda.setMinimized( False )
+				return
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
@@ -711,11 +729,6 @@ class ManagerWindow(QDockWidget):
 
 
 	def startPlugin(self):
-		# controlla la presenza della patch per il layer in sola lettura
-		if QGis.QGIS_SVN_VERSION < 14451:
-			QMessageBox.critical(self, "RT Omero", "E' richiesto l'uso di QGis almeno alla versione 1.6 e alla revisione r14451")
-			return False
-
 		if not self.setDBConnection():
 			return False
 
@@ -772,125 +785,141 @@ class ManagerWindow(QDockWidget):
 		return self.startPlugin()
 
 	def loadLayersInCanvas(self, reloadExtent=True):
+
+		def customizeSnapping(option):
+			oldSnap = {}
+			settings = QSettings()
+			oldSnap['mode'] = settings.value( "/Qgis/digitizing/default_snap_mode", QVariant( "to vertex" ) ).toString()
+			oldSnap['tollerance'] = settings.value( "/Qgis/digitizing/default_snapping_tolerance", QVariant( 0 ) ).toDouble()[0]
+			oldSnap['unit'] = settings.value( "/Qgis/digitizing/default_snapping_tolerance_unit", QVariant( 1 ) ).toInt()[0]
+			settings.setValue( "/Qgis/digitizing/default_snap_mode", QVariant( option['mode'] ) )
+			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance", QVariant( option['tollerance'] ) )
+			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance_unit", QVariant( option['unit'] ) )
+			return oldSnap
+
+
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
 		# disabilita il rendering
 		prevRenderFlag = self.canvas.renderFlag()
 		self.canvas.setRenderFlag( False )
 
-		# recupera ed imposta il CRS della canvas
-		query = AutomagicallyUpdater.Query( 'SELECT DISTINCT srid FROM geometry_columns' )
-		srid = query.getFirstResult()
+		# imposta lo snap a snap to vertex with tollerance 0.9 map units
+		customSnapOptions = { 'mode' : 'to vertex', 'tollerance' : 0.9, 'unit' : 0 }
+		oldSnapOptions = customizeSnapping( customSnapOptions )
+
 		try:
-			self.srid = int( srid )
-		except ValueError, e:
-			self.srid = ManagerWindow.DEFAULT_SRID
+			# recupera ed imposta il CRS della canvas
+			query = AutomagicallyUpdater.Query( 'SELECT DISTINCT srid FROM geometry_columns' )
+			srid = query.getFirstResult()
+			try:
+				self.srid = int( srid )
+			except ValueError, e:
+				self.srid = ManagerWindow.DEFAULT_SRID
 
-		srs = QgsCoordinateReferenceSystem( self.srid, QgsCoordinateReferenceSystem.EpsgCrsId )
-		renderer = self.canvas.mapRenderer()
-		renderer.setDestinationSrs(srs)
-		renderer.setMapUnits( srs.mapUnits() )
+			srs = QgsCoordinateReferenceSystem( self.srid, QgsCoordinateReferenceSystem.EpsgCrsId )
+			renderer = self.canvas.mapRenderer()
+			renderer.setDestinationSrs(srs)
+			renderer.setMapUnits( srs.mapUnits() )
 
 
-		# carica i layer WMS
-		loadedWMS = QStringList()
-		for order, rlid in ManagerWindow.RLID_WMS.iteritems():
-			if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
-				loadedWMS << "'%s'" % order
-		loadedWMS = loadedWMS.join( "," )
+			# carica i layer WMS
+			loadedWMS = QStringList()
+			for order, rlid in ManagerWindow.RLID_WMS.iteritems():
+				if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
+					loadedWMS << "'%s'" % order
+			loadedWMS = loadedWMS.join( "," )
 
-		query = AutomagicallyUpdater.Query( 'SELECT * FROM ZZ_WMS WHERE "ORDER" NOT IN (%s) ORDER BY "ORDER" ASC' % loadedWMS )
-		query = query.getQuery()
-		if not query.exec_():
-			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
-		else:
-			while query.next():
-				order = query.value(0).toInt()[0]
-				title = query.value(1).toString()
-				url = query.value(2).toString()
-				layers = query.value(3).toString()
-				crs = query.value(4).toString()
-				format = query.value(5).toString()
-				transparent = query.value(6).toString()
-				version = query.value(7).toString()
+			query = AutomagicallyUpdater.Query( 'SELECT * FROM ZZ_WMS WHERE "ORDER" NOT IN (%s) ORDER BY "ORDER" ASC' % loadedWMS )
+			query = query.getQuery()
+			if not query.exec_():
+				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
+			else:
+				while query.next():
+					order = query.value(0).toInt()[0]
+					title = query.value(1).toString()
+					url = query.value(2).toString()
+					layers = query.value(3).toString()
+					crs = query.value(4).toString()
+					format = query.value(5).toString()
+					transparent = query.value(6).toString()
+					version = query.value(7).toString()
 
-				layers = layers.split(",")
-				styles = [ 'pseudo' ] * len(layers)
-				format = "image/%s" % format.toLower()
+					layers = layers.split(",")
+					styles = [ 'pseudo' ] * len(layers)
+					format = "image/%s" % format.toLower()
 
-				rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
-				if not rl.isValid():
-					self.canvas.setRenderFlag( prevRenderFlag )
-					QApplication.restoreOverrideCursor()
+					rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
+					if not rl.isValid():
+						return False
+
+					ManagerWindow.RLID_WMS[order] = str(rl.getLayerID())
+					QgsMapLayerRegistry.instance().addMapLayer(rl)
+					self.iface.legendInterface().setLayerVisible( rl, False )
+					# set custom property
+					rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("RLID_WMS %s" % order) )
+
+			import os.path
+			conn = ConnectionManager.getConnection()
+
+			# carica il layer con le geometrie originali
+			if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG ) == None:
+				ManagerWindow.VLID_GEOM_ORIG = ''
+
+				uri = QgsDataSourceURI()
+				uri.setDatabase(conn.databaseName())
+				uri.setDataSource('', self.TABLE_GEOM_ORIG, 'geometria')
+				vl = QgsVectorLayer( uri.uri(), self.LAYER_GEOM_ORIG, "spatialite" )
+				if vl == None or not vl.isValid() or not vl.setReadOnly(True):
 					return False
 
-				ManagerWindow.RLID_WMS[order] = str(rl.getLayerID())
-				QgsMapLayerRegistry.instance().addMapLayer(rl)
-				self.iface.legendInterface().setLayerVisible( rl, False )
+				# imposta lo stile del layer
+				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_ORIG )
+				(errorMsg, result) = vl.loadNamedStyle( style_path )
+				self.iface.legendInterface().refreshLayerSymbology(vl)
+
+				ManagerWindow.VLID_GEOM_ORIG = vl.getLayerID()
+				QgsMapLayerRegistry.instance().addMapLayer(vl)
 				# set custom property
-				rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("RLID_WMS %s" % order) )
-
-		import os.path
-		conn = ConnectionManager.getConnection()
-
-		# carica il layer con le geometrie originali
-		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG ) == None:
-			ManagerWindow.VLID_GEOM_ORIG = ''
-
-			uri = QgsDataSourceURI()
-			uri.setDatabase(conn.databaseName())
-			uri.setDataSource('', self.TABLE_GEOM_ORIG, 'geometria')
-			vl = QgsVectorLayer( uri.uri(), self.LAYER_GEOM_ORIG, "spatialite" )
-			if vl == None or not vl.isValid() or not vl.setReadOnly(True):
-				self.canvas.setRenderFlag( prevRenderFlag )
-				QApplication.restoreOverrideCursor()
-				return False
-
-			# imposta lo stile del layer
-			style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_ORIG )
-			(errorMsg, result) = vl.loadNamedStyle( style_path )
-			self.iface.legendInterface().refreshLayerSymbology(vl)
-
-			ManagerWindow.VLID_GEOM_ORIG = vl.getLayerID()
-			QgsMapLayerRegistry.instance().addMapLayer(vl)
-			# set custom property
-			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_ORIG") )
+				vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_ORIG") )
 
 
-		# carica il layer con le geometrie modificate
-		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF ) == None:
-			ManagerWindow.VLID_GEOM_MODIF = ''
+			# carica il layer con le geometrie modificate
+			if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF ) == None:
+				ManagerWindow.VLID_GEOM_MODIF = ''
 
-			uri = QgsDataSourceURI()
-			uri.setDatabase(conn.databaseName())
-			uri.setDataSource('', self.TABLE_GEOM_MODIF, 'geometria')
-			vl = QgsVectorLayer( uri.uri(), self.LAYER_GEOM_MODIF, "spatialite" )
-			if vl == None or not vl.isValid() or not vl.setReadOnly(True):
-				self.canvas.setRenderFlag( prevRenderFlag )
-				QApplication.restoreOverrideCursor()
-				return False
+				uri = QgsDataSourceURI()
+				uri.setDatabase(conn.databaseName())
+				uri.setDataSource('', self.TABLE_GEOM_MODIF, 'geometria')
+				vl = QgsVectorLayer( uri.uri(), self.LAYER_GEOM_MODIF, "spatialite" )
+				if vl == None or not vl.isValid() or not vl.setReadOnly(True):
+					return False
 
-			# imposta lo stile del layer
-			style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_MODIF )
-			(errorMsg, result) = vl.loadNamedStyle( style_path )
-			self.iface.legendInterface().refreshLayerSymbology(vl)
+				# imposta lo stile del layer
+				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_MODIF )
+				(errorMsg, result) = vl.loadNamedStyle( style_path )
+				self.iface.legendInterface().refreshLayerSymbology(vl)
 
-			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
-			QgsMapLayerRegistry.instance().addMapLayer(vl)
-			# set custom property
-			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_MODIF") )
+				ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
+				QgsMapLayerRegistry.instance().addMapLayer(vl)
+				# set custom property
+				vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_MODIF") )
 
-		# carica il layer con le foto
-		self.loadLayerFoto()
+			# carica il layer con le foto
+			self.loadLayerFoto()
 
-		if reloadExtent:
-			# imposta l'ultimo extent usato
-			self.loadLastUsedExtent()
+			if reloadExtent:
+				# imposta l'ultimo extent usato
+				self.loadLastUsedExtent()
 
-		# ripristina il rendering
-		self.canvas.setRenderFlag( prevRenderFlag )
+		finally:
+			# ripristina le opzioni originali di snapping
+			customizeSnapping( oldSnapOptions )
+			# ripristina il rendering
+			self.canvas.setRenderFlag( prevRenderFlag )
 
-		QApplication.restoreOverrideCursor()
+			QApplication.restoreOverrideCursor()
+
 		return True
 
 	def loadLayerFoto(self):

@@ -65,7 +65,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Georef EPSG:3003</string>
+      <string>Coord. da mappa</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="0">
@@ -104,13 +104,13 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Georef EPSG:4326</string>
+      <string>Coord. da GeoTag Foto</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>X</string>
+         <string>Long.</string>
         </property>
        </widget>
       </item>
@@ -120,7 +120,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
-         <string>Y</string>
+         <string>Lat.</string>
         </property>
        </widget>
       </item>

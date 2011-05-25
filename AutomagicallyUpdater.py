@@ -291,7 +291,7 @@ class AutomagicallyUpdater:
 		elif isinstance(widget, MappingMany2Many):
 			value = widget.getValues()
 
-		elif isinstance(widget, QWidget) and not widget.isEnabled():
+		elif isinstance(widget, QWidget) and not widget.isEnabled() and (not hasattr(widget, 'isReadOnly') or not widget.isReadOnly()):
 			pass
 
 		elif isinstance(widget, PicViewer):

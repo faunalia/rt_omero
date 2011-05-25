@@ -86,8 +86,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 			QApplication.restoreOverrideCursor()
 
 		# mostra la scheda
-		scheda = ManagerWindow.instance.scheda
-		scheda.setWindowState( scheda.windowState() & ~Qt.WindowMinimized )
+		ManagerWindow.instance.scheda.setMinimized( False )
 		self.tabWidget.setCurrentIndex(index)
 
 		QApplication.restoreOverrideCursor()
@@ -95,8 +94,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 	def startCapture(self):
 		# minimizza la scheda
-		scheda = ManagerWindow.instance.scheda
-		scheda.setWindowState( scheda.windowState() | Qt.WindowMinimized )
+		ManagerWindow.instance.scheda.setMinimized( True )
 		return self.pointEmitter.startCapture()
 
 	def stopCapture(self):
@@ -108,8 +106,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 		if button != Qt.LeftButton:
 			# mostra la scheda
-			scheda = ManagerWindow.instance.scheda
-			scheda.setWindowState( scheda.windowState() & ~Qt.WindowMinimized )
+			ManagerWindow.instance.scheda.setMinimized( True )
 			return
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
@@ -120,8 +117,8 @@ class SezUnitaVolumetriche(MultiTabSection):
 		if feat != None:
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
-			query = AutomagicallyUpdater.Query( "SELECT count(*) FROM SCHEDA_UNITA_VOLUMETRICA WHERE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW = ?", [codice] )
-			if int( query.getFirstResult() ) > 0:
+			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
+			if abbinato:
 				# NO, c'è già una scheda associata
 				QMessageBox.warning( self, "RT Omero", u"La geometria selezionata appartiene ad un edificio già esistente" )
 				return self.startCapture()

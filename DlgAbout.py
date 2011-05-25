@@ -50,10 +50,7 @@ class DlgAbout(QDialog, Ui_DlgAbout):
 
 		plugin_ver = version()[8:]
 		text = text.replace( "$PLUGIN_VER$", plugin_ver )
-
 		text = text.replace( "$QGIS_VER$", QGis.QGIS_VERSION )
-		text = text.replace( "$QGIS_REV$", QGis.QGIS_SVN_VERSION )
-
 		text = text.replace( "$DB_PATH$" , AutomagicallyUpdater._getPathToDb() )
 
 		query = AutomagicallyUpdater.Query( "SELECT DATABASE, DB_VERSION_MAIOR || '.' || DB_VERSION_MINOR, TARGET FROM ZZ_DISCLAIMER" )
