@@ -622,7 +622,7 @@ class AutomagicallyUpdater:
 		return ID
 
 	@classmethod
-	def _updateValue(self, name2valueDict, table, pk, ID):
+	def _updateValue(self, name2valueDict, table, pk, ID, filterStr=None, filterParams=None):
 		query = ConnectionManager.getNewQuery( AutomagicallyUpdater.EDIT_CONN_TYPE )
 		if query == None:
 			return
@@ -643,10 +643,19 @@ class AutomagicallyUpdater:
 
 			assignments << "%s = %s" % (name, value)
 
-		whereStr = ''
+		whereClauses = QStringList()
 		if pk != None:
-			whereStr += " WHERE " + pk + " = ?"
+			whereClauses << pk + " = ?"
 			bindValues.append( ID )
+
+		if filterStr != None:
+			whereClauses << "%s" % filterStr
+			if filterParams != None:
+				bindValues.extend( filterParams )
+
+		whereStr = ''
+		if whereClauses.count() > 0:
+			whereStr = " WHERE " + whereClauses.join(" AND ")
 
 		# aggiorna la riga
 		query.prepare( "UPDATE " + table + " SET " + assignments.join(", ") + whereStr )
@@ -688,10 +697,10 @@ class AutomagicallyUpdater:
 		if filterStr != None:
 			whereClauses << "%s" % filterStr
 			if filterParams != None:
-				bindValues.extends( filterParams )
+				bindValues.extend( filterParams )
 
 		whereStr = ''
-		if whereClauses.count():
+		if whereClauses.count() > 0:
 			whereStr = " WHERE " + whereClauses.join(" AND ")
 		query.prepare( "DELETE FROM " + table + whereStr )
 		for v in bindValues:

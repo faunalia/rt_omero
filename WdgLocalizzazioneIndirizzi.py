@@ -98,7 +98,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			return
 
 		# carica le vie del comune selezionato
-		self.loadTables( self.VIA, AutomagicallyUpdater.Query( "SELECT ID_INDIRIZZO, VIA, upper(VIA) AS VIAORDERED FROM INDIRIZZO_VIA WHERE ZZ_COMUNIISTATCOM = ? ORDER BY VIAORDERED ASC", [comune] ) )
+		self.loadTables( self.VIA, AutomagicallyUpdater.Query( "SELECT ID_INDIRIZZO, VIA FROM INDIRIZZO_VIA WHERE ZZ_COMUNIISTATCOM = ? ORDER BY VIA ASC", [comune] ) )
 
 
 	def caricaCivici(self):
@@ -179,6 +179,11 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		}
 		self._deleteValue(self._parentRef._tableName, filters)
 
+		# non eliminare le vie non editabili
+		tipo = AutomagicallyUpdater.Query( "SELECT TIPO FROM %s WHERE %s = ?" % (self._tableName, self._pkColumn), [self._ID] ).getFirstResult()
+		if tipo != "EDITABILE":
+			return
+
 		# elimina solo se non sono presenti altri riferimenti a questo oggetto
 		count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
 		if count == None or int(count) > 0:
@@ -209,9 +214,16 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 						value = QString()
 
 					if self._ID != None:	# la via è stata modificata
-						count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
-						if count != None and int(count) > 1:	# salva un nuovo indirizzo
+						tipo = AutomagicallyUpdater.Query( "SELECT TIPO FROM %s WHERE %s = ?" % (self._tableName, self._pkColumn), [self._ID] ).getFirstResult()
+						if tipo != "EDITABILE":	# l'indirizzo modificato non è editabile, creane un nuovo
 							self._ID = None
+
+						else:
+							# se nessun altro punta a questo indirizzo, è possibile modificarlo
+							# altrimenti sarà necessario crearne uno nuovo
+							count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
+							if count != None and int(count) > 1:	# salva un nuovo indirizzo
+								self._ID = None
 
 					ID = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s = ? AND %s = ?" % (self._pkColumn, self._tableName, self.ZZ_COMUNIISTATCOM.objectName(), self.VIA.objectName()), [self.getValue(self.ZZ_COMUNIISTATCOM), value]).getFirstResult()
 					if ID != None:

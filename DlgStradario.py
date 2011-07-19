@@ -37,13 +37,17 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 		MappingOne2One.__init__(self)
 		self.setupUi(self)
 
+		self.vieTable.setModel( EditVieTableModel() )
+
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
 			self.comuneCombo: AutomagicallyUpdater.Query( "SELECT com.ISTATCOM, com.NOME || ' (' || prov.NOME || ')' FROM ZZ_PROVINCE AS prov JOIN ZZ_COMUNI AS com ON prov.ISTATPROV = com.ZZ_PROVINCEISTATPROV ORDER BY com.NOME, prov.NOME ASC" ),
-			self.vieTable: AutomagicallyUpdater.Query( "SELECT ind.ID_INDIRIZZO, prov.NOME AS PROVINCIA, com.NOME AS COMUNE, ind.VIA FROM INDIRIZZO_VIA AS ind JOIN ZZ_COMUNI AS com ON ind.ZZ_COMUNIISTATCOM = com.ISTATCOM JOIN ZZ_PROVINCE AS prov ON prov.ISTATPROV = com.ZZ_PROVINCEISTATPROV ORDER BY prov.NOME, com.NOME, ind.VIA ASC", None, 0 )
+			self.vieTable: AutomagicallyUpdater.Query( "SELECT ind.ID_INDIRIZZO, ind.TIPO = 'EDITABILE' AS EDITABLE, prov.NOME AS PROVINCIA, com.NOME AS COMUNE, ind.VIA FROM INDIRIZZO_VIA AS ind JOIN ZZ_COMUNI AS com ON ind.ZZ_COMUNIISTATCOM = com.ISTATCOM JOIN ZZ_PROVINCE AS prov ON prov.ISTATPROV = com.ZZ_PROVINCEISTATPROV ORDER BY prov.NOME, com.NOME, ind.VIA ASC", None, 0 )
 		}
 		self.setupTablesUpdater(tablesDict)
 		self.loadTables()
+
+		self.vieTable.setColumnHidden(1, True)	# hide EDITABLE column
 
 		# connetti i segnali agli slot
 		self.connect(self.viaEdit, SIGNAL("textChanged (const QString &)"), self.aggiornaPulsanti)
@@ -55,19 +59,26 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 
 	def aggiornaPulsanti(self):
 		ID = self.getValue(self.vieTable)
-		self.delViaBtn.setEnabled( ID != None )
+
+		self.delViaBtn.setEnabled( ID != None and self.selectedRowIsEditabile() )
 
 		enabler = self.getValue(self.comuneCombo) != None and not self.viaEdit.text().isEmpty()
 		self.addViaBtn.setEnabled( enabler )
 
+	def selectedRowIsEditabile(self):
+		# non permettere di cancellare una via non editabile
+		selIndexes = self.vieTable.selectedIndexes()
+		if len(selIndexes) > 0:
+			return self.vieTable.model().isEditable( selIndexes[0].row() )
+		return False
+
 
 	def caricaVia(self):
 		IDindirizzo = self.getValue(self.vieTable)
-		self.nuovaViaGroup.setEnabled( IDindirizzo != None )
 		via = None
 		IDcomune = None
 
-		if IDindirizzo != None:
+		if IDindirizzo != None and self.selectedRowIsEditabile():
 			# recupera la via selezionata
 			query = AutomagicallyUpdater.Query( "SELECT ZZ_COMUNIISTATCOM, VIA FROM INDIRIZZO_VIA WHERE ID_INDIRIZZO = ?", [ IDindirizzo ] ).getQuery()
 			if query.exec_() and query.next():
@@ -88,6 +99,9 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 	def eliminaVia(self):
 		IDindirizzo = self.getValue(self.vieTable)
 		if IDindirizzo == None:	# nessuna via selezionata
+			return
+
+		if not self.selectedRowIsEditabile():
 			return
 
 		# non eliminare le vie vuote
@@ -142,7 +156,11 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 
 			else:
 				# aggiorna i valori nella tabella di normalizzazione
-				self._updateValue( { 'INDIRIZZO_VIAID_INDIRIZZO' : nuovoID }, 'LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA', 'INDIRIZZO_VIAID_INDIRIZZO', ID )
+				# se duplicati non aggiornarli (verranno rimossi nella query successiva)
+				self._updateValue( { 'INDIRIZZO_VIAID_INDIRIZZO' : nuovoID }, 'LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA', 'INDIRIZZO_VIAID_INDIRIZZO', ID, "LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ NOT IN (SELECT LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ FROM LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA WHERE INDIRIZZO_VIAID_INDIRIZZO = ?)", [nuovoID] )
+				# rimuovi quelli non aggiornati nella query precedente poiché sarebbero stati dei duplicati
+				self._deleteValue( 'LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA', { 'INDIRIZZO_VIAID_INDIRIZZO' : ID } )
+
 				# aggiorna i civici
 				self._updateValue( { 'INDIRIZZO_VIAID_INDIRIZZO' : nuovoID }, 'NUMERI_CIVICI', 'INDIRIZZO_VIAID_INDIRIZZO', ID )
 				# elimina il vecchio indirizzo
@@ -157,4 +175,25 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 			QApplication.restoreOverrideCursor()
 
 		return True
+
+
+# disable non-editable rows  
+class EditVieTableModel(QSqlQueryModel):
+	def __init__(self, parent=None):
+		QSqlQueryModel.__init__(self, parent)
+
+	def flags(self, index):
+		flags = QSqlQueryModel.flags(self, index)
+		if index.isValid() and not self.isEditable( index.row() ):
+			flags &= ~Qt.ItemIsEnabled & ~Qt.ItemIsSelectable
+		return flags
+
+	#def data(self, index, role = Qt.DisplayRole):
+	#	if not index.isValid() or role != Qt.BackgroundRole or self.isEditable( index.row() ):
+	#		return QSqlQueryModel.data(self, index, role)
+	#	return QVariant( QBrush(QColor(210, 210, 210)) )
+
+	def isEditable(self, row):
+		sqlRecord = self.record(row)
+		return sqlRecord.value(1).toBool()
 
