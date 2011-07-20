@@ -332,15 +332,18 @@ class AutomagicallyUpdater:
 		elif isinstance(widget, QDateEdit):
 			value = widget.date().toString( widget.displayFormat() )
 
-		elif isinstance(widget, QSpinBox):
+		elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
 			value = QString.number( widget.value() )
 
-		elif isinstance(widget, QTableWidget) or isinstance(widget, QListWidget):
+		elif isinstance(widget, QDoubleSpinBox):
+			value = QString.number( widget.value() )
+
+		elif isinstance(widget, (QTableWidget, QListWidget)):
 			selItems = widget.selectedItems()
 			if len(selItems) > 0:
 				value = selItems[0].data(Qt.UserRole).toString()
 
-		elif isinstance(widget, QTableView) or isinstance(widget, QListView):
+		elif isinstance(widget, (QTableView, QListView)):
 			selIndexes = widget.selectedIndexes()
 			if len(selIndexes) > 0:
 				# recupera l'ID dal modello
@@ -380,7 +383,7 @@ class AutomagicallyUpdater:
 			if value == None:
 				return
 
-			if isinstance(value, str) or isinstance(value, QString):
+			if isinstance(value, (str, QString)):
 				image = QPixmap( value )
 
 			elif isinstance(value, QByteArray):
@@ -409,7 +412,7 @@ class AutomagicallyUpdater:
 				widget.setCurrentIndex(-1)
 
 		elif isinstance(widget, QAbstractButton) or (isinstance(widget, QGroupBox) and widget.isCheckable()):
-			if isinstance(value, str) or isinstance(value, QString):
+			if isinstance(value, (str, QString)):
 				enabler = value != '0'
 			else:
 				enabler = True if value else False
@@ -424,7 +427,7 @@ class AutomagicallyUpdater:
 		elif isinstance(widget, QDateEdit):
 			if value == None:
 				value = QDate.currentDate()
-			if isinstance(value, str) or isinstance(value, QString):
+			if isinstance(value, (str, QString)):
 				value = QDate.fromString( value, widget.displayFormat() )
 			widget.setDate(value)
 
@@ -433,6 +436,15 @@ class AutomagicallyUpdater:
 				value = 0
 			try:
 				value = int(value)
+			except ValueError:
+				value = 0
+			widget.setValue(value)
+
+		elif isinstance(widget, QDoubleSpinBox):
+			if value == None:
+				value = 0
+			try:
+				value = float(value)
 			except ValueError:
 				value = 0
 			widget.setValue(value)
@@ -991,6 +1003,9 @@ class MappingOne2One(AutomagicallyUpdater):
 
 			elif isinstance(widget, QSpinBox):
 				QObject.connect(widget, SIGNAL("valueChanged(int)"), self._refreshWidgetState)
+
+			elif isinstance(widget, QDoubleSpinBox):
+				QObject.connect(widget, SIGNAL("valueChanged(double)"), self._refreshWidgetState)
 
 			elif isinstance(widget, QTableView):
 				return

@@ -231,10 +231,17 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 				values[widget.objectName()] = value
 
-		if ID == None:
+		if ID == None:	# salva un nuovo edificio
 			ID = self._saveValue(values, self._tableName, self._pkColumn, self._ID)
 			if ID == None:
 				return False
+
+		elif self._ID != None: 
+			# se nessun altro edificio punta a questo indirizzo vuoto ed editabile, eliminalo
+			count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
+			if count != None and int(count) <= 1:	# elimina l'indirizzo se editabile e vuoto
+				self._deleteValue(self._tableName, {self._pkColumn: self._ID, "VIA": "", "TIPO": "EDITABILE"})
+
 		self._ID = ID
 
 		IDLocalizzazione = self._parentRef._ID

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>589</width>
+    <width>649</width>
     <height>313</height>
    </rect>
   </property>
@@ -37,22 +37,9 @@
       <string>N. piani fuori terra</string>
      </property>
      <property name="indent">
-      <number>40</number>
+      <number>20</number>
      </property>
     </widget>
-   </item>
-   <item row="2" column="4">
-    <spacer name="horizontalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item row="3" column="0" colspan="2">
     <widget class="QLabel" name="label">
@@ -61,7 +48,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="2" colspan="3">
+   <item row="3" column="2" colspan="4">
     <widget class="QComboBox" name="ZZ_MORFOLOGIA_COPERTURAID">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -74,7 +61,7 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2" colspan="3">
+   <item row="0" column="2" colspan="4">
     <widget class="QLineEdit" name="codUvCensita">
      <property name="enabled">
       <bool>false</bool>
@@ -92,14 +79,14 @@
    <item row="2" column="3">
     <widget class="QSpinBox" name="FUORITERR_NPIANI"/>
    </item>
-   <item row="7" column="0" colspan="5">
+   <item row="7" column="0" colspan="6">
     <widget class="QLineEdit" name="SCHEDA_EDIFICIOID">
      <property name="readOnly">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="5" column="0" colspan="5">
+   <item row="5" column="0" colspan="6">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
       <number>0</number>
@@ -191,7 +178,7 @@
      </property>
     </spacer>
    </item>
-   <item row="1" column="2" colspan="3">
+   <item row="1" column="2" colspan="4">
     <widget class="QLineEdit" name="codUvOriginale">
      <property name="enabled">
       <bool>false</bool>
@@ -217,6 +204,29 @@
     <widget class="QLabel" name="label_3">
      <property name="text">
       <string>Codice geom. UV originale</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="4">
+    <widget class="QLabel" name="label_7">
+     <property name="text">
+      <string>Altezza volume (m)</string>
+     </property>
+     <property name="indent">
+      <number>20</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="5">
+    <widget class="QDoubleSpinBox" name="ALTEZZA_VOLUME">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximum">
+      <double>500.000000000000000</double>
      </property>
     </widget>
    </item>
