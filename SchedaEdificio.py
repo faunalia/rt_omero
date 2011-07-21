@@ -301,6 +301,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		currentPath = os.path.dirname(__file__)
 
 		css = os.path.join( currentPath, "docs", "default.css" )
+		css = QUrl.fromLocalFile(css).toString()
 
 		dbPath = AutomagicallyUpdater._getPathToDb()
 		logo = QFileInfo( dbPath ).dir().filePath( "omero_stampa_logo.jpg" )
@@ -308,6 +309,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			logoOrig = os.path.join( currentPath, "docs", "omero_stampa_logo.jpg" )
 			if not QFile.copy( logoOrig, logo ):
 				logo = logoOrig
+		logo = QUrl.fromLocalFile(logo).toString()
 
 		comune = AutomagicallyUpdater.Query( "SELECT NOME FROM ZZ_COMUNI WHERE ISTATCOM = ?", [AutomagicallyUpdater._getIDComune()] ).getFirstResult()
 

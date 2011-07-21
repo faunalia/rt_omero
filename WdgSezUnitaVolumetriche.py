@@ -161,11 +161,12 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 <table class="blue border">
 	<tr class="line">
 		<td class="middle subtitle" rowspan="2" width="5%%">UV%d</td>
-		<td>ID_UV</td><td colspan="3" class="value">%s</td>
+		<td>ID_UV</td><td colspan="5" class="value">%s</td>
 	</tr>
 	<tr class="line">
 		<td>N. piani interrati</td><td class="value">%s</td>
 		<td class="line">N. piani f. t.</td><td class="value">%s</td>
+		<td class="line">Altezza volume (m)</td><td class="value">%s</td>
 	</tr>
 </table>
 <table class="yellow border">
@@ -176,5 +177,5 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 %s
 </table>
 %s
-"""	% ( index+1, self._ID, self.getValue(self.INTERR_NPIANI), self.getValue(self.FUORITERR_NPIANI), self.ZZ_MORFOLOGIA_COPERTURAID.currentText(), self.MANTO_COPERTURA_UNITA_VOLUMETRICAID.toHtml(), strutture_oriz_copertura )
+"""	% ( index+1, self._ID, self.getValue(self.INTERR_NPIANI), self.getValue(self.FUORITERR_NPIANI), self.getValue(self.ALTEZZA_VOLUME), self.ZZ_MORFOLOGIA_COPERTURAID.currentText(), self.MANTO_COPERTURA_UNITA_VOLUMETRICAID.toHtml(), strutture_oriz_copertura )
 )

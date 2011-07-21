@@ -86,6 +86,7 @@ class SezFoto(QWidget, MappingPart, Ui_Form):
 
 		if wdg != None:
 			filename, extent = wdg.creaStralcioCartografico( QSize(renderwidth, renderwidth), renderscale, "png", factor )
+			filename = QUrl.fromLocalFile(filename).toString()
 			if extent != None:
 				xmin = extent.xMinimum()
 				ymin = extent.yMinimum()

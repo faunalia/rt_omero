@@ -236,7 +236,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			if ID == None:
 				return False
 
-		elif self._ID != None: 
+		elif self._ID != ID: 
 			# se nessun altro edificio punta a questo indirizzo vuoto ed editabile, eliminalo
 			count = AutomagicallyUpdater.Query( "SELECT count(*) FROM %s WHERE %s = ?" % (self._parentRef._tableName, self._parentRef._pkColumn), [self._ID] ).getFirstResult()
 			if count != None and int(count) <= 1:	# elimina l'indirizzo se editabile e vuoto

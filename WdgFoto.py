@@ -164,6 +164,8 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 	def toHtml(self, index):
 		ext = QFileInfo( self.getValue(self.FILENAME) ).suffix()
 		filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+		filename = QUrl.fromLocalFile( filename ).toString()
+
 		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''
 		annotazione = self.getValue(self.ANNOTAZIONE)
 
