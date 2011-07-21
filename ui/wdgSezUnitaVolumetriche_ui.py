@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/wdgSezUnitaVolumetriche.ui'
 #
-# Created: Wed Jul 20 16:30:01 2011
+# Created: Thu Jul 21 15:10:16 2011
 #      by: PyQt4 UI code generator 4.8.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName(_fromUtf8("Form"))
-        Form.resize(649, 313)
+        Form.resize(663, 313)
         self.gridLayout_5 = QtGui.QGridLayout(Form)
         self.gridLayout_5.setObjectName(_fromUtf8("gridLayout_5"))
         self.label_6 = QtGui.QLabel(Form)
@@ -143,7 +143,7 @@ class Ui_Form(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("Form", "Strutture orizzontali - Copertura", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Form", "Codice geom. UV censita", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("Form", "Codice geom. UV originale", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_7.setText(QtGui.QApplication.translate("Form", "Altezza volume (m)", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_7.setText(QtGui.QApplication.translate("Form", "Altezza in gronda (m)", None, QtGui.QApplication.UnicodeUTF8))
 
 from ..WdgStruttureOrizzontaliCoperturaEdificiOrdinari import WdgStruttureOrizzontaliCoperturaEdificiOrdinari
 from ..WdgMantoCoperturaUnitaVolumetrica import WdgMantoCoperturaUnitaVolumetrica

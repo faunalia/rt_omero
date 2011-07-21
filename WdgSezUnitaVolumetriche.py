@@ -166,7 +166,7 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 	<tr class="line">
 		<td>N. piani interrati</td><td class="value">%s</td>
 		<td class="line">N. piani f. t.</td><td class="value">%s</td>
-		<td class="line">Altezza volume (m)</td><td class="value">%s</td>
+		<td class="line">Altezza in gronda (m)</td><td class="value">%s</td>
 	</tr>
 </table>
 <table class="yellow border">
