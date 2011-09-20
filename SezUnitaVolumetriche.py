@@ -85,8 +85,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 			ConnectionManager.endTransaction()
 			QApplication.restoreOverrideCursor()
 
-		# mostra la scheda
-		ManagerWindow.instance.scheda.setMinimized( False )
+		self.stopCapture()
 		self.tabWidget.setCurrentIndex(index)
 
 		QApplication.restoreOverrideCursor()
@@ -99,15 +98,18 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 	def stopCapture(self):
 		self.pointEmitter.stopCapture()
+		# mostra la scheda
+		ManagerWindow.instance.scheda.setMinimized( False )
 
 
 	def clickedOnCanvas(self, point=None, button=None):
-		self.stopCapture()
+		action = u"Associa unità volumetrica"
+
+		if not ManagerWindow.checkActionScale( action, ManagerWindow.SCALE_IDENTIFY ) or point == None:
+			return self.startCapture()
 
 		if button != Qt.LeftButton:
-			# mostra la scheda
-			ManagerWindow.instance.scheda.setMinimized( True )
-			return
+			return self.stopCapture()
 
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
 		if layerModif == None:
@@ -115,6 +117,9 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 		feat = self.pointEmitter.findAtPoint(layerModif, point)
 		if feat != None:
+			if not ManagerWindow.checkActionSpatialFromFeature( action, feat, True ):
+				return self.startCapture()
+
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
@@ -131,10 +136,17 @@ class SezUnitaVolumetriche(MultiTabSection):
 		if layerOrig == None:
 			return
 
-		# copia la geometria dal layer delle geometrie originali, quindi 
-		# associa la UV alla nuova geometria creata
-		feat = self.pointEmitter.findAtPoint(layerOrig, point)
-		self.assegnaGeomNuova(feat)
+		feat = self.pointEmitter.findAtPoint(layerOrig, point)		
+		if feat != None:
+			if not ManagerWindow.checkActionSpatialFromFeature( action, feat, False ):
+				return
+
+			# copia la geometria dal layer delle geometrie originali, quindi 
+			# associa la UV alla nuova geometria creata
+			return self.assegnaGeomNuova(feat)
+
+		return self.startCapture()
+
 
 	def currentTabChanged(self, index):
 		self.tabWidget.widget(index).selectUV()

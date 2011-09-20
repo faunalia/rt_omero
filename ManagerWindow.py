@@ -212,6 +212,10 @@ class ManagerWindow(QDockWidget):
 
 	def toolChanged(self, tool):
 		self.status.clear()
+
+		self.btnCreaNuovaGeometria.setChecked( self.polygonDrawer.isActive() )
+		self.btnSpezzaGeometriaEsistente.setChecked( self.lineDrawer.isActive() )
+
 		if tool == None:
 			return
 
@@ -224,8 +228,6 @@ class ManagerWindow(QDockWidget):
 			self.status.show( u"Click per identificare la scheda da eliminare" )
 
 		self.btnSelNuovaScheda.setChecked( self.nuovaPointEmitter.isActive() )
-		self.btnCreaNuovaGeometria.setChecked( self.polygonDrawer.isActive() )
-		self.btnSpezzaGeometriaEsistente.setChecked( self.lineDrawer.isActive() )
 		self.btnSelFoto.setChecked( self.fotoPointEmitter.isActive() )
 
 		# imposta il messaggio di stato dei tool
@@ -234,11 +236,82 @@ class ManagerWindow(QDockWidget):
 				self.status.show( statusMessage )
 
 
-	def permettiAzione(self, btn, maxScale):
-		if int(self.canvas.scale()) > maxScale:
-			QMessageBox.warning( self, "Azione non permessa", u"L'azione \"%s\" è ammessa solo dalla scala 1:%d" % (btn.toolTip(), maxScale) )
+	@classmethod
+	def checkActionScale(self, actionName, maxScale):
+		if int(self.instance.canvas.scale()) > maxScale:
+			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" è ammessa solo dalla scala 1:%d" % (actionName, maxScale) )
 			return False
 		return True
+
+
+	@classmethod
+	def _checkActionSpatial(self, actionName, geomSubQuery):
+		comuneID = AutomagicallyUpdater._getIDComune()
+
+		# do not check the intersection 
+		# if ZZ_DISCLAIMER.BUFFER is NULL OR ZZ_COMUNE 
+		comSubQuery = """
+SELECT 
+	com.NOME AS nome, 
+	CASE 
+		WHEN dis.BUFFER < 0 THEN 1	-- permitted
+		WHEN com.geometria IS NULL THEN 0	-- forbidden
+		ELSE -1	-- need an intersection test
+	END AS ok,
+	CASE 
+		WHEN com.geometria IS NULL OR dis.BUFFER <= 0 THEN com.geometria
+		ELSE ST_Buffer(com.geometria, dis.BUFFER)
+	END AS confine
+FROM 
+	ZZ_COMUNI AS com, 
+	ZZ_DISCLAIMER AS dis 
+WHERE 
+	com.ISTATCOM = ?
+"""
+
+		params = [ comuneID ]
+		params.extend( geomSubQuery.params )
+
+		query = ConnectionManager.getNewQuery( AutomagicallyUpdater.EDIT_CONN_TYPE )
+		if query == None:
+			return False
+
+		query.prepare( "SELECT count(*), com.nome FROM (%s) AS com, (%s) AS geo WHERE CASE WHEN com.ok >= 0 THEN com.ok ELSE ST_Intersects(geo.edificio, com.confine) END = 1 LIMIT 1""" % (comSubQuery, geomSubQuery.query) )
+		for p in params:
+			query.addBindValue( p if p != None else QVariant() )
+
+		if not query.exec_():
+			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
+			return False
+
+		if not query.next():
+			return False
+
+		valid = query.value(0).toInt()[0] > 0
+		comuneName = query.value(1).toString()
+
+		if not valid:
+			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è ammessa perché fuori dal confine del comune \"%s\"" % (actionName, comune) )
+			return False
+		return True
+
+	@classmethod
+	def checkActionSpatialFromFeature(self, actionName, feat, onLayerModif):
+		codice = feat.attributeMap()[0].toString()
+		return self.checkActionSpatialFromId(actionName, codice, onLayerModif)
+
+	@classmethod
+	def checkActionSpatialFromId(self, actionName, codice, onLayerModif):
+		geomTable = "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE" if onLayerModif else "GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA"
+		idCol = "ID_UV_NEW" if onLayerModif else "CODICE"
+		query = AutomagicallyUpdater.Query( "SELECT geometria AS edificio FROM %s WHERE %s = ?" % (geomTable, idCol), [codice] )
+		return self._checkActionSpatial(actionName, query)
+
+	@classmethod
+	def checkActionSpatialFromWkb(self, actionName, wkb, srid):
+		comune = AutomagicallyUpdater._getIDComune()
+		query = AutomagicallyUpdater.Query( "SELECT ST_GeomFromWkb(?, ?) AS edificio", [wkb, srid] )
+		return self._checkActionSpatial(actionName, query)
 
 
 	def riepilogoSchede(self):
@@ -255,8 +328,9 @@ class ManagerWindow(QDockWidget):
 
 
 	def identificaNuovaScheda(self, point=None, button=None):
+		action = self.btnSelNuovaScheda.toolTip()
 
-		if not self.permettiAzione( self.btnSelNuovaScheda, self.SCALE_IDENTIFY ) or point == None:
+		if not self.checkActionScale( action, self.SCALE_IDENTIFY ) or point == None:
 			return self.nuovaPointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
@@ -270,6 +344,9 @@ class ManagerWindow(QDockWidget):
 
 		feat = self.nuovaPointEmitter.findAtPoint(layerModif, point)
 		if feat != None:
+			if not self.checkActionSpatialFromFeature( action, feat, True ):
+				return self.nuovaPointEmitter.startCapture()
+
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
@@ -293,6 +370,9 @@ class ManagerWindow(QDockWidget):
 
 		feat = self.nuovaPointEmitter.findAtPoint(layerOrig, point)		
 		if feat != None:
+			if not self.checkActionSpatialFromFeature( action, feat, False ):
+				return
+
 			uvID = self.copiaGeometria(feat)
 			if uvID == None:
 				return
@@ -306,11 +386,12 @@ class ManagerWindow(QDockWidget):
 
 
 	def identificaSchedaEsistente(self, point=None, button=None):
-
 		def getButton():
 			return self.btnSelSchedaEsistente if self.isApriScheda else self.btnEliminaScheda
 
-		if not self.permettiAzione( getButton(), self.SCALE_IDENTIFY ) or point == None:
+		action = getButton().toolTip()
+
+		if not self.checkActionScale( action, self.SCALE_IDENTIFY ) or point == None:
 			return self.esistentePointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
@@ -324,6 +405,9 @@ class ManagerWindow(QDockWidget):
 
 		feat = self.esistentePointEmitter.findAtPoint(layerModif, point)
 		if feat != None:
+			if not self.checkActionSpatialFromFeature( action, feat, True ):
+				return self.esistentePointEmitter.startCapture()
+
 			# controlla se tale geometria ha qualche scheda associata
 			codice = feat.attributeMap()[0].toString()
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
@@ -345,8 +429,9 @@ class ManagerWindow(QDockWidget):
 
 
 	def identificaFoto(self, point=None, button=None):
+		action = self.btnSelFoto.toolTip()
 
-		if not self.permettiAzione( self.btnSelFoto, self.SCALE_IDENTIFY ) or point == None:
+		if not self.checkActionScale( action, self.SCALE_IDENTIFY ) or point == None:
 			return self.fotoPointEmitter.startCapture()
 
 		if button != Qt.LeftButton:
@@ -384,12 +469,17 @@ class ManagerWindow(QDockWidget):
 
 			return newID
 
-		if not self.permettiAzione( self.btnSpezzaGeometriaEsistente, self.SCALE_MODIFY ):
+		action = self.btnSpezzaGeometriaEsistente.toolTip()
+
+		if not self.checkActionScale( action, self.SCALE_MODIFY ):
+			self.lineDrawer.startCapture()
 			self.lineDrawer.stopCapture()
 			self.btnSpezzaGeometriaEsistente.setChecked(False)
 			return
 		if line == None:
 			return self.lineDrawer.startCapture()
+
+		wkb = QByteArray(line.asWkb())
 
 		#TODO: fai qui i test sulla linea
 
@@ -403,7 +493,7 @@ class ManagerWindow(QDockWidget):
 				return False
 
 			query.prepare( "SELECT CODICE, ST_AsText(geometria) FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND CODICE NOT IN (SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE)" )
-			query.addBindValue( QByteArray(line.asWkb()) )
+			query.addBindValue( wkb )
 			query.addBindValue( self.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
@@ -417,6 +507,10 @@ class ManagerWindow(QDockWidget):
 				featureList.append( (ID, codice, wkt) )
 
 			for ID, codice, wkt in featureList:
+				# escludi le geometrie esterne al comune
+				if not self.checkActionSpatialFromId( action, codice, False ):
+					continue
+
 				geom = QgsGeometry.fromWkt( wkt )
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
@@ -429,7 +523,7 @@ class ManagerWindow(QDockWidget):
 
 			# recupera le geometrie modificate che intersecano la linea e non hanno scheda abbinata
 			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ST_AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND ABBINATO_A_SCHEDA = '0'" )
-			query.addBindValue( QByteArray(line.asWkb()) )
+			query.addBindValue( wkb )
 			query.addBindValue( self.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
@@ -444,6 +538,10 @@ class ManagerWindow(QDockWidget):
 				featureList.append( (ID, codice, stato, wkt) )
 
 			for ID, codice, stato, wkt in featureList:
+				# escludi le geometrie esterne al comune
+				if not self.checkActionSpatialFromId( action, ID, True ):
+					continue
+
 				geom = QgsGeometry.fromWkt( wkt )
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
@@ -476,22 +574,28 @@ class ManagerWindow(QDockWidget):
 		return True
 
 	def creaNuovaGeometria(self, polygon=None):
+		action = self.btnCreaNuovaGeometria.toolTip()
 
-		if not self.permettiAzione( self.btnCreaNuovaGeometria, self.SCALE_MODIFY ):
+		if not self.checkActionScale( action, self.SCALE_MODIFY ):
+			self.polygonDrawer.startCapture()
 			self.polygonDrawer.stopCapture()
 			self.btnCreaNuovaGeometria.setChecked(False)
 			return
 		if polygon == None:
 			return self.polygonDrawer.startCapture()
 
+		wkb = QByteArray(polygon.asWkb())
+
 		# TODO: fai qui i test sul poligono
+		if not self.checkActionSpatialFromWkb( action, wkb, self.srid ):
+			self.btnCreaNuovaGeometria.setChecked(False)
+			return
 
 		try:
 			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 			ConnectionManager.startTransaction()
 
 			# inserisce la nuova geometria nel layer
-			wkb = QByteArray(polygon.asWkb())
 			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb, self.srid ):
 				return False
 
@@ -590,7 +694,7 @@ class ManagerWindow(QDockWidget):
 		self.scheda = self.recuperaScheda( uvID )
 		self.connect( self.scheda, SIGNAL("closed()"), self.onSchedaChiusa)
 		if self.scheda._ID == None:
-			# imposta la geometria come abbinata a scheda
+			# salva la scheda e imposta la geometria come abbinata a scheda
 			try:
 				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 				ConnectionManager.startTransaction()
@@ -659,12 +763,11 @@ class ManagerWindow(QDockWidget):
 		if QMessageBox.Ok != QMessageBox.warning( self, "Eliminazione scheda", u"La scheda ha %s UV associate. Eliminare? L'operazione non è reversibile." % numUV, QMessageBox.Ok|QMessageBox.Cancel ):
 			return
 
+		# elimina la scheda
+		scheda = self.recuperaScheda( codice )
 		try:
 			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 			ConnectionManager.startTransaction()
-
-			# elimina la scheda
-			scheda = self.recuperaScheda( codice )
 			scheda.delete()
 
 		except ConnectionManager.AbortedException, e:
