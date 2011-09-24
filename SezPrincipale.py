@@ -40,7 +40,8 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		childrenList = [
 			self.DATA_COMPILAZIONE_SCHEDA, 
 			self.RILEVATOREID, 
-			(self.NOME_EDIFICIO, AutomagicallyUpdater.OPTIONAL)
+			(self.NOME_EDIFICIO, AutomagicallyUpdater.OPTIONAL), 
+			(self.NOTA_STORICA, AutomagicallyUpdater.OPTIONAL)
 		]
 		self.setupValuesUpdater(childrenList)
 
@@ -59,8 +60,11 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 
 	def setupLoader(self, ID=None):
 		MappingPart.setupLoader(self, ID)
+		self.setValue(self.schedaID, ID)		
+
+	def refreshId(self, ID=None):
+		MappingPart.refreshId(self, ID)
 		self.setValue(self.schedaID, ID)
-		
 
 	def toHtml(self):
 		comIstat = QString(self._ID).remove( QRegExp('\-.*$') )
@@ -70,6 +74,21 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		ril = self.RILEVATOREID.model().record(0)
 		cognome = ril.value(1).toString()
 		nome = ril.value(2).toString()
+
+		notaStorica = self.getValue(self.NOTA_STORICA)
+		if notaStorica == None or len(notaStorica) <= 0:
+			newLineClass = ''
+			notaStorica = ''
+		else:
+			newLineClass = ' class="line"'
+			notaStorica = u"""
+<table class="blue">
+	<tr>
+		<td>Nota storiografica</td><td class="value">%s</td>
+	</tr>
+</table>
+""" % QString(notaStorica).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('\n', '<br>')
+
 
 		return QString( u"""
 <div id="sez1" class="block">
@@ -83,12 +102,11 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 	</tr>
 </table>
 <table class="blue">
-	<tr>
+	<tr%s>
 		<td>Rilevatori</td><td class="value">%s<br><span class="tooltip">NOME</span></td><td class="value">%s<br><span class="tooltip">COGNOME</span></td>
 		<td class="line">ID_RIL</td><td class="value">%s</td>
 	</tr>
-</table>
+</table>%s</div>
 </div>
-</div>
-""" % (self._ID, comIstat, numScheda, rilevatoreID, self.getValue(self.DATA_COMPILAZIONE_SCHEDA), nome, cognome, rilevatoreID)
+""" % (self._ID, comIstat, numScheda, rilevatoreID, self.getValue(self.DATA_COMPILAZIONE_SCHEDA), newLineClass, nome, cognome, rilevatoreID, notaStorica)
 )

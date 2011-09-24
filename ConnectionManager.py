@@ -265,7 +265,7 @@ class PySLQuery:
 		return self._value != None
 
 	def value(self, index):
-		if index < len(self._value):
+		if index >= 0 and index < len(self._value):
 			val = self._value[index]
 			from AutomagicallyUpdater import AutomagicallyUpdater
 			return self.convertResult( AutomagicallyUpdater._getRealValue(val) )

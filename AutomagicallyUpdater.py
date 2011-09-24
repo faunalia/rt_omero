@@ -895,6 +895,13 @@ class MappingOne2One(AutomagicallyUpdater):
 		if ID == None:
 			return False
 
+		# aggiorna l'id degli oggetti MappingPart
+		for widget in self._childrenRefs:
+			if isinstance(widget, MappingPart):
+				if self._ID == None:	# se non esisteva
+					widget.refreshId( ID )	# ricarica i valori
+
+
 		# salva i valori delle tabelle collegate con relazione Uno a Molti e 
 		# Molti a Molti
 		for widget in allChildren:
@@ -1117,7 +1124,12 @@ class MappingOne2One(AutomagicallyUpdater):
 # rappresenta una parte di una tabella, da trattare quindi come 
 # sottogruppo di valori della tabella puntata da _tableName
 class MappingPart(MappingOne2One):
-	pass
+
+	def refreshId(self, ID=None):
+		for widget in self._childrenRefs:
+			if isinstance(widget, MappingPart):
+				widget.refreshId( ID )	# ricarica i valori
+		self._ID = ID
 
 
 # rappresenta un riferimento Uno a Molti

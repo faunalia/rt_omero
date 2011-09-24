@@ -250,14 +250,39 @@ class ManagerWindow(QDockWidget):
 
 		# do not check the intersection 
 		# if ZZ_DISCLAIMER.BUFFER is NULL OR ZZ_COMUNE 
-		comSubQuery = """
+		sql = """
 SELECT 
-	com.NOME AS nome, 
+	com.NOME, 
 	CASE 
 		WHEN dis.BUFFER < 0 THEN 1	-- permitted
 		WHEN com.geometria IS NULL THEN 0	-- forbidden
 		ELSE -1	-- need an intersection test
-	END AS ok,
+	END
+FROM 
+	ZZ_COMUNI AS com, 
+	ZZ_DISCLAIMER AS dis 
+WHERE 
+	com.ISTATCOM = ?
+"""
+		query = AutomagicallyUpdater.Query( sql, [comuneID] ).getQuery()
+		if not query.exec_() or not query.next():
+			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
+			return False
+		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
+
+		comune = query.value(0).toString()
+		comune = u' "%s"' % comune if comune and len(comune) > 0 else ''
+		ok = query.value(1).toInt()[0]
+		if ok > 0:	# action permitted
+			return True
+
+		elif ok == 0:	# action forbidden
+			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è permessa poiché il confine del comune%s non è definito." % (actionName, comune) )
+			return False
+
+		#if ok < 0:	# need an intersection test
+		comSubQuery = """
+SELECT 
 	CASE 
 		WHEN com.geometria IS NULL OR dis.BUFFER <= 0 THEN com.geometria
 		ELSE ST_Buffer(com.geometria, dis.BUFFER)
@@ -269,29 +294,25 @@ WHERE
 	com.ISTATCOM = ?
 """
 
-		params = [ comuneID ]
-		params.extend( geomSubQuery.params )
-
 		query = ConnectionManager.getNewQuery( AutomagicallyUpdater.EDIT_CONN_TYPE )
 		if query == None:
 			return False
 
-		query.prepare( "SELECT count(*), com.nome FROM (%s) AS com, (%s) AS geo WHERE CASE WHEN com.ok >= 0 THEN com.ok ELSE ST_Intersects(geo.edificio, com.confine) END = 1 LIMIT 1""" % (comSubQuery, geomSubQuery.query) )
+		query.prepare( "SELECT count(*) FROM (%s) AS com, (%s) AS geo WHERE ST_Intersects(geo.edificio, com.confine) = 1""" % (comSubQuery, geomSubQuery.query) )
+		params = [ comuneID ]
+		params.extend( geomSubQuery.params )
 		for p in params:
 			query.addBindValue( p if p != None else QVariant() )
 
-		if not query.exec_():
+		if not query.exec_() or not query.next():
 			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return False
+		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
 
-		if not query.next():
-			return False
+		ok = query.value(0).toInt()[0] > 0
 
-		valid = query.value(0).toInt()[0] > 0
-		comuneName = query.value(1).toString()
-
-		if not valid:
-			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è ammessa perché fuori dal confine del comune \"%s\"" % (actionName, comune) )
+		if not ok:
+			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è ammessa perché fuori dal confine del comune%s." % (actionName, comune) )
 			return False
 		return True
 
