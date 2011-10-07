@@ -67,7 +67,7 @@ class WdgStrutturePortantiVerticali(QWidget, MappingOne2One, Ui_Form):
 		self.abilitaCombo()
 
 	def abilitaCombo(self):
-		enabler = self.ZZ_TIPOLOGIA_COSTRUTTIVAID.isSelected("01", Qt.MatchStartsWith)
+		enabler = self.ZZ_TIPOLOGIA_COSTRUTTIVAID.isSelected("0101", Qt.MatchStartsWith)
 		self.ZZ_APPARECCHIATURA_MURARIAID.setEnabled(enabler)
 		self.ZZ_INCATENAMENTIID.setEnabled(enabler)
 

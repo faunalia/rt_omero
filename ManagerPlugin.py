@@ -36,7 +36,7 @@ class ManagerPlugin:
 			self.iface.removePluginMenu("&Omero RT", self.action)
 		self.iface.removeToolBarIcon(self.action)
 
-		if self.dlg != None:
+		if self.dlg:
 			self.dlg.close()
 	
 	def run(self):
@@ -53,6 +53,8 @@ class ManagerPlugin:
 		self.dlg.exec_()
 
 	def onDlgClosed(self):
+		if self.dlg:
+			self.dlg.deleteLater()
 		self.dlg = None
 
 	def loadProject(self):

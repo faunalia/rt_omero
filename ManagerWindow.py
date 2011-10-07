@@ -921,8 +921,19 @@ WHERE
 			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance_unit", QVariant( option['unit'] ) )
 			return oldSnap
 
+		def isHostAccessible(host):
+			from PyQt4.QtNetwork import QHostInfo
+			info = QHostInfo.fromName( host )
+			if info.error() == QHostInfo.NoError:
+				return True
+			return False
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+		# disabilita le icone per i layer raster
+		settings = QSettings()
+		prevRasterIcons = settings.value("/qgis/createRasterLegendIcons", True)
+		settings.setValue("/qgis/createRasterLegendIcons", False)
 
 		# disabilita il rendering
 		prevRenderFlag = self.canvas.renderFlag()
@@ -973,7 +984,17 @@ WHERE
 					styles = [ 'pseudo' ] * len(layers)
 					format = "image/%s" % format.toLower()
 
-					rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
+					if False:
+						# verifica se il wms è accessibile, altrimenti carica 
+						# il layer WMS dalla cache
+						mode = 'mode=offline,' if not isHostAccessible( QUrl(url).host() ) else ''
+
+						res = [0.25*(2**i) for i in range(11)]
+						wl_url = u'%sallowUserTileset,tiled=512;512;%s,url=%s' % (mode, ";".join(map(str,res)), url)
+					else:
+						wl_url = url
+
+					rl = QgsRasterLayer(0, wl_url, title, 'wms', layers, styles, format, crs)
 					if not rl.isValid():
 						return False
 
@@ -1041,6 +1062,8 @@ WHERE
 			customizeSnapping( oldSnapOptions )
 			# ripristina il rendering
 			self.canvas.setRenderFlag( prevRenderFlag )
+			# ripristina la creazione delle icone per i layer raster
+			settings.setValue("/qgis/createRasterLegendIcons", prevRasterIcons)
 
 			QApplication.restoreOverrideCursor()
 
@@ -1153,10 +1176,22 @@ WHERE
 		}
 		AutomagicallyUpdater._updateValue( name2valueDict, "ZZ_DISCLAIMER", None, None )
 
+	@classmethod
+	def getPrinter(self):
+		if not hasattr(ManagerWindow.instance, '_printer'):
+			ManagerWindow.instance._printer = QPrinter( QPrinter.HighResolution )
+		return ManagerWindow.instance._printer
+
+	@classmethod
+	def destroyPrinter(self):
+		if hasattr(ManagerWindow.instance, '_printer'):
+			del ManagerWindow.instance._printer
+
 	def closeEvent(self, event):
 		self.disconnect(self.iface, SIGNAL("projectRead()"), self.reloadLayersFromProject)
 		self.disconnect(self.iface, SIGNAL("newProjectCreated()"), self.close)
 
+		self.destroyPrinter()
 		self.storeLastUsedExtent()
 		self.chiudiSchedaAperta()
 		self.removeLayersFromCanvas()
@@ -1177,6 +1212,7 @@ WHERE
 		self.lineDrawer.deleteLater()
 		del self.lineDrawer
 
+		ManagerWindow.instance = None
 		self.emit( SIGNAL("closed()") )
 		return QDockWidget.closeEvent(self, event)
 

@@ -74,7 +74,7 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 	<tr>
 		<td>Numero unit&agrave immobiliari</td><td class="value">%s</td>
-		<td colspan="2" class="line">Propriet&agrave prevalente</td><td class="value">%s</td>
+		<td colspan="2" class="line">Propriet&agrave</td><td class="value">%s</td>
 	</tr>
 </table>
 </div>

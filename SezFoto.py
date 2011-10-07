@@ -71,7 +71,7 @@ class SezFoto(QWidget, MappingPart, Ui_Form):
 
 		# dimensioni e scala originali
 		realwidth = 700
-		realscale = 1500
+		realscale = 1000
 
 		# TRICK! aumenta la risoluzione dell'immagine
 		# riduce la scala e ingrandisce le dimensioni dell'immagine in output

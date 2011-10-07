@@ -90,16 +90,18 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 	def stampaScheda(self, preview=True):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.PRINCIPALE.printBtn.setEnabled( False )
-		self.previewOnPrinting = preview
+		self._previewOnPrinting = preview
 
 		# crea una webview per la stampa della scheda
 		from PyQt4.QtWebKit import QWebView
-		self.webView = QWebView(self)
-		self.webView.setVisible(False)
-		QObject.connect(self.webView, SIGNAL("loadFinished(bool)"), self.webViewLoadFinished)
+		self._webView = QWebView(self)
+		self._webView.setVisible(False)
+		QObject.connect(self._webView, SIGNAL("loadFinished(bool)"), self.webViewLoadFinished)
 
 		# genera la scheda in HTML
-		self.webView.setHtml( self.toHtml() )
+		html = self.toHtml()
+		#print ">>>\n\n", html, "\n\n<<<"
+		self._webView.setHtml( html )
 
 	def webViewLoadFinished(self, ok):
 		if ok:
@@ -108,28 +110,32 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			import os.path
 			outFn = os.path.join( str(lastDir), outFn )
 
-			printer = QPrinter()
+			from ManagerWindow import ManagerWindow
+			printer = ManagerWindow.instance.getPrinter()
 			printer.setOutputFormat( QPrinter.PdfFormat )
 			printer.setOutputFileName( outFn )
 
-			if self.previewOnPrinting:
+			if self._previewOnPrinting:
 				printDlg = QPrintPreviewDialog(printer, self)
-				QObject.connect(printDlg, SIGNAL("paintRequested(QPrinter *)"), self.webView.print_)
+				QObject.connect(printDlg, SIGNAL("paintRequested(QPrinter *)"), self._webView.print_)
 
 				QApplication.restoreOverrideCursor()
 				if printDlg.exec_():
 					AutomagicallyUpdater._setLastUsedDir( 'pdf', printer.outputFileName() )
 				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-			else: # stampa direttamente su pdf
-				self.webView.print_(printer)
+				printDlg.deleteLater()
+				del printDlg
 
-			del printer
+			else: # stampa direttamente su pdf
+				self._webView.print_(printer)
 
 		# rimuovi i file temporanei collegati alla generazione dell'html
 		from Utils import TemporaryFile
 		TemporaryFile.delAllFiles( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML )
-		del self.webView
+
+		self._webView.deleteLater()
+		del self._webView
 
 		self.PRINCIPALE.printBtn.setEnabled( True )
 		QApplication.restoreOverrideCursor()
@@ -239,12 +245,23 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		QgsRenderer.setSelectionColor( newColor )
 
 		# save the map to a file
-		renderFunc = lambda x: renderScaleLabel(x, scale)
-		self.connect(canvas, SIGNAL("renderComplete(QPainter *)"), renderFunc)
+		eventLoopHandler = [ QEventLoop(self) ]
+		def savePainter(p, scale, evlHandler):
+			renderScaleLabel(p, scale)
+			evlHandler[0].quit()
+			evlHandler[0].deleteLater()
+			del evlHandler[0]
+
+		onRenderFunc = lambda x: savePainter(x, scale, eventLoopHandler)
+		self.connect(canvas, SIGNAL("renderComplete(QPainter *)"), onRenderFunc)
 		canvas.setRenderFlag( True )
+
+		if len(eventLoopHandler) > 0:
+			eventLoopHandler[0].exec_( QEventLoop.ExcludeUserInputEvents )
+		
+		self.disconnect(canvas, SIGNAL("renderComplete(QPainter *)"), onRenderFunc)
 		canvas.saveAsImage( filename, None, ext.upper() )
 		extent = canvas.extent()
-		self.disconnect(canvas, SIGNAL("renderComplete(QPainter *)"), renderFunc)
 		canvas.deleteLater()
 		del canvas
 

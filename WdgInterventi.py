@@ -35,7 +35,6 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		QWidget.__init__(self, parent)
 		MappingOne2One.__init__(self, "INTERVENTO_EDIFICIO")
 		self.setupUi(self)
-		self.showOtherInfos(False)
 
 		self.SCHEDA_EDIFICIOID.hide()
 
@@ -47,6 +46,8 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		}
 		self.setupTablesUpdater(tablesDict)
 		self.loadTables()
+
+		self.showOtherInfos(False)
 
 		# mappa i widget con i campi delle tabelle
 		childrenList = [
@@ -63,6 +64,13 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		self.setupValuesUpdater(childrenList)
 
 	def showOtherInfos(self, show=True):
+		# fix ticket 181
+		sql = "SELECT * FROM ZZ_TIPO_INTERVENTO WHERE DESCRIZIONE %s LIKE '01 %%' ORDER BY DESCRIZIONE ASC" % ( "" if show else "NOT" )
+		self._widget2action[ self.ZZ_TIPO_INTERVENTOID ] = AutomagicallyUpdater.Query( sql )
+		self.loadTables(self.ZZ_TIPO_INTERVENTOID)
+		if show and self.ZZ_TIPO_INTERVENTOID.count() > 0:
+			self.ZZ_TIPO_INTERVENTOID.setCurrentIndex(0)
+
 		self.EPOCA_COSTRUTTIVA.setVisible(show)
 
 	def toHtml(self, index):
