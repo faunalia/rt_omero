@@ -39,7 +39,7 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
 			self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID: AutomagicallyUpdater.ZZTable( "ZZ_POSIZIONE_EDIFICIO_AGGREGATO" ),
-			self.ZZ_PROPRIETA_PREVALENTEID: AutomagicallyUpdater.ZZTable( "ZZ_PROPRIETA_PREVALENTE" )
+			self.ZZ_PROPRIETAID: AutomagicallyUpdater.ZZTable( "ZZ_PROPRIETA" )
 		}
 		self.setupTablesUpdater(tablesDict)
 		self.loadTables()
@@ -79,5 +79,5 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 </table>
 </div>
 </div>
-""" % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), fogli.join("<br>"), particelle.join("<br>"), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETA_PREVALENTEID.currentText() )
+""" % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), fogli.join("<br>"), particelle.join("<br>"), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETAID.currentText() )
 )

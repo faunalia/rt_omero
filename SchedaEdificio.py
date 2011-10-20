@@ -20,7 +20,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 		# carica i widget multivalore con i valori delle relative tabelle
 		tablesDict = {
-			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.ZZ_PROPRIETA_PREVALENTEID: AutomagicallyUpdater.ZZTable( "ZZ_PROPRIETA_PREVALENTE" )
+			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.ZZ_PROPRIETAID: AutomagicallyUpdater.ZZTable( "ZZ_PROPRIETA" )
 		}
 		self.setupTablesUpdater(tablesDict)
 		self.loadTables()
@@ -29,7 +29,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		childrenList = [
 			self.PRINCIPALE, 
 			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ,
-			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.ZZ_PROPRIETA_PREVALENTEID, 
+			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.ZZ_PROPRIETAID, 
 			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.NUM_UNITA_IMMOBILIARI, 
 			self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.PARTICELLE_CATASTALI, 
 			self.UNITA_VOLUMETRICHE, 
