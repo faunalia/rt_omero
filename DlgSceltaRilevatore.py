@@ -131,11 +131,45 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 		settings = QSettings()
 		self.setValue(self.comuneCombo, self._getIDComune())
 		self.setValue(self.rilevatoriTable, self._getIDRilevatore())
+
+		offline = self.offlineMode()
+		self.offlineBtn.setChecked( offline )
+		self.onlineBtn.setChecked( not offline )
+
 		return QDialog.exec_(self)
 
 	def accept(self):
+		if self.offlineBtn.isChecked() and not self.offlineMode():
+			if not self.selectCacheFolder():
+				return
+			
 		settings = QSettings()
 		settings.setValue( "/omero_RT/lastIDComune", QVariant( self.getValue(self.comuneCombo) ) )
 		settings.setValue( "/omero_RT/lastIDRilevatore", QVariant( self.getValue(self.rilevatoriTable) ) )
+
+		self.setOfflineMode( self.offlineBtn.isChecked() or not self.onlineBtn.isChecked() )
 		return QDialog.accept(self)
+
+
+	def selectCacheFolder(self):
+		cache_path = self.getPathToCache()
+		if not cache_path.isEmpty():
+			cache_path = QDir(cache_path)
+			cache_path.cd( ".." )
+			cache_path = cache_path.absolutePath()
+
+		cache_path = QFileDialog.getExistingDirectory(self, u"Seleziona la directory dove salvare la cache", cache_path )
+		if cache_path.isEmpty():
+			return False
+
+		subdir = ".omero-cache"
+		QDir( cache_path ).mkdir( subdir )
+
+		cache_subdir = QDir( cache_path )
+		if not cache_subdir.cd( subdir ):
+			QMessageBox.critical(self, "RT Omero", "Impossibile scrivere nella directory selezionata.")
+			return False
+
+		self.setPathToCache( cache_subdir.absolutePath() )
+		return True
 

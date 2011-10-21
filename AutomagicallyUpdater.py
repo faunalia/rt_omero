@@ -91,7 +91,7 @@ class AutomagicallyUpdater:
 	@classmethod
 	def _getLastUsedDir(self, key):
 		settings = QSettings()
-		lastProjectDir = settings.value( "/UI/lastProjectDir", QVariant(".") ).toString()
+		lastProjectDir = settings.value( "/UI/lastProjectDir", QVariant("") ).toString()
 		return settings.value( "/omero_RT/lastUsedDir/%s" % key, QVariant(lastProjectDir) ).toString()
 
 	@classmethod
@@ -103,6 +103,37 @@ class AutomagicallyUpdater:
 		else:
 			dirPath = fileInfo.path()
 		settings.setValue( "/omero_RT/lastUsedDir/%s" % key, QVariant(dirPath) )
+
+	@classmethod
+	def offlineMode(self):
+		settings = QSettings()
+		return settings.value( "/omero_RT/offlineMode", QVariant(False) ).toBool()
+
+	@classmethod
+	def setOfflineMode(self, value):
+		settings = QSettings()
+		settings.setValue( "/omero_RT/offlineMode", QVariant(value) )
+
+	@classmethod
+	def getPathToCache(self):
+		settings = QSettings()
+		dbPath = self._getPathToDb()
+		return settings.value( "/omero_RT/pathToCache", QVariant(dbPath) ).toString()
+
+	@classmethod
+	def setPathToCache(self, value):
+		settings = QSettings()
+		settings.setValue( "/omero_RT/pathToCache", QVariant(value) )
+
+	@classmethod
+	def getCachedExternalWms(self):
+		settings = QSettings()
+		return settings.value( "/omero_RT/cachedExternalWms", QVariant({}) ).toMap()
+
+	@classmethod
+	def setCachedExternalWms(self, value):
+		settings = QSettings()
+		settings.setValue( "/omero_RT/cachedExternalWms", QVariant(value) )
 
 
 	class Query():

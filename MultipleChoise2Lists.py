@@ -72,9 +72,11 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 			if not self.selezionateList.isRowHidden(row):
 				itemtext = model.record(row).value(1).toString()
 				if matchFlags == Qt.MatchStartsWith:
-					return itemtext.startsWith( text )
+					if itemtext.startsWith( text ):
+						return True
 				elif matchFlags == Qt.MatchEndsWith:
-					return itemtext.endsWith( text )
+					if itemtext.endsWith( text ):
+						return True
 				else:
 					raise RuntimeError( "Error in MultipleChoise2List: matchFlags %s NOT IMPLEMENTED YET!" % matchFlags )
 			row = row + 1

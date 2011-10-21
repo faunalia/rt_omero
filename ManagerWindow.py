@@ -33,6 +33,9 @@ from ConnectionManager import ConnectionManager
 from AutomagicallyUpdater import AutomagicallyUpdater
 from Utils import *
 
+import os.path
+currentPath = os.path.dirname(__file__)
+
 class ManagerWindow(QDockWidget):
 
 	# nomi tabelle contenenti le geometrie
@@ -51,7 +54,7 @@ class ManagerWindow(QDockWidget):
 	RLID_WMS = {}
 
 	# stile per i layer delle geometrie
-	STYLE_PATH = "styles"
+	STYLE_FOLDER = "styles"
 	STYLE_GEOM_ORIG = "stile_geometrie_originali.qml"
 	STYLE_GEOM_MODIF = "stile_geometrie_modificate.qml"
 	STYLE_FOTO = "stile_fotografie.qml"
@@ -75,7 +78,10 @@ class ManagerWindow(QDockWidget):
 		self.uvScheda = None
 		self.isApriScheda = True
 		self.srid = ManagerWindow.DEFAULT_SRID
+
 		self.startedYet = False
+		###AutomagicallyUpdater.setOfflineMode(True)
+		self.offlineMode = AutomagicallyUpdater.offlineMode()
 
 		# crea la label da visualizzare nella status bar
 		self.status = ManagerWindow.StatusWidget( self.iface.mainWindow().statusBar() )
@@ -204,7 +210,7 @@ class ManagerWindow(QDockWidget):
 		self.setWidget(child)
 
 	def about(self):
-		if self.iface.mapCanvas().isDrawing():
+		if self.canvas.isDrawing():
 			return	# wait until the renderer ends
 		from DlgAbout import DlgAbout
 		DlgAbout(self).exec_()
@@ -336,13 +342,13 @@ WHERE
 
 
 	def riepilogoSchede(self):
-		if self.iface.mapCanvas().isDrawing():
+		if self.canvas.isDrawing():
 			return	# wait until the renderer ends
 		from DlgRiepilogoSchede import DlgRiepilogoSchede
 		return DlgRiepilogoSchede(self).exec_()
 
 	def gestioneStradario(self):
-		if self.iface.mapCanvas().isDrawing():
+		if self.canvas.isDrawing():
 			return	# wait until the renderer ends			
 		from DlgStradario import DlgStradario
 		return DlgStradario(self).exec_()
@@ -867,46 +873,96 @@ WHERE
 		self.iface.addDockWidget(Qt.LeftDockWidgetArea, self)
 		return True
 
+
 	def exec_(self):
 		if not self.startPlugin():
 			return
 
+		self.reloadLayers()
+
+	def reloadLayers( self ):
+		# check if offline mode changed
+		if self.startedYet and self.offlineMode != AutomagicallyUpdater.offlineMode():
+			if not self.offlineMode:
+				return self.startOfflineMode()
+			else:
+				self.stopOfflineMode()
+		else:
+			self.offlineMode = AutomagicallyUpdater.offlineMode()
+
+		# load all the layers from db
 		loadLastExtent = not self.startedYet
 		self.startedYet = True
-
 		if not self.loadLayersInCanvas( loadLastExtent ):
 			QMessageBox.critical(self, "RT Omero", "Impossibile caricare i layer richiesti dal database selezionato")
-			return
+			return False
 
+		return True
 
 	def reloadLayersFromProject(self):
 		valid = False
+		offline = False
 
 		# check for valid omero layers
 		for l in self.iface.legendInterface().layers():
 			prop = l.customProperty( "loadedByOmeroRTPlugin" )
 			if prop.isValid():
+				valid = True
+
 				# setup the plugin vars
 				parts = prop.toString().split( " " )
 				key = parts[0]
-				if not key.startsWith( "RLID_" ) or not key.startsWith( "VLID_" ):
-					valid = True
+				if key.startsWith( "RLID_WMS" ):
+					# wms layer needs order
+					if len(parts) < 2:
+						continue
 
-					if len(parts) > 1:
-						order = int(parts[1])
-						exec( "ManagerWindow.%s[%d] = l.getLayerID()" % (key, order) )
-					else:
-						exec( "ManagerWindow.%s = l.getLayerID()" % key )
+					order = int(parts[1])
+					ManagerWindow.RLID_WMS[order] = l.getLayerID()
+
+					# check for offline layers
+					if key == "RLID_WMS_OFFLINE":
+						l.setTransparentBandName( "Band 4" )
+						offline = True
+
+				elif key.startsWith( "VLID_" ):
+					setattr( ManagerWindow, str(key), l.getLayerID() )
 
 					# set the vector as a read-only layer
 					if isinstance( l, QgsVectorLayer ):
 						l.setReadOnly(True)
 
+				elif key.startsWith( "WMS_OFFLINE" ):
+					offline = True
+					l.setTransparentBandName( "Band 4" )
+
+				else:
+					continue
+
 		if not valid:
 			return False
 
-		# shoe the omero dock widget
-		return self.startPlugin()
+		self.startedYet = False
+
+		# mostra come impostato il pulsante corretto tra offline/online 
+		# dentro la finestra selezionaRilevatore
+		AutomagicallyUpdater.setOfflineMode( offline )
+
+		# show the omero dock widget
+		if not self.startPlugin():
+			# cancel clicked, restore the offline mode state
+			AutomagicallyUpdater.setOfflineMode( self.offlineMode )
+			return False
+
+		self.startedYet = True
+
+		# is offline mode changed?
+		self.offlineMode = offline
+		if self.offlineMode != AutomagicallyUpdater.offlineMode():
+			self.reloadLayers()
+
+		return True
+
 
 	def loadLayersInCanvas(self, reloadExtent=True):
 
@@ -920,13 +976,6 @@ WHERE
 			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance", QVariant( option['tollerance'] ) )
 			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance_unit", QVariant( option['unit'] ) )
 			return oldSnap
-
-		def isHostAccessible(host):
-			from PyQt4.QtNetwork import QHostInfo
-			info = QHostInfo.fromName( host )
-			if info.error() == QHostInfo.NoError:
-				return True
-			return False
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
@@ -957,54 +1006,10 @@ WHERE
 			renderer.setDestinationSrs(srs)
 			renderer.setMapUnits( srs.mapUnits() )
 
+			# carica i layer wms
+			if not self.loadWmsLayers():
+				return False
 
-			# carica i layer WMS
-			loadedWMS = QStringList()
-			for order, rlid in ManagerWindow.RLID_WMS.iteritems():
-				if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
-					loadedWMS << "'%s'" % order
-			loadedWMS = loadedWMS.join( "," )
-
-			query = AutomagicallyUpdater.Query( 'SELECT * FROM ZZ_WMS WHERE "ORDER" NOT IN (%s) ORDER BY "ORDER" ASC' % loadedWMS )
-			query = query.getQuery()
-			if not query.exec_():
-				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
-			else:
-				while query.next():
-					order = query.value(0).toInt()[0]
-					title = query.value(1).toString()
-					url = query.value(2).toString()
-					layers = query.value(3).toString()
-					crs = query.value(4).toString()
-					format = query.value(5).toString()
-					transparent = query.value(6).toString()
-					version = query.value(7).toString()
-
-					layers = layers.split(",")
-					styles = [ 'pseudo' ] * len(layers)
-					format = "image/%s" % format.toLower()
-
-					if False:
-						# verifica se il wms è accessibile, altrimenti carica 
-						# il layer WMS dalla cache
-						mode = 'mode=offline,' if not isHostAccessible( QUrl(url).host() ) else ''
-
-						res = [0.25*(2**i) for i in range(11)]
-						wl_url = u'%sallowUserTileset,tiled=512;512;%s,url=%s' % (mode, ";".join(map(str,res)), url)
-					else:
-						wl_url = url
-
-					rl = QgsRasterLayer(0, wl_url, title, 'wms', layers, styles, format, crs)
-					if not rl.isValid():
-						return False
-
-					ManagerWindow.RLID_WMS[order] = str(rl.getLayerID())
-					QgsMapLayerRegistry.instance().addMapLayer(rl)
-					self.iface.legendInterface().setLayerVisible( rl, False )
-					# set custom property
-					rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("RLID_WMS %s" % order) )
-
-			import os.path
 			conn = ConnectionManager.getConnection()
 
 			# carica il layer con le geometrie originali
@@ -1019,7 +1024,7 @@ WHERE
 					return False
 
 				# imposta lo stile del layer
-				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_ORIG )
+				style_path = os.path.join( currentPath, ManagerWindow.STYLE_FOLDER, ManagerWindow.STYLE_GEOM_ORIG )
 				(errorMsg, result) = vl.loadNamedStyle( style_path )
 				self.iface.legendInterface().refreshLayerSymbology(vl)
 
@@ -1041,7 +1046,7 @@ WHERE
 					return False
 
 				# imposta lo stile del layer
-				style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_GEOM_MODIF )
+				style_path = os.path.join( currentPath, ManagerWindow.STYLE_FOLDER, ManagerWindow.STYLE_GEOM_MODIF )
 				(errorMsg, result) = vl.loadNamedStyle( style_path )
 				self.iface.legendInterface().refreshLayerSymbology(vl)
 
@@ -1069,6 +1074,230 @@ WHERE
 
 		return True
 
+	def loadWmsLayers(self):
+		def isHostAccessible(host):
+			from PyQt4.QtNetwork import QHostInfo
+			info = QHostInfo.fromName( host )
+			if info.error() == QHostInfo.NoError:
+				return True
+			return False
+
+		# lista dei layer wms già caricati
+		loaded_wms = QStringList()
+		for order, rlid in ManagerWindow.RLID_WMS.iteritems():
+			if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
+				loaded_wms << "'%s'" % order
+
+		# recupera le informazioni sui layer wms da caricare
+		query = AutomagicallyUpdater.Query( 'SELECT * FROM ZZ_WMS WHERE "ORDER" NOT IN (%s) ORDER BY "ORDER" ASC' % loaded_wms.join(",") )
+		query = query.getQuery()
+		if not query.exec_():
+			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
+			return False
+
+		while query.next():
+			order = query.value(0).toInt()[0]
+			title = query.value(1).toString()
+			url = query.value(2).toString()
+			layers = query.value(3).toString()
+			crs = query.value(4).toString()
+			format = query.value(5).toString()
+			transparent = query.value(6).toString()
+			version = query.value(7).toString()
+
+			layers = layers.split(",")
+			styles = [ 'pseudo' ] * len(layers)
+			format = "image/%s" % format.toLower()
+
+			if not self.offlineMode:
+				# online mode, carica il layer wms
+				rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
+				prop = "RLID_WMS %s" % order
+			else:
+				# offline mode, carica il layer dalla cache
+				vrt_path = QDir( AutomagicallyUpdater.getPathToCache() ).absoluteFilePath( u'%s.vrt' % title )
+				if not QFileInfo( vrt_path ).exists():
+					continue
+				rl = QgsRasterLayer( vrt_path, u"OFFLINE - %s" % title )
+				rl.setTransparentBandName( "Band 4" )
+				prop = "RLID_WMS_OFFLINE %s" % order
+
+			if not rl.isValid():
+				continue
+
+			ManagerWindow.RLID_WMS[order] = rl.getLayerID()
+			QgsMapLayerRegistry.instance().addMapLayer(rl)
+			self.iface.legendInterface().setLayerVisible( rl, False )
+			# set custom property
+			rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant(prop) )
+
+		return True
+
+	def startOfflineMode(self):
+		if self.offlineMode:
+			return
+
+		scale = 2000	# 1:2000
+		reqpxdim = 1200	# 1200px
+		imgdim = 2000	# 2km
+
+		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+		prevRenderFlag = self.canvas.renderFlag()
+		self.canvas.setRenderFlag( False )
+
+		try:
+			# get central point and current zoom
+			rect = self.canvas.extent()
+			center = QgsPoint(rect.xMinimum() + rect.width()/2, rect.yMinimum() + rect.height()/2)
+			# TODO: store current zoom
+
+			# zoom to scale 1:2000
+			self.canvas.zoomScale( scale )
+			m_px = self.canvas.getCoordinateTransform().mapUnitsPerPixel()
+
+			reqdim = reqpxdim*m_px
+			pxdim = reqdim/reqpxdim
+
+			n = int(imgdim/reqdim)
+			n = n+1 if n%2 == 0 else n
+
+			# bottom-left point
+			bl = QgsPoint(center.x()-reqdim*n/2.0, center.y()-reqdim*n/2.0)
+
+			cache_path = AutomagicallyUpdater.getPathToCache()
+			cached_images = {}
+
+			legend = self.iface.legendInterface()
+			for layer in reversed(legend.layers()):
+				p = layer.dataProvider()
+				if p.name() != "wms":
+					continue
+
+				name = layer.name()
+				visible = legend.isLayerVisible(layer)
+				layerid = layer.id()
+				source = layer.source()
+
+				prop = layer.customProperty( "loadedByOmeroRTPlugin" )
+				if not prop.isValid():
+					# a wms layer not loaded by omero, don't cache if it's hidden
+					if not visible:
+						continue
+					prop = QVariant( u"WMS_OFFLINE %s" % source )
+
+				elif prop.toString().startsWith( "RLID_WMS_OFFLINE" ) or prop.toString().startsWith( "WMS_OFFLINE" ):
+					# an offline layer, let's keep it!
+					continue
+
+				elif prop.toString().startsWith( "RLID_WMS" ):
+					# a wms layer loaded by omero
+					prop = QVariant( u"RLID_WMS_OFFLINE %s" % prop.toString()[9:] )
+
+				else:
+					continue
+	
+				# get and store image
+				out_catalog = QDir(cache_path).absoluteFilePath( u"%s.vrt" % name )
+				in_images = []
+				for i in range( n*n ):
+					row, col = i/n, i%n
+					posx, posy = reqdim*row, reqdim*col
+					toposx, toposy = reqdim*(row+1), reqdim*(col+1)
+					extent = QgsRectangle(bl.x()+posx, bl.y()+posy, bl.x()+toposx, bl.y()+toposy)
+					imagepart = p.draw( extent, reqpxdim, reqpxdim )
+					path = QDir(cache_path).absoluteFilePath( u"%s_%s.png" % (layerid, i) )
+					in_images.append( path )
+					imagepart.save( path, "PNG" )
+					# save worldfile
+					out = open( u"%s.wld" % path[:-4], 'w')
+					out.write( u"%.16f\n%.16f\n%.16f\n%.16f\n%.16f\n%.16f" % (pxdim, 0.0, 0.0, -pxdim, extent.xMinimum(), extent.yMaximum()) )
+					out.close()
+
+				# create the catalog
+				cmd = ["gdalbuildvrt", out_catalog]
+				cmd.extend( in_images )
+				import subprocess
+				if 0 == subprocess.call( cmd ):
+					# remove the online layer and add the offline one
+					QgsMapLayerRegistry.instance().removeMapLayer(layerid)
+					layer = self.iface.addRasterLayer( out_catalog, "OFFLINE - %s" % name )
+					if not layer or not layer.isValid():
+						continue
+					layer.setTransparentBandName( "Band 4" )
+					legend.setLayerVisible(layer, visible)
+
+					# set the layer custom property
+					layer.setCustomProperty( "loadedByOmeroRTPlugin", QVariant(prop) )
+					if prop.toString().startsWith( "WMS_OFFLINE" ):
+						cached_images[out_catalog] = source
+
+					elif prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
+						order = int( prop.toString().split(" ")[1] )
+						ManagerWindow.RLID_WMS[order] = layer.getLayerID()
+
+			AutomagicallyUpdater.setCachedExternalWms( cached_images )
+			self.offlineMode = True
+
+		finally:
+			# TODO: restore prev zoom
+			self.canvas.setRenderFlag( prevRenderFlag )
+			QApplication.restoreOverrideCursor()
+
+		return True
+
+	def stopOfflineMode(self):
+		if not self.offlineMode:
+			return True
+
+		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+		prevRenderFlag = self.canvas.renderFlag()
+		self.canvas.setRenderFlag( False )
+
+		try:
+			cached_images = AutomagicallyUpdater.getCachedExternalWms()
+
+			legend = self.iface.legendInterface()
+			for layer in reversed(legend.layers()):
+				p = layer.dataProvider()
+				if p.name() != "gdal":
+					continue
+
+				name = layer.name()
+				visible = legend.isLayerVisible(layer)
+				layerid = layer.id()
+
+				prop = layer.customProperty( "loadedByOmeroRTPlugin" )
+				if not prop.isValid():
+					# a wms layer not loaded by omero
+					continue
+
+				elif prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
+					# a wms layer loaded by omero, remove it
+					QgsMapLayerRegistry.instance().removeMapLayer( layerid )
+					continue
+
+				elif prop.toString().startsWith( "WMS_OFFLINE" ):
+					# an external cached wms
+					if not cached_images.has_key( layer.source() ):
+						continue
+
+				else:
+					continue
+
+				# remove the offline layer and add the online one
+				QgsMapLayerRegistry.instance().removeMapLayer(layerid)
+
+			self.offlineMode = False
+
+		finally:
+			self.canvas.setRenderFlag( prevRenderFlag )
+			QApplication.restoreOverrideCursor()
+
+		return True
+
+
 	def loadLayerFoto(self):
 		# carica il layer con le foto
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) == None:
@@ -1085,8 +1314,7 @@ WHERE
 				return False
 
 			# imposta lo stile del layer
-			import os.path
-			style_path = os.path.join( os.path.dirname(__file__), ManagerWindow.STYLE_PATH, ManagerWindow.STYLE_FOTO )
+			style_path = os.path.join( currentPath, ManagerWindow.STYLE_FOLDER, ManagerWindow.STYLE_FOTO )
 			(errorMsg, result) = vl.loadNamedStyle( style_path )
 			self.iface.legendInterface().refreshLayerSymbology(vl)
 
