@@ -167,10 +167,13 @@ class PySLDatabase:
 			self._error = QString( str(e) )
 
 	def getQuery(self, autocommit=True):
-		return PySLQuery(self)
+		return PySLQuery(self, autocommit)
 
 	def __del__(self):
 		self.connection = None
+
+	def error(self):
+		return self._error
 
 	def isValid(self):
 		return self._error.isEmpty()

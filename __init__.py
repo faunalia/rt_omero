@@ -34,7 +34,7 @@ def icon():
 	return "icons/rt_omero.png"
 
 def version():
-	return "Version 1.0.17"
+	return "Version 1.0.19"
 
 def qgisMinimumVersion():
 	return "1.7.0"

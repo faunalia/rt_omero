@@ -81,7 +81,7 @@ class DlgSelezionaDB(QDialog, Ui_Dlg):
 				outfile.close()
 
 		except (IOError, zipfile.BadZipfile), e:
-			QMessageBox.critical( self, u"Errore", u"Impossibile estrarre l'archivio contenente il DB dimostrativo.\n\nError message: %s" % unicode(str(e), 'utf8') )
+			QMessageBox.critical( self, u"Errore", u"Impossibile estrarre dall'archivio contenente il DB dimostrativo.\n\nError message: %s" % unicode(str(e), 'utf8') )
 			return self.reject()
 
 		AutomagicallyUpdater._setPathToDb( dbpath )

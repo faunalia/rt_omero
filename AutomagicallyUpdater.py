@@ -159,7 +159,7 @@ class AutomagicallyUpdater:
 
 			return query
 
-		def getFirstResult(self):
+		def getRow(self, row, ncols):
 			query = self.getQuery()
 			if query == None:
 				return
@@ -167,9 +167,32 @@ class AutomagicallyUpdater:
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text() )
 				return
 			AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
-			if not query.next():
+			# loop for select the row
+			for i in range(row+1):
+				if not query.next():
+					return
+			# store cols
+			res = []
+			for col in range(ncols):
+				res.append( AutomagicallyUpdater._getRealValue( query.value(col) ) )
+
+			return res
+
+		def getFirstResult(self):
+			return self.getResult(0, 0)
+
+		def getResult(self, row, col):
+			query = self.getQuery()
+			if query == None:
 				return
-			return AutomagicallyUpdater._getRealValue( query.value(0) )
+			if not query.exec_():
+				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text() )
+				return
+			AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
+			for i in range(row+1):
+				if not query.next():
+					return
+			return AutomagicallyUpdater._getRealValue( query.value(col) )
 
 	class Table(Query):
 		def __init__(self, table, filters=None, params=None, conntype=None):
