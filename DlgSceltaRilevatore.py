@@ -29,6 +29,7 @@ from PyQt4.QtGui import *
 from ui.dlgSceltaRilevatore_ui import Ui_Dialog
 from ConnectionManager import ConnectionManager
 from AutomagicallyUpdater import *
+from ManagerWindow import ManagerWindow
 
 class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 
@@ -152,24 +153,39 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 
 
 	def selectCacheFolder(self):
-		cache_path = self.getPathToCache()
-		if not cache_path.isEmpty():
-			cache_path = QDir(cache_path)
-			cache_path.cd( ".." )
-			cache_path = cache_path.absolutePath()
+		subdir = ".omero-cache"
 
-		cache_path = QFileDialog.getExistingDirectory(self, u"Seleziona la directory dove salvare la cache", cache_path )
+		cache_path = self.getPathToCache()
+		if cache_path.isEmpty():
+			cache_path = self._getPathToDb()
+		else:			
+			cache_path = QDir(cache_path)
+			if cache_path.dirName() == subdir:
+				cache_path.cd( ".." )
+				cache_path = cache_path.absolutePath()
+
+		if ManagerWindow.instance.startedYet:
+			caption = u"Seleziona la directory dove salvare la cache"
+		else:
+			caption = u"Seleziona la directory da dove recuperare la cache"
+
+		cache_path = QFileDialog.getExistingDirectory(self, caption, cache_path )
 		if cache_path.isEmpty():
 			return False
 
-		subdir = ".omero-cache"
-		QDir( cache_path ).mkdir( subdir )
+		cache_dir = QDir( cache_path )
 
-		cache_subdir = QDir( cache_path )
-		if not cache_subdir.cd( subdir ):
-			QMessageBox.critical(self, "RT Omero", "Impossibile scrivere nella directory selezionata.")
-			return False
+		if ManagerWindow.instance.startedYet:
+			if cache_dir.dirName() != subdir:
+				cache_dir.mkdir( subdir )
+				if not cache_dir.cd( subdir ):
+					QMessageBox.critical(self, "RT Omero", "Impossibile scrivere nella directory selezionata.")
+					return False
 
-		self.setPathToCache( cache_subdir.absolutePath() )
+		else:
+			if cache_dir.dirName() != subdir and not cache_dir.cd( subdir ):
+				QMessageBox.information(self, "RT Omero", "Sottocartella \".omero_cache\" non trovata, parto offline senza strati wms")
+
+		self.setPathToCache( cache_dir.absolutePath() )
 		return True
 

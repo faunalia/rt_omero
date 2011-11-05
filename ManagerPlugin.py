@@ -70,10 +70,11 @@ class ManagerPlugin:
 			return
 
 		from ManagerWindow import ManagerWindow
-		dlg = ManagerWindow(self.iface.mainWindow(), self.iface)
-		if dlg.reloadLayersFromProject():
-			self.dlg = dlg
-			QObject.connect(self.dlg, SIGNAL("closed()"), self.onDlgClosed)
+		self.dlg = ManagerWindow(self.iface.mainWindow(), self.iface)
+		QObject.connect(self.dlg, SIGNAL("closed()"), self.onDlgClosed)
+		if not self.dlg.reloadLayersFromProject():
+			self.dlg.close()
+
 
 	def createEmptyDb(self):
 		from DlgCreaDbVuoto import DlgCreaDbVuoto

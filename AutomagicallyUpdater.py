@@ -117,8 +117,7 @@ class AutomagicallyUpdater:
 	@classmethod
 	def getPathToCache(self):
 		settings = QSettings()
-		dbPath = self._getPathToDb()
-		return settings.value( "/omero_RT/pathToCache", QVariant(dbPath) ).toString()
+		return settings.value( "/omero_RT/pathToCache", QVariant() ).toString()
 
 	@classmethod
 	def setPathToCache(self, value):

@@ -897,6 +897,7 @@ WHERE
 			prop = l.customProperty( "loadedByOmeroRTPlugin" )
 			if prop.isValid():
 				valid = True
+				lid = self._getLayerId( l )
 
 				# setup the plugin vars
 				parts = prop.toString().split( " " )
@@ -907,7 +908,7 @@ WHERE
 						continue
 
 					order = int(parts[1])
-					ManagerWindow.RLID_WMS[order] = l.getLayerID()
+					ManagerWindow.RLID_WMS[order] = lid
 
 					# check for offline layers
 					if key == "RLID_WMS_OFFLINE":
@@ -915,7 +916,7 @@ WHERE
 						offline = True
 
 				elif key.startsWith( "VLID_" ):
-					setattr( ManagerWindow, str(key), l.getLayerID() )
+					setattr( ManagerWindow, str(key), lid )
 
 					# set the vector as a read-only layer
 					if isinstance( l, QgsVectorLayer ):
@@ -962,8 +963,8 @@ WHERE
 
 		srs = QgsCoordinateReferenceSystem( self.srid, QgsCoordinateReferenceSystem.EpsgCrsId )
 		renderer = self.canvas.mapRenderer()
-		renderer.setDestinationSrs(srs)
-		renderer.setMapUnits( srs.mapUnits() )
+		self._setRendererCrs(renderer, srs)
+		renderer.setMapUnits( srs.mapUnits() if srs.mapUnits() != QGis.UnknownUnit else QGis.Meters )
 
 
 	def loadLayersInCanvas(self, firstStart=True):
@@ -1044,7 +1045,7 @@ WHERE
 			(errorMsg, result) = vl.loadNamedStyle( style_path )
 			self.iface.legendInterface().refreshLayerSymbology(vl)
 
-			ManagerWindow.VLID_GEOM_ORIG = vl.getLayerID()
+			ManagerWindow.VLID_GEOM_ORIG = self._getLayerId(vl)
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
 			# set custom property
 			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_ORIG") )
@@ -1067,7 +1068,7 @@ WHERE
 			(errorMsg, result) = vl.loadNamedStyle( style_path )
 			self.iface.legendInterface().refreshLayerSymbology(vl)
 
-			ManagerWindow.VLID_GEOM_MODIF = vl.getLayerID()
+			ManagerWindow.VLID_GEOM_MODIF = self._getLayerId(vl)
 			QgsMapLayerRegistry.instance().addMapLayer(vl)
 			# set custom property
 			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_MODIF") )
@@ -1243,4 +1244,23 @@ WHERE
 			self.clear()
 			self.widget.deleteLater()
 			del self.widget
+
+
+	@classmethod
+	def _getLayerId(self, layer):
+		if hasattr(layer, 'id'):
+			return layer.id()
+		return layer.getLayerID() 
+
+	@classmethod
+	def _getRendererCrs(self, renderer):
+		if hasattr(renderer, 'destinationCrs'):
+			return renderer.destinationCrs()
+		return renderer.destinationSrs()
+
+	@classmethod
+	def _setRendererCrs(self, renderer, crs):
+		if hasattr(renderer, 'setDestinationCrs'):
+			return renderer.setDestinationCrs( crs )
+		return renderer.setDestinationSrs( crs )
 

@@ -230,7 +230,7 @@ class DlgWmsLayersManager(DlgWaiting):
 
 						elif prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
 							order = int( prop.toString().split(" ")[1] )
-							ManagerWindow.RLID_WMS[order] = layer.getLayerID()
+							ManagerWindow.RLID_WMS[order] = ManagerWindow._getLayerId(layer)
 
 						# show/hide the layer 
 						legend.setLayerVisible(layer, visible)
@@ -396,7 +396,7 @@ class DlgWmsLayersManager(DlgWaiting):
 			if not rl.isValid():
 				continue
 
-			ManagerWindow.RLID_WMS[order] = rl.getLayerID()
+			ManagerWindow.RLID_WMS[order] = ManagerWindow._getLayerId(rl)
 			QgsMapLayerRegistry.instance().addMapLayer(rl)
 			ManagerWindow.instance.iface.legendInterface().setLayerVisible( rl, False )
 			# set custom property
