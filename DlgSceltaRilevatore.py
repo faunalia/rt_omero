@@ -159,10 +159,10 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 		if cache_path.isEmpty():
 			cache_path = self._getPathToDb()
 		else:			
-			cache_path = QDir(cache_path)
-			if cache_path.dirName() == subdir:
-				cache_path.cd( ".." )
-				cache_path = cache_path.absolutePath()
+			cache_dir = QDir(cache_path)
+			if cache_dir.dirName() == subdir:
+				cache_dir.cd( ".." )
+				cache_path = cache_dir.absolutePath()
 
 		if ManagerWindow.instance.startedYet:
 			caption = u"Seleziona la directory dove salvare la cache"
