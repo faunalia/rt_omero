@@ -92,9 +92,10 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 	def toHtml(self):
 		valori = QStringList() << self.ZZ_TIPO.getValues(False)
 		if self.ALTRO.isEnabled():
-			for v in valori:
+			for i in range(len(valori)):
+				v = valori[i]
 				if v.endsWith("Altro"):
-					valori.remove(v)
+					valori.removeAt(i)
 					break
 			valori << self.getValue(self.ALTRO)
 
