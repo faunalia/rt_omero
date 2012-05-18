@@ -17,17 +17,20 @@ class ManagerPlugin:
 		self.action = QAction(QIcon(":/icons/rt_omero.png"), "RT Omero", self.iface.mainWindow())
 		QObject.connect(self.action, SIGNAL("triggered()"), self.run)
 
-		#self.createEmptyDbAction = QAction(QIcon(""), "Crea DB vuoto", self.iface.mainWindow())
-		#QObject.connect(self.createEmptyDbAction, SIGNAL("triggered()"), self.createEmptyDb)
+		self.createEmptyDbAction = QAction(QIcon(""), "Crea DB vuoto", self.iface.mainWindow())
+		QObject.connect(self.createEmptyDbAction, SIGNAL("triggered()"), self.createEmptyDb)
 	
 		# Add toolbar button and menu item
-		self.iface.addToolBarIcon(self.action)
+		if hasattr( self.iface, 'addDatabaseToolBarIcon' ):
+			self.iface.addDatabaseToolBarIcon(self.action)
+		else:
+			self.iface.addToolBarIcon(self.action)
 		if hasattr( self.iface, 'addPluginToDatabaseMenu' ):
 			self.iface.addPluginToDatabaseMenu("&Omero RT", self.action)
-			#self.iface.addPluginToDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToDatabaseMenu("&Omero RT", self.createEmptyDbAction)
 		else:
 			self.iface.addPluginToMenu("&Omero RT", self.action)
-			#self.iface.addPluginToMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToMenu("&Omero RT", self.createEmptyDbAction)
 
 		QObject.connect(self.iface, SIGNAL("projectRead()"), self.loadProject)
 	
@@ -37,12 +40,15 @@ class ManagerPlugin:
 		# Remove the plugin menu item and icon
 		if hasattr( self.iface, 'removePluginDatabaseMenu' ):
 			self.iface.removePluginDatabaseMenu("&Omero RT", self.action)
-			#self.iface.removePluginDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginDatabaseMenu("&Omero RT", self.createEmptyDbAction)
 		else:
 			self.iface.removePluginMenu("&Omero RT", self.action)
-			#self.iface.removePluginMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginMenu("&Omero RT", self.createEmptyDbAction)
 
-		self.iface.removeToolBarIcon(self.action)
+		if hasattr( self.iface, 'removeDatabaseToolBarIcon' ):
+			self.iface.removeDatabaseToolBarIcon(self.action)
+		else:
+			self.iface.removeToolBarIcon(self.action)
 
 		if self.dlg:
 			self.dlg.close()

@@ -31,7 +31,7 @@ from ConnectionManager import ConnectionManager
 
 class AutomagicallyUpdater:
 
-	DEBUG = False
+	DEBUG = True
 
 	DEFAULT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite

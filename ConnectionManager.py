@@ -252,10 +252,20 @@ class PySLQuery:
 			params = self._namedParams if len(self._namedParams) > 0 else self._markParams
 			self._cursor.execute(u"%s" % self._query, params)
 		except sqlite.Error, e:
-			self._error = PySLError( str(e) )
+			self._error = PySLError( unicode(e.message, 'utf8') )
 			return False
 
 		return True
+
+	def executeScript(self, sqlscript):
+		try:
+			self._cursor.executescript( unicode(sqlscript) )
+		except sqlite.Error, e:
+			self._error = PySLError( unicode(e.message, 'utf8') )
+			return False
+
+		return True
+		
 
 	def lastQuery(self):
 		return QString(self._sql)
@@ -286,4 +296,7 @@ class PySLQuery:
 	def __del__(self):
 		if self._autocommit:
 			self.commit()
+
+class SqlException(Exception):
+	pass
 

@@ -953,14 +953,18 @@ WHERE
 				return False
 		return True
 
-	def reloadCrs(self):
+
+	@classmethod
+	def getSridFromDb(self):
 		query = AutomagicallyUpdater.Query( 'SELECT DISTINCT srid FROM geometry_columns' )
 		srid = query.getFirstResult()
 		try:
-			self.srid = int( srid )
+			return int( srid )
 		except ValueError, e:
-			self.srid = ManagerWindow.DEFAULT_SRID
+			return ManagerWindow.DEFAULT_SRID
 
+	def reloadCrs(self):
+		self.srid = self.getSridFromDb()
 		srs = QgsCoordinateReferenceSystem( self.srid, QgsCoordinateReferenceSystem.EpsgCrsId )
 		renderer = self.canvas.mapRenderer()
 		self._setRendererCrs(renderer, srs)
@@ -996,7 +1000,7 @@ WHERE
 		oldSnapOptions = customizeSnapping( customSnapOptions )
 
 		try:
-			# recupera ed imposta il CRS della canvas
+			# recupera dal database il CRS e lo imposta in canvas
 			self.reloadCrs()
 
 			# carica i layer wms

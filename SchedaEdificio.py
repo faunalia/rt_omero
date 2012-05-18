@@ -106,14 +106,17 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 	def webViewLoadFinished(self, ok):
 		if ok:
 			lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
-			outFn = "%s.pdf" % self.getTitoloStampa()
+			outFn = u"%s.pdf" % self.getTitoloStampa()
 			import os.path
 			outFn = os.path.join( str(lastDir), outFn )
 
 			from ManagerWindow import ManagerWindow
 			printer = ManagerWindow.instance.getPrinter()
 			printer.setOutputFormat( QPrinter.PdfFormat )
+			#printer.setPaperSize( QPrinter.A4 )
+			#printer.setOrientation( QPrinter.Portrait )
 			printer.setOutputFileName( outFn )
+			printer.setCreator( "Omero RT plugin (Quantum GIS)" )
 
 			if self._previewOnPrinting:
 				printDlg = QPrintPreviewDialog(printer, self)
@@ -178,65 +181,23 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		filename = tmp.fileName()
 		tmp.close()
 
+		# get the reference to the main canvas and its renderer
 		from ManagerWindow import ManagerWindow
 		mainCanvas = ManagerWindow.instance.iface.mapCanvas()
 		prevRenderFlag = mainCanvas.renderFlag()
 		mainCanvas.setRenderFlag( False )
+		mainRenderer = ManagerWindow.instance.iface.mapCanvas().mapRenderer()
 
-		canvas = qgis.gui.QgsMapCanvas( ManagerWindow.instance.iface.mainWindow() )
-		canvas.setCanvasColor( Qt.white )
-		canvas.show()
-		canvas.setFixedSize( size.width(), size.height() )
-		canvas.setRenderFlag( False )
+		# create the output image and pre-fill it
+		image = QImage( size, QImage.Format_ARGB32_Premultiplied )
+		image.fill( QColor(255, 255, 255, 0).value() )
 
-		settings = QSettings()
-		canvas.enableAntiAliasing( settings.value( "/qgis/enable_anti_aliasing", QVariant(False) ).toBool() )
-		canvas.useImageToRender( settings.value( "/qgis/use_qimage_to_render", QVariant(False) ).toBool() )
-
-		renderer = ManagerWindow.instance.iface.mapCanvas().mapRenderer()
-		canvas.mapRenderer().setDestinationSrs( renderer.destinationSrs() )
-		canvas.mapRenderer().setMapUnits( renderer.mapUnits() )
-
-		canvasLayers = []
-		# add WMS layers
-		for order, rlid in sorted( ManagerWindow.RLID_WMS.iteritems() ):
-			layer = QgsMapLayerRegistry.instance().mapLayer( rlid )
-			if layer != None and ManagerWindow.instance.iface.legendInterface().isLayerVisible( layer ):
-				cl = qgis.gui.QgsMapCanvasLayer(layer)
-				canvasLayers.insert(0, cl)
-
-		# add other layers
-		layers = [ManagerWindow.VLID_GEOM_ORIG, ManagerWindow.VLID_GEOM_MODIF, ManagerWindow.VLID_FOTO]
-		for vlid in layers:
-			layer = QgsMapLayerRegistry.instance().mapLayer( vlid )
-			if layer != None:
-				layer.removeSelection()
-				cl = qgis.gui.QgsMapCanvasLayer(layer)
-				canvasLayers.insert(0, cl)
-
-		canvas.setLayerSet( canvasLayers )
-
-		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
-		if layerOrig != None:
-			prevOrigState = ManagerWindow.instance.iface.legendInterface().isLayerVisible( layerOrig )
-			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerOrig, True )
-
-		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
-		if layerModif != None:
-			prevModifState = ManagerWindow.instance.iface.legendInterface().isLayerVisible( layerModif )
-			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerModif, True )
-			mainCanvas.setRenderFlag( True )
-			
-			# select the geometries
-			query = AutomagicallyUpdater.Query( "SELECT gmod.ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gmod JOIN SCHEDA_UNITA_VOLUMETRICA AS suv ON gmod.ID_UV_NEW = suv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE SCHEDA_EDIFICIOID = ?", [ self._ID ] ).getQuery()
-			if query.exec_():
-				selIds = []
-				while query.next():
-					selIds.append( query.value(0).toInt()[0] )
-				layerModif.setSelectedFeatures( selIds )
-
-			canvas.zoomToSelected( layerModif )
-		canvas.zoomScale( scale )
+		# create a new renderer and setup it
+		mapRenderer = qgis.core.QgsMapRenderer()
+		mapRenderer.setOutputSize( size, image.logicalDpiX() )
+		mapRenderer.setDestinationSrs( mainRenderer.destinationSrs() )
+		mapRenderer.setMapUnits( mainRenderer.mapUnits() )
+		mapRenderer.setProjectionsEnabled( mainRenderer.hasCrsTransformEnabled() )
 
 		# override the selection color
 		prevColor = QgsRenderer.selectionColor()
@@ -244,37 +205,59 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		newColor.setAlpha(127)
 		QgsRenderer.setSelectionColor( newColor )
 
-		# save the map to a file
-		eventLoopHandler = [ QEventLoop(self) ]
-		def savePainter(p, scale, evlHandler):
-			renderScaleLabel(p, scale)
-			evlHandler[0].quit()
-			evlHandler[0].deleteLater()
-			del evlHandler[0]
+		# add layers to renderer layer set
+		layerIds = []
+		# add WMS layers
+		for order, rlid in sorted( ManagerWindow.RLID_WMS.iteritems() ):
+			layer = QgsMapLayerRegistry.instance().mapLayer( rlid )
+			if layer != None and ManagerWindow.instance.iface.legendInterface().isLayerVisible( layer ):
+				layerIds.insert(0, getattr(layer, 'id', layer.getLayerID)() )
 
-		onRenderFunc = lambda x: savePainter(x, scale, eventLoopHandler)
-		self.connect(canvas, SIGNAL("renderComplete(QPainter *)"), onRenderFunc)
-		canvas.setRenderFlag( True )
+		# add other layers
+		layers = [ManagerWindow.VLID_GEOM_ORIG, ManagerWindow.VLID_GEOM_MODIF, ManagerWindow.VLID_FOTO]
+		for vlid in layers:
+			layer = QgsMapLayerRegistry.instance().mapLayer( vlid )
+			if layer != None:
+				layer.removeSelection()
+				layerIds.insert(0, getattr(layer, 'id', layer.getLayerID)() )
 
-		if len(eventLoopHandler) > 0:
-			eventLoopHandler[0].exec_( QEventLoop.ExcludeUserInputEvents )
-		
-		self.disconnect(canvas, SIGNAL("renderComplete(QPainter *)"), onRenderFunc)
-		canvas.saveAsImage( filename, None, ext.upper() )
-		extent = canvas.extent()
-		canvas.deleteLater()
-		del canvas
+		mapRenderer.setLayerSet( layerIds )
 
-		# remove the wordfile create by canvas.saveAsImage()
-		wordfile = QFile( filename[:-4] + filename[-4:].toUpper() + "w" )
-		if wordfile.exists():
-			wordfile.remove()
-
-		# restore the original state and color
-		if layerOrig != None:
-			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerOrig, prevOrigState )
+		# select the geometries
+		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
 		if layerModif != None:
-			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerModif, prevModifState )
+			query = AutomagicallyUpdater.Query( "SELECT gmod.ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gmod JOIN SCHEDA_UNITA_VOLUMETRICA AS suv ON gmod.ID_UV_NEW = suv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE SCHEDA_EDIFICIOID = ?", [ self._ID ] ).getQuery()
+			if query.exec_():
+				selIds = []
+				while query.next():
+					selIds.append( query.value(0).toInt()[0] )
+				layerModif.setSelectedFeatures( selIds )
+
+			mapRenderer.setExtent( layerModif.boundingBoxOfSelected() )
+
+		# zoom at the scale
+		extent = mapRenderer.extent()
+		extent.scale( scale / mapRenderer.scale() )
+		mapRenderer.setExtent( extent )
+
+		settings = QSettings()
+		antiAliasingEnabled = settings.value( "/qgis/enable_anti_aliasing", QVariant(False) ).toBool()
+
+		painter = QPainter( image )
+		painter.setRenderHints( QPainter.RenderHints() | (QPainter.Antialiasing if antiAliasingEnabled else 0) )
+
+		mapRenderer.render( painter )
+		renderScaleLabel(painter, scale)
+
+		mapRenderer.deleteLater()
+		del mapRenderer
+		del painter
+
+		# save the image to a file
+		image.save( filename, ext.upper() )
+		del image
+
+		# restore the canvas original state and selection color
 		QgsRenderer.setSelectionColor( prevColor )
 		mainCanvas.setRenderFlag( prevRenderFlag )
 
