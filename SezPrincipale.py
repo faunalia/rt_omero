@@ -97,7 +97,7 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 <table class="blue">
 	<tr class="line">
 		<!--<td>ID Scheda</td><td class="value">%s<br><span class="tooltip">COD. ISTAT COMUNE</span></td><td class="value" width="5px">-</td><td class="value">%s<br><span class="tooltip">NUM. SCHEDA</span></td><td class="value" width="5px">_</td><td class="value">%s<br><span class="tooltip">ID_RIL</span></td>-->
-		<td>ID Scheda</td><td class="value center">%s<span style="padding: 0 5px;">-</span>%s<span style="padding: 0 5px;">_</span>%s<br><span class="tooltip">COD. ISTAT COMUNE<span style="padding: 0 10px;">-</span>NUM. SCHEDA<span style="padding: 0 10px;">_</span>ID_RIL</span></td>
+		<td>ID Scheda</td><td class="value center">%s-%s_%s<br><span class="tooltip">COD. ISTAT COMUNE<span style="padding: 0 10px;">-</span>NUM. SCHEDA<span style="padding: 0 10px;">_</span>ID_RIL</span></td>
 		<td class="line">Data</td><td class="value">%s<br><span class="tooltip">GG MM AAAA</span></td>
 	</tr>
 </table>
