@@ -1,0 +1,30 @@
+; the next section is mandatory
+[general]
+name=RT Omero
+description=Omero plugin per la Regione Toscana
+version=1.1.2
+qgisMinimumVersion=1.7.0
+
+; not used yet
+category=Database
+
+; end of mandatory metadata
+
+; start of optional metadata
+author=Giuseppe Sucameli (Faunalia)
+lang=it_IT
+
+changelog=
+
+; tags are in comma separated value format, spaces are allowed
+tags=cadastre,RT,spatialite
+
+homepage=http://www.faunalia.com/
+tracker=http://hub.qgis.org/projects/rtomero
+repository=http://hub.qgis.org/projects/rtomero/repository
+
+; path to a icon within the plugin folder
+icon=icons/rt_omero.png
+
+experimental=False
+deprecated=False
