@@ -380,11 +380,31 @@ class DlgWmsLayersManager(DlgWaiting):
 			format = "image/%s" % format.toLower()
 
 			if not ManagerWindow.instance.offlineMode:
-				# online mode, carica il layer wms
-				rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
+				# online mode, load layers from the wms server
+				if QGis.QGIS_VERSION[0:3] <= "1.8":	# API changes from QGis 1.9
+					rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
+				else:
+					if hasattr(QgsDataSourceURI, 'setParam'):
+						uri = QgsDataSourceURI()
+					else:
+						# workaround: use QUrl in the meantime the 
+						# QgsDataSourceURI.setParam method is missing (it's 
+						# available from QGis 1.9)
+						uri = QUrl()
+						uri.setParam = lambda key, val: [uri.addQueryItem(key, v) for v in val] if isinstance(val, (list, tuple, QStringList)) else uri.addQueryItem(key, val)
+						uri.encodedUri = lambda: uri.encodedQuery()
+
+					uri.setParam("url", url)
+					uri.setParam("layers", layers)
+					uri.setParam("styles", styles)
+					uri.setParam("format", format)
+					uri.setParam("crs", crs)
+					
+					rl = QgsRasterLayer(QString(uri.encodedUri()), title, 'wms')
+
 				prop = "RLID_WMS %s" % order
 			else:
-				# offline mode, carica il layer dalla cache
+				# offline mode, load layers from local cache
 				escaped_title = title.replace( QRegExp("[^a-zA-Z0-9]"), "_" ).toLower()[:100]
 				vrt_path = QDir( AutomagicallyUpdater.getPathToCache() ).absoluteFilePath( u'%s.vrt' % escaped_title )
 				if not QFileInfo( vrt_path ).exists():
