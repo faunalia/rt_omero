@@ -1189,6 +1189,14 @@ WHERE
 	def getPrinter(self):
 		if not hasattr(ManagerWindow.instance, '_printer'):
 			ManagerWindow.instance._printer = QPrinter( QPrinter.HighResolution )
+
+			# try to avoid huge PDF files on Win
+			try:
+				QgsPaintEngineHack.fixEngineFlags( ManagerWindow.instance._printer.paintEngine() )
+			except:
+				pass
+
+
 		return ManagerWindow.instance._printer
 
 	@classmethod
