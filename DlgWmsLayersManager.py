@@ -369,14 +369,13 @@ class DlgWmsLayersManager(DlgWaiting):
 			transparent = query.value(6).toString()
 			version = query.value(7).toString()
 
-			layers = layers.split(",")
-			styles = [ 'pseudo' ] * len(layers)
+			styles = u",".join( [ 'pseudo' ] * len(layers) )
 			format = "image/%s" % format.toLower()
 
 			if not ManagerWindow.instance.offlineMode:
 				# online mode, load layers from the wms server
 				if QGis.QGIS_VERSION[0:3] <= "1.8":	# API changes from QGis 1.9
-					rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
+					rl = QgsRasterLayer(0, url, title, 'wms', layers.split(","), styles.split(","), format, crs)
 				else:
 					uri = QgsDataSourceURI()
 					uri.setParam("url", url)
