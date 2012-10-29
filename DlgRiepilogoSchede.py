@@ -90,10 +90,10 @@ SELECT
 						WHEN 1 THEN
 							substr(ind.VIA, 0, 50) || '...'
 						ELSE ind.VIA
-					END || 
+					END || ', ' || 
 					CASE civ.CIVICO = '' OR civ.CIVICO IS NULL 
 						WHEN 0 THEN
-							', ' || civ.CIVICO
+							civ.CIVICO
 						ELSE '...'
 					END
 				ELSE '%s'
