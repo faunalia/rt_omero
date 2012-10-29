@@ -50,6 +50,9 @@ class SezInterventi(QWidget, MappingPart):
 
 	def toHtml(self):
 		epoca = self.INTERVENTO_EDIFICIO.firstTab.EPOCA_COSTRUTTIVA
+		inizio_epoca_costruttiva = self.getValue(epoca.INIZIO_EPOCA_COSTRUTTIVA)
+		fine_epoca_costruttiva = self.getValue(epoca.FINE_EPOCA_COSTRUTTIVA)
+
 		return QString( u"""
 <div id="sez4" class="block">
 <p class="section">SEZIONE A4 - DATAZIONE INTERVENTI DELL'EDIFICIO</p>
@@ -65,5 +68,5 @@ class SezInterventi(QWidget, MappingPart):
 </table>
 %s
 </div>
-""" % ( self.getValue(epoca.INIZIO_EPOCA_COSTRUTTIVA), self.getValue(epoca.FINE_EPOCA_COSTRUTTIVA), epoca.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID.currentText(), self.INTERVENTO_EDIFICIO.toHtml() )
+""" % ( inizio_epoca_costruttiva if inizio_epoca_costruttiva != None else '', fine_epoca_costruttiva if fine_epoca_costruttiva != None else '', epoca.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID.currentText(), self.INTERVENTO_EDIFICIO.toHtml() )
 )

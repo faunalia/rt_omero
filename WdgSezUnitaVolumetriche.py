@@ -81,13 +81,12 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 	def save(self):
 		if self.uvID == None:
 			return False
-		
-		# salva le tabelle collegate a questa con relazione Uno a Uno
-		for widget in self._recursiveChildrenRefs():
-			if not ( isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many) ):
-				if not isinstance(widget, MappingOne2One):
-					continue
 
+		allChildren = self._recursiveChildrenRefs()
+
+		# salva le tabelle collegate a questa con relazione Uno a Uno
+		for parent, widget in allChildren:
+			if isinstance(widget, MappingOne2One):
 				if widget == self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID:
 					if not self.edificioOrdinarioRadio.isChecked():
 						self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID.delete()
@@ -102,9 +101,9 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 					return False
 
 		values = {}
-		for widget in self._recursiveChildrenRefs():
-			if not ( isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many) ):
-				value = self.getValue(widget)
+		for parent, widget in allChildren:
+			if not isinstance(widget, (MappingOne2Many, MappingMany2Many)):
+				value = parent.getValue(widget)
 
 				if widget == self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID:
 					if not self.edificioOrdinarioRadio.isChecked():

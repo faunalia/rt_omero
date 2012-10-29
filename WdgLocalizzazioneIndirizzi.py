@@ -200,9 +200,10 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		ID = None
 
 		values = {}
-		for widget in self._recursiveChildrenRefs():
-			if not ( isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many) ):
-				value = self.getValue(widget)
+		for parent, widget in self._recursiveChildrenRefs():
+			if not isinstance(widget, (MappingOne2Many, MappingMany2Many)):
+				value = parent.getValue(widget)
+
 				if widget == self.VIA:
 					# non salvare duplicati: controlla che la via non esista già
 					if value != None:

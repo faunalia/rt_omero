@@ -46,9 +46,39 @@ class GrpEpocaCostruttiva(QGroupBox, MappingPart, Ui_GroupBox):
 		# mappa i widget con i campi delle tabelle
 		childrenList = [
 			self.INIZIO_EPOCA_COSTRUTTIVA,
-			self.FINE_EPOCA_COSTRUTTIVA, 
+			(self.FINE_EPOCA_COSTRUTTIVA, AutomagicallyUpdater.OPTIONAL),
 			self.ZZ_QUALITA_INFORMAZIONE_EPOCA_COSTRUTTIVAID
 		]
 		self.setupValuesUpdater(childrenList)
 
+		# update the color of the checkboxes associated to required widgets
+		QObject.connect( self.INIZIO_EPOCA_COSTRUTTIVA_check, SIGNAL("toggled(bool)"), self.updateWidgetColor )
+		self.updateWidgetColor()
+
+	def updateWidgetColor(self):
+		self._refreshWidgetColor(self.INIZIO_EPOCA_COSTRUTTIVA)
+		self.INIZIO_EPOCA_COSTRUTTIVA_check.setStyleSheet( self.INIZIO_EPOCA_COSTRUTTIVA.styleSheet() )
+
+
+	def setValue(self, widget, value):
+		widget = self._getRealWidget(widget)
+		value = self._getRealValue(value)
+		# update the state of the checkboxes
+		if widget == self.INIZIO_EPOCA_COSTRUTTIVA:
+			self.INIZIO_EPOCA_COSTRUTTIVA_check.setChecked( value != None )
+			if value == None:
+				value = QDate.currentDate().year()
+		if widget == self.FINE_EPOCA_COSTRUTTIVA:
+			self.FINE_EPOCA_COSTRUTTIVA_check.setChecked( value != None )
+			if value == None:
+				value = QDate.currentDate().year()
+		return AutomagicallyUpdater.setValue(widget, value)
+
+	def getValue(self, widget):
+		if self._getRealWidget(widget) != self.INIZIO_EPOCA_COSTRUTTIVA:
+			return AutomagicallyUpdater.getValue(widget)
+
+		# INIZIO_EPOCA_COSTRUTTIVA column is NOT NULL, store VALORE_NON_INSERITO
+		value = AutomagicallyUpdater.getValue(widget)
+		return value if value != None else AutomagicallyUpdater.VALORE_NON_INSERITO
 

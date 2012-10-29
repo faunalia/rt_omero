@@ -60,7 +60,7 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 
 	def setupLoader(self, ID=None):
 		MappingPart.setupLoader(self, ID)
-		self.setValue(self.schedaID, ID)		
+		self.setValue(self.schedaID, ID)
 
 	def refreshId(self, ID=None):
 		MappingPart.refreshId(self, ID)

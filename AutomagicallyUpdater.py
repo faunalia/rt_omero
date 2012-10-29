@@ -223,18 +223,6 @@ class AutomagicallyUpdater:
 	VALORE_NON_INSERITO = QString('-900099')
 
 	@classmethod
-	def _refreshWidgetColor(self, widget):
-		widget = self._getRealWidget(widget)
-		if not hasattr(widget, 'setStyleSheet'):
-			return
-
-		value = self._getRealValue( self.getValue(widget) )
-		if value == None and widget.isEnabled():
-			widget.setStyleSheet("background-color: yellow")
-		else:
-			widget.setStyleSheet("")
-
-	@classmethod
 	def loadValues(self, widget, action):
 		widget = self._getRealWidget(widget)
 		if widget == None:
@@ -649,7 +637,7 @@ class AutomagicallyUpdater:
 			fields << name
 			if value == None and QString(name).startsWith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
-			elif isinstance(value, buffer) or isinstance(value, QByteArray):
+			elif isinstance(value, (buffer, QByteArray)):
 				bindValues.append( value )
 				value = '?'
 			else:
@@ -700,7 +688,7 @@ class AutomagicallyUpdater:
 		for name, value in name2valueDict.iteritems():
 			if value == None and QString(name).startsWith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
-			elif isinstance(value, buffer) or isinstance(value, QByteArray):
+			elif isinstance(value, (buffer, QByteArray)):
 				bindValues.append( value )
 				value = '?'
 			else:
@@ -748,7 +736,7 @@ class AutomagicallyUpdater:
 		for name, value in name2valueDict.iteritems():
 			if value == None and QString(name).startsWith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
-			elif isinstance(value, buffer) or isinstance(value, QByteArray):
+			elif isinstance(value, (buffer, QByteArray)):
 				bindValues.append( value )
 				value = '?'
 			else:
@@ -930,8 +918,8 @@ class MappingOne2One(AutomagicallyUpdater):
 		allChildren = self._recursiveChildrenRefs()
 		
 		# salva le tabelle collegate a questa con relazione Uno a Uno
-		for widget in allChildren:
-			if not ( isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many) ):
+		for parent, widget in allChildren:
+			if not isinstance(widget, (MappingOne2Many, MappingMany2Many)):
 				if not isinstance(widget, MappingOne2One):
 					continue
 				if not widget.save():
@@ -939,9 +927,9 @@ class MappingOne2One(AutomagicallyUpdater):
 
 		values = {}
 		# salva i valori dei widget riferiti da questa tabella
-		for widget in allChildren:
-			if not ( isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many) ):
-				values[widget.objectName()] = self.getValue(widget)
+		for parent, widget in allChildren:
+			if not isinstance(widget, (MappingOne2Many, MappingMany2Many)):
+				values[widget.objectName()] = parent.getValue(widget)
 
 		ID = self._saveValue(values, self._tableName, self._pkColumn, self._ID)
 
@@ -957,8 +945,8 @@ class MappingOne2One(AutomagicallyUpdater):
 
 		# salva i valori delle tabelle collegate con relazione Uno a Molti e 
 		# Molti a Molti
-		for widget in allChildren:
-			if isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many):
+		for parent, widget in allChildren:
+			if isinstance(widget, (MappingOne2Many, MappingMany2Many)):
 				if self._ID == None:	# se non esisteva
 					widget._ID = ID
 				if not widget.save():
@@ -969,7 +957,7 @@ class MappingOne2One(AutomagicallyUpdater):
 
 	def delete(self):
 		# elimina i valori delle tabelle collegate
-		for widget in self._recursiveChildrenRefs():
+		for parent, widget in self._recursiveChildrenRefs():
 			if isinstance(widget, MappingOne2One):
 				widget.delete()
 
@@ -998,9 +986,14 @@ class MappingOne2One(AutomagicallyUpdater):
 
 	def _refreshWidgetColor(self, widget):
 		widget = self._getRealWidget(widget)
-		if self._requiredChildren.count(widget) == 0:
+		if not hasattr(widget, 'setStyleSheet'):
 			return
-		AutomagicallyUpdater._refreshWidgetColor(widget)
+
+		value = self._getRealValue( self.getValue(widget) )
+		if widget in self._requiredChildren and value == None:# and widget.isEnabled():
+			widget.setStyleSheet("background-color: yellow")
+		else:
+			widget.setStyleSheet("")
 
 
 	def setupLoader(self, ID=None):
@@ -1010,7 +1003,7 @@ class MappingOne2One(AutomagicallyUpdater):
 	def setupValuesUpdater(self, actionsList):
 		for action in actionsList:
 			role = self.REQUIRED
-			if isinstance(action, tuple) or isinstance(action, list):
+			if isinstance(action, (tuple, list)):
 				child = action[0]
 				if len(action) > 1:
 					role = action[1]
@@ -1035,11 +1028,11 @@ class MappingOne2One(AutomagicallyUpdater):
 		# imposta il valore di default
 		self.setValue(widget, None)
 
-		if role == self.NONE:
-			return
-
 		if role == None:
 			role = self.REQUIRED
+
+		if role == self.NONE:
+			return
 
 		if role == self.REQUIRED:
 			self._requiredChildren.append(widget)
@@ -1074,7 +1067,7 @@ class MappingOne2One(AutomagicallyUpdater):
 
 	def delChildRef(self, widget):
 		widget = self._getRealWidget(widget)
-		if self._childrenRefs.count(widget) == 0:
+		if widget not in self._childrenRefs:
 			return
 		if isinstance(widget, AutomagicallyUpdater):
 			widget._parentRef = None
@@ -1087,7 +1080,7 @@ class MappingOne2One(AutomagicallyUpdater):
 			if isinstance(widget, MappingPart):
 				allChildren.extend( widget._recursiveChildrenRefs() )
 			else:
-				allChildren.append( widget )
+				allChildren.append( (self, widget) )
 		return allChildren
 
 	def _refreshWidgetState(self):
@@ -1124,6 +1117,40 @@ class MappingOne2One(AutomagicallyUpdater):
 				query.bindValue( 'id%s' % i, ID )
 		return query
 
+	def retrieveValue(self, widget, action=None):
+		action = self._computeAction(widget, action)
+
+		if isinstance(action, AutomagicallyUpdater.Query):
+			query = self._computeQuery( action.getQuery() )
+			if query == None:
+				return
+
+			if not query.exec_():
+				self._onQueryError( query.lastQuery(), query.lastError().text(), self._getRealWidget(widget) )
+				return
+			if not query.next():
+				return
+
+			return query.value(0)
+
+	def _computeAction(self, widget, action=None):
+		if action != None:
+			return action
+
+		widget = self._getRealWidget(widget)
+		if widget == None:
+			return
+
+		whereClauses = QStringList()
+		if not hasattr(self._pkColumn, '__iter__'):
+			whereClauses << "%s = :id" % (self._pkColumn)
+		else:
+			for i, pk in enumerate(self._pkColumn):
+				whereClauses << "%s = :id%n" % (pk, i)
+
+		return AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s" % ( widget.objectName(), self._tableName, whereClauses.join(" AND ") ) )
+
+
 	def loadValues(self, widget=None, action=None):
 		if widget == None:
 			return self._recursiveUpdate('loadValues')
@@ -1137,28 +1164,9 @@ class MappingOne2One(AutomagicallyUpdater):
 		elif isinstance(widget, MappingOne2Many):
 			return widget.setupLoader(self._ID)
 
-		if action == None:
-			whereClauses = QStringList()
-			if not hasattr(self._pkColumn, '__iter__'):
-				whereClauses << "%s = :id" % (self._pkColumn)
-			else:
-				for i, pk in enumerate(self._pkColumn):
-					whereClauses << "%s = :id%n" % (pk, i)
-
-			action = AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s" % ( widget.objectName(), self._tableName, whereClauses.join(" AND ") ) )
-
-		if isinstance(action, AutomagicallyUpdater.Query):
-			query = self._computeQuery( action.getQuery() )
-			if query == None:
-				return
-
-			if not query.exec_():
-				self._onQueryError( query.lastQuery(), query.lastError().text(), widget )
-				return
-			if not query.next():
-				return
-
-			self.setValue(widget, query.value(0))
+		value = self.retrieveValue( widget, action )
+		if value is not None:
+			self.setValue(widget, value)
 
 
 	def loadTables(self, widget=None, action=None):
@@ -1200,14 +1208,11 @@ class MappingOne2Many(MappingOne2One):
 
 		ret = True
 		# salva i valori dei widget riferiti da questa tabella
-		for widget in self._recursiveChildrenRefs():
-			if not ( isinstance(widget, MappingOne2Many) or isinstance(widget, MappingMany2Many) ):
-				if not isinstance(widget, MappingOne2One):
-					continue
-
+		for parent, widget in self._recursiveChildrenRefs():
+			if isinstance(widget, MappingOne2One):
 				if hasattr(widget, self._parentPkColumn):
 					parentIDwidget = getattr(widget, self._parentPkColumn)
-					self.setValue(parentIDwidget, self._ID)
+					parent.setValue(parentIDwidget, self._ID)
 				ret = widget.save()
 				if not ret:
 					break

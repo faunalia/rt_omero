@@ -63,6 +63,20 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		]
 		self.setupValuesUpdater(childrenList)
 
+	def setValue(self, widget, value):
+		widget = self._getRealWidget(widget)
+		value = self._getRealValue(value)
+		if widget == self.DATA_TITOLO_ABILITATIVO:
+			self.DATA_TITOLO_ABILITATIVO_check.setChecked( value != None )
+			if value == None:
+				value = QDate.currentDate()
+		if widget == self.ANNO_PROGETTAZIONE:
+			self.ANNO_PROGETTAZIONE_check.setChecked( value != None )
+			if value == None:
+				value = QDate.currentDate().year()
+		return AutomagicallyUpdater.setValue(widget, value)
+
+
 	def showOtherInfos(self, show=True):
 		# fix ticket 181
 		sql = "SELECT * FROM ZZ_TIPO_INTERVENTO WHERE DESCRIZIONE %s LIKE '01 %%' ORDER BY DESCRIZIONE ASC" % ( "" if show else "NOT" )
@@ -76,6 +90,7 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 	def toHtml(self, index):
 		descrizione = self.getValue(self.DESCRIZ_INTERV)
 		titolo_abilitivo = self.getValue(self.TITOLO_ABILITATIVO)
+		data_titolo_abilitativo = self.getValue(self.DATA_TITOLO_ABILITATIVO)
 
 		return QString( u"""
 <table class="white border">
@@ -101,5 +116,5 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		<td>Intervento in corso</td><td colspan="3" class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.ZZ_TIPO_INTERVENTOID.currentText(), self.ZZ_NORMATIVA_SISMICAID.currentText(), self.getValue(self.ANNO_PROGETTAZIONE), self.ZZ_QUALITA_INFORMAZIONEID.currentText(), descrizione if descrizione != None else '', titolo_abilitivo if titolo_abilitivo != None else '', self.getValue(self.DATA_TITOLO_ABILITATIVO), "SI" if self.getValue(self.INTERVENTO_IN_CORSO) else "NO" )
+""" % ( self.ZZ_TIPO_INTERVENTOID.currentText(), self.ZZ_NORMATIVA_SISMICAID.currentText(), self.getValue(self.ANNO_PROGETTAZIONE), self.ZZ_QUALITA_INFORMAZIONEID.currentText(), descrizione if descrizione != None else '', titolo_abilitivo if titolo_abilitivo != None else '', data_titolo_abilitativo if data_titolo_abilitativo != None else '', "SI" if self.getValue(self.INTERVENTO_IN_CORSO) else "NO" )
 )
