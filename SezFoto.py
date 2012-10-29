@@ -77,12 +77,12 @@ class SezFoto(QWidget, MappingPart, Ui_Form):
 		# riduce la scala e ingrandisce le dimensioni dell'immagine in output
 		factor = 1
 
-		# dimensioni e scala per il renderer
+		# size and scale will be passed to the map renderer
 		renderwidth = realwidth * factor
 		renderscale = realscale / factor
 
-		# dimensione dell'immagine nel pdf
-		printwidth = realwidth*1.25	# non è chiaro come mai, ma la dimensione dell'immagine deve essere ingrandita del 25%
+		# size of the image displayed in the HTML page
+		printwidth = realwidth*1.1
 
 		if wdg != None:
 			filename, extent = wdg.creaStralcioCartografico( QSize(renderwidth, renderwidth), renderscale, "png", factor )
