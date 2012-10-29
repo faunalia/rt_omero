@@ -28,10 +28,13 @@ def name():
 	return "RT Omero"
 
 def description():
-	return "Omero is a plugin that allows to fill up a complex database of buildings, integrating data from surveys. It is in Italian, as it has been designed for specific use in Tuscany, but it can be programmatically extended to many similar real world applications."
+	return "Omero is a plugin that allows to fill up a complex database of buildings, integrating data from surveys. It is in Italian, as it has been designed for specific use in Tuscany, but it can be programmatically extended to many similar real world applications. Developed with funding from Regione Toscana-SITA."
 
 def icon():
 	return "icons/rt_omero.png"
+
+def authorName():
+	return "Giuseppe Sucameli (Faunalia)"
 
 def version():
 	return "Version 1.1.4"
