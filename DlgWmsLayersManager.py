@@ -59,15 +59,9 @@ class DlgWmsLayersManager(DlgWaiting):
 			out.close()
 
 		def buildAllPyramids(layer):
-			# set to build all available raster pyramids
-			pyramids = layer.buildPyramidList()
-			for i in range( len(pyramids) ):
-				# mark to be pyramided
-				pyramids[i].build = True
-
 			# create raster pyramids
 			evloop = QEventLoop()
-			thread = BuildPyramidsThread(layer, pyramids)
+			thread = BuildPyramidsThread(layer)
 			QObject.connect( thread, SIGNAL("finished()"), evloop.quit )
 			thread.start()
 			evloop.exec_()
@@ -386,10 +380,8 @@ class DlgWmsLayersManager(DlgWaiting):
 				else:
 					uri = QgsDataSourceURI()
 					uri.setParam("url", url)
-					for l in layers:
-						uri.setParam("layers", l)
-					for s in styles:
-						uri.setParam("styles", s)
+					uri.setParamList("layers", layers)
+					uri.setParamList("styles", styles)
 					uri.setParam("format", format)
 					uri.setParam("crs", crs)
 					
@@ -419,12 +411,21 @@ class DlgWmsLayersManager(DlgWaiting):
 
 
 class BuildPyramidsThread(QThread):
-	def __init__(self, layer, pyramids, parent=None):
+	def __init__(self, layer, parent=None):
 		QThread.__init__(self, parent)
 		self.layer = layer
-		self.pyramids = pyramids
 
 	def run(self):
+		# set to build all available raster pyramids
+		if QGis.QGIS_VERSION[0:3] <= "1.8":	# API changes from QGis 1.9
+			self.layer.dataProvider().buildPyramidList = self.layer.buildPyramidList
+			self.layer.dataProvider().buildPyramids = self.layer.buildPyramids
+
+		pyramids = self.layer.dataProvider().buildPyramidList()
+		for i in range( len(pyramids) ):
+			# mark to be pyramided
+			pyramids[i].build = True
+
 		method = QCoreApplication.translate("QgsGdalProvider", "Average",  None, QApplication.UnicodeUTF8)
-		self.layer.buildPyramids( self.pyramids, method, True )
+		self.layer.dataProvider().buildPyramids( pyramids, method, True )
 
