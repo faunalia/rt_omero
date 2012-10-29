@@ -93,9 +93,8 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 		self._deleteValue(self._tableName, { self._parentPkColumn : self._ID })
 
 		# inserisci i nuovi ID nella tabella di normalizzazione evitando i doppioni
-		allChildren = self._recursiveChildrenRefs()
 		newIDs = []
-		for widget in allChildren:
+		for parent, widget in self._recursiveChildrenRefs():
 			if isinstance(widget, MappingOne2One):
 				if widget._ID in newIDs:
 					continue
@@ -111,7 +110,7 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 
 	def delete(self):
 		# elimina i valori delle tabelle collegate
-		for widget in self._recursiveChildrenRefs():
+		for parent, widget in self._recursiveChildrenRefs():
 			if not isinstance(widget, MappingOne2One):
 				continue
 			if not widget.delete():
