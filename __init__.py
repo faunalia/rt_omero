@@ -33,11 +33,17 @@ def description():
 def icon():
 	return "icons/rt_omero.png"
 
-def authorName():
+def author():
 	return "Giuseppe Sucameli (Faunalia)"
 
+def email():
+	return "sucameli@faunalia.it"
+
+def authorName():
+	return author();
+
 def version():
-	return "Version 1.1.4"
+	return "Version 1.1.5"
 
 def qgisMinimumVersion():
 	return "1.7.0"
