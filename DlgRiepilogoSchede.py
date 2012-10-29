@@ -84,10 +84,18 @@ SELECT
 	sch.ID AS ID, 
 	CASE com.NOME IS NULL 
 		WHEN 0 THEN 
-			CASE ind.VIA = '' OR ind.VIA IS NULL OR civ.CIVICO = '' OR civ.CIVICO IS NULL
+			CASE ind.VIA = '' OR ind.VIA IS NULL
 				WHEN 0 THEN 
-					CASE length(ind.VIA) > 50 WHEN 1 THEN substr(ind.VIA, 0, 50) || '...' ELSE ind.VIA END
-					|| ', ' || civ.CIVICO
+					CASE length(ind.VIA) > 50
+						WHEN 1 THEN
+							substr(ind.VIA, 0, 50) || '...'
+						ELSE ind.VIA
+					END || 
+					CASE civ.CIVICO = '' OR civ.CIVICO IS NULL 
+						WHEN 0 THEN
+							', ' || civ.CIVICO
+						ELSE '...'
+					END
 				ELSE '%s'
 			END 
 			|| ' - ' || com.NOME 
