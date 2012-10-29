@@ -871,7 +871,16 @@ WHERE
 			return False
 
 		self.startedYet = True
-		self.iface.addDockWidget(Qt.LeftDockWidgetArea, self)
+
+		# try to restore position from stored main window state
+		if not self.iface.mainWindow().restoreDockWidget(self):
+			self.iface.mainWindow().addDockWidget(Qt.LeftDockWidgetArea, self)
+		# force show even if it was restored as hidden
+		self.show()
+		self.activateWindow()
+		self.raise_()
+		QApplication.processEvents( QEventLoop.ExcludeUserInputEvents )
+
 		return True
 
 
