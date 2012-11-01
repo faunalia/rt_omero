@@ -58,62 +58,6 @@ class SezFoto(QWidget, MappingPart, Ui_Form):
 		self.fileEdit.setText( filename )
 		self.listaFoto.caricaImmagine( filename )
 
-	def toHtml(self):
-		# recupera la scheda
-		wdg = self
-		while not isinstance(wdg, QMainWindow) or not hasattr(wdg, 'creaStralcioCartografico'):
-			if wdg.parent() == None:
-				wdg = None
-				break
-			wdg = wdg.parent()
-
-		filename = xmin = ymin = xmax = ymax = ""
-
-		# dimensioni e scala originali
-		realwidth = 700
-		realscale = 1000
-
-		# TRICK! aumenta la risoluzione dell'immagine
-		# riduce la scala e ingrandisce le dimensioni dell'immagine in output
-		factor = 1
-
-		# size and scale will be passed to the map renderer
-		renderwidth = realwidth * factor
-		renderscale = realscale / factor
-
-		# size of the image displayed in the HTML page
-		printwidth = realwidth*1.1
-
-		if wdg != None:
-			filename, extent = wdg.creaStralcioCartografico( QSize(renderwidth, renderwidth), renderscale, "png", factor )
-			filename = QUrl.fromLocalFile(filename).toString()
-			if extent != None:
-				xmin = extent.xMinimum()
-				ymin = extent.yMinimum()
-				xmax = extent.xMaximum()
-				ymax = extent.yMaximum()
-
-		return QString( u"""
-<div id="sez8" class="block">
-<p class="section">SEZIONE A8 - FOTOGRAFIE</p>
-<table class="border">
-	<tr>
-		<td colspan="4">Stralcio cartografico dell'edificio</td>
-	</tr>
-	<tr>
-		<td colspan="4" class="mapContainer"><img class="map border" style="width: %spx; height: %spx;" src="%s" alt="stralcio cartografico"></td>
-	</tr>
-	<tr>
-		<td>xmin</td><td class="value">%s</td>
-		<td>ymin</td><td class="value">%s</td>
-	</tr>
-	<tr>
-		<td>xmax</td><td class="value">%s</td>
-		<td>ymax</td><td class="value">%s</td>
-	</tr>
-</table>
-%s
-</div>
-""" % ( printwidth, printwidth, filename, xmin, ymin, xmax, ymax, self.listaFoto.toHtml() ) 
-)
+	def toHtml(self, prefix=None):
+		return self.listaFoto.toHtml(prefix)
 

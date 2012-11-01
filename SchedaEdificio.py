@@ -92,60 +92,112 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		self.PRINCIPALE.printBtn.setEnabled( False )
 		self._previewOnPrinting = preview
 
-		# crea una webview per la stampa della scheda
-		from PyQt4.QtWebKit import QWebView
-		self._webView = QWebView(self)
-		self._webView.setVisible(False)
-		QObject.connect(self._webView, SIGNAL("loadFinished(bool)"), self.webViewLoadFinished)
+		settings = QSettings()
+		self._printMode, _ = AutomagicallyUpdater.printBehavior()
 
-		# genera la scheda in HTML
-		html = self.toHtml()
-		#print ">>>\n\n", html, "\n\n<<<"
-		self._webView.setHtml( html )
+		if self._printMode in (QPrinter.PdfFormat, QPrinter.NativeFormat):
+			# create a webview to load the HTML
+			from PyQt4.QtWebKit import QWebView
+			self._webView = QWebView(self)
+			self._webView.setVisible(False)
+			QObject.connect(self._webView, SIGNAL("loadFinished(bool)"), self.webViewLoadFinished)
+
+			# generate the HTML and load it into the webview
+			html = self.toHtml()
+			self._webView.setHtml( html )
+
+		else:	# print to HTML files
+			outputDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
+
+			if preview:
+				QApplication.restoreOverrideCursor()
+				outputDir = QFileDialog.getExistingDirectory(self, "Salvataggio scheda", outputDir, QFileDialog.ShowDirsOnly)
+				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+				if outputDir == "":
+					return self.onPrintFinished( True )
+
+				AutomagicallyUpdater._setLastUsedDir( 'pdf', outputDir )
+
+			# create the dir that will contain the html file within the output dir
+			outputDir = QDir( outputDir )
+			outputPath = outputDir.filePath( self._ID )
+			if not outputDir.exists( self._ID ) and not outputDir.mkdir( self._ID ):
+				QMessageBox.warning( self, "RT Omero", u"Impossibile creare il percorso '%s'" % outputPath )
+				return self.onPrintFinished( False )
+
+			# generate the HTML using outputPath as directory for the images/resources
+			html = self.toHtml( outputPath )
+			htmlFile = QDir( outputPath ).filePath( "index.html" )
+			with open( htmlFile.toUtf8(), 'w' ) as fout:
+				fout.write( html )
+
+			self.onPrintFinished(True)
+
+			#if preview:
+			#	QDesktopServices.openUrl( QUrl.fromLocalFile( htmlFile ) )
 
 	def webViewLoadFinished(self, ok):
-		if ok:
+		if not ok:
+			return self.onPrintFinished( False )
+
+		# get the instance of the printer
+		from ManagerWindow import ManagerWindow
+		printer = ManagerWindow.instance.getPrinter()
+		printer.setDocName( self.getTitoloStampa() )
+
+		if self._printMode == QPrinter.PdfFormat:
+			# set the output format and filename
 			lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
-			outFn = u"%s.pdf" % self.getTitoloStampa()
-			import os.path
-			outFn = os.path.join( str(lastDir), outFn )
-
-			from ManagerWindow import ManagerWindow
-			printer = ManagerWindow.instance.getPrinter()
-			printer.setOutputFormat( QPrinter.PdfFormat )
-			#printer.setPaperSize( QPrinter.A4 )
-			#printer.setOrientation( QPrinter.Portrait )
+			outFn = QDir( lastDir ).filePath( u"%s.pdf" % self.getTitoloStampa() )
 			printer.setOutputFileName( outFn )
-			printer.setCreator( "Omero RT plugin (Quantum GIS)" )
 
-			if self._previewOnPrinting:
-				printDlg = QPrintPreviewDialog(printer, self)
-				QObject.connect(printDlg, SIGNAL("paintRequested(QPrinter *)"), self._webView.print_)
+		if self._previewOnPrinting:
+			printDlg = QPrintPreviewDialog(printer, self)
+			QObject.connect(printDlg, SIGNAL("paintRequested(QPrinter *)"), self._webView.print_)
 
-				QApplication.restoreOverrideCursor()
-				if printDlg.exec_():
+			QApplication.restoreOverrideCursor()
+			ret = printDlg.exec_()
+			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+			if ret:
+				if self._printMode == QPrinter.PdfFormat:
 					AutomagicallyUpdater._setLastUsedDir( 'pdf', printer.outputFileName() )
-				QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-				printDlg.deleteLater()
-				del printDlg
+			printDlg.deleteLater()
+			del printDlg
 
-			else: # stampa direttamente su pdf
+		elif self._printMode == QPrinter.NativeFormat:
+			printDlg = QPrintDialog(printer, self)
+
+			QApplication.restoreOverrideCursor()
+			ret = printDlg.exec_()
+			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+			if ret:
 				self._webView.print_(printer)
 
-		# rimuovi i file temporanei collegati alla generazione dell'html
+		else: # print to PDF without asking to the user
+			self._webView.print_(printer)
+
+		return self.onPrintFinished( ok )
+
+	def onPrintFinished(self, ok):
+		# remove temporary files, i.e. images/resources used in the HTML
 		from Utils import TemporaryFile
 		TemporaryFile.delAllFiles( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML )
 
-		self._webView.deleteLater()
-		del self._webView
+		if self._printMode in (QPrinter.PdfFormat, QPrinter.NativeFormat):
+			self._webView.deleteLater()
+			del self._webView
 
 		self.PRINCIPALE.printBtn.setEnabled( True )
 		QApplication.restoreOverrideCursor()
 		self.emit( SIGNAL("printFinished"), ok, self._ID )
+		return ok
 
 
-	def creaStralcioCartografico( self, size, scale, ext="png", factor=1):
+	def creaStralcioCartografico( self, size, scale, ext="png", factor=1, outpath=None):
+		from ManagerWindow import ManagerWindow
 
 		def renderScaleLabel(painter, scale, factor=1):
 			text = "1:%s" % (scale*factor)
@@ -172,32 +224,188 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			painter.setPen( foreColor );
 			painter.drawText( margin, margin, text )
 
-		# get a new temp file
-		from Utils import TemporaryFile
-		tmp = TemporaryFile.getNewFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
-		if not tmp.open():
-			TemporaryFile.delFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
-			return QString(), None
-		filename = tmp.fileName()
-		tmp.close()
+		def createStralcioUsingCanvas(filename, size, scale, ext="png", factor=1):
+			# get the reference to the main canvas and its renderer
+			mainCanvas = ManagerWindow.instance.iface.mapCanvas()
+			mainRenderer = mainCanvas.mapRenderer()
 
-		# get the reference to the main canvas and its renderer
-		from ManagerWindow import ManagerWindow
+			# create a new map canvas and setup it
+			canvas = qgis.gui.QgsMapCanvas( ManagerWindow.instance.iface.mainWindow() )
+			canvas.setCanvasColor( Qt.white )
+			canvas.setFixedSize( size.width(), size.height() )
+			canvas.setRenderFlag( False )
+
+			settings = QSettings()
+			canvas.enableAntiAliasing( settings.value( "/qgis/enable_anti_aliasing", False ).toBool() )
+			canvas.useImageToRender( settings.value( "/qgis/use_qimage_to_render", False ).toBool() )
+
+			canvas.mapRenderer().setDestinationSrs( mainRenderer.destinationSrs() )
+			canvas.mapRenderer().setMapUnits( mainRenderer.mapUnits() )
+
+			try:
+				canvasLayers = []
+				# add WMS layers
+				for order, rlid in sorted( ManagerWindow.RLID_WMS.iteritems() ):
+					layer = QgsMapLayerRegistry.instance().mapLayer( rlid )
+					if layer != None and ManagerWindow.instance.iface.legendInterface().isLayerVisible( layer ):
+						cl = qgis.gui.QgsMapCanvasLayer(layer)
+						canvasLayers.insert(0, cl)
+
+				# add other layers
+				layers = [ManagerWindow.VLID_GEOM_ORIG, ManagerWindow.VLID_GEOM_MODIF, ManagerWindow.VLID_FOTO]
+				for vlid in layers:
+					layer = QgsMapLayerRegistry.instance().mapLayer( vlid )
+					if layer != None:
+						layer.removeSelection()
+						cl = qgis.gui.QgsMapCanvasLayer(layer)
+						canvasLayers.insert(0, cl)
+
+				canvas.setLayerSet( canvasLayers )
+
+				# XXX: why? it's needed to update the extent of the other canvas
+				canvas.show()
+				mainCanvas.setRenderFlag( True )
+
+				# select the geometries
+				layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
+				if layerModif != None:
+					query = AutomagicallyUpdater.Query( "SELECT gmod.ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gmod JOIN SCHEDA_UNITA_VOLUMETRICA AS suv ON gmod.ID_UV_NEW = suv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE SCHEDA_EDIFICIOID = ?", [ self._ID ] ).getQuery()
+					if query.exec_():
+						selIds = []
+						while query.next():
+							selIds.append( query.value(0).toInt()[0] )
+						layerModif.setSelectedFeatures( selIds )
+
+					canvas.zoomToSelected( layerModif )
+
+				# zoom to scale
+				canvas.zoomScale( scale )
+
+				# save the map to a file
+				eventLoopHandler = [ QEventLoop(self) ]
+				def savePainter(p, scale, evlHandler):
+					renderScaleLabel(p, scale)
+					evlHandler[0].quit()
+					evlHandler[0].deleteLater()
+					del evlHandler[0]
+
+				onRenderFunc = lambda x: savePainter(x, scale, eventLoopHandler)
+				QObject.connect(canvas, SIGNAL("renderComplete(QPainter *)"), onRenderFunc)
+				canvas.setRenderFlag( True )
+
+				if len(eventLoopHandler) > 0:
+					eventLoopHandler[0].exec_( QEventLoop.ExcludeUserInputEvents )
+		
+				QObject.disconnect(canvas, SIGNAL("renderComplete(QPainter *)"), onRenderFunc)
+				canvas.saveAsImage( filename, None, ext.upper() )
+				extent = canvas.extent()
+
+				# remove the wordfile create by canvas.saveAsImage()
+				wordfile = QFile( filename[:-4] + filename[-4:].upper() + "w" )
+				if wordfile.exists():
+					wordfile.remove()
+
+			finally:
+				canvas.hide()
+				canvas.deleteLater()
+				del canvas
+
+			return filename, extent
+
+		def createStralcioUsingRenderer(filename, size, scale, ext="png", factor=1):
+			# create the output image and pre-fill it
+			image = QPixmap( size )
+			image.fill( QColor(255, 255, 255, 255) )
+
+			# get the reference to the main canvas and its renderer
+			mainCanvas = ManagerWindow.instance.iface.mapCanvas()
+			mainRenderer = mainCanvas.mapRenderer()
+
+			# create a new renderer and setup it
+			mapRenderer = qgis.core.QgsMapRenderer()
+			mapRenderer.setOutputSize( size, image.logicalDpiX() )
+			mapRenderer.setDestinationSrs( mainRenderer.destinationSrs() )
+			mapRenderer.setMapUnits( mainRenderer.mapUnits() )
+			mapRenderer.setProjectionsEnabled( mainRenderer.hasCrsTransformEnabled() )
+
+			# add layers to renderer layer set
+			layerIds = []
+			# add WMS layers
+			for order, rlid in sorted( ManagerWindow.RLID_WMS.iteritems() ):
+				layer = QgsMapLayerRegistry.instance().mapLayer( rlid )
+				if layer != None and ManagerWindow.instance.iface.legendInterface().isLayerVisible( layer ):
+					lid = layer.id() if hasattr(layer, 'id') else layer.getLayerID()	# old API compatibility
+					layerIds.insert(0, lid)
+
+			# add other layers
+			layers = [ManagerWindow.VLID_GEOM_ORIG, ManagerWindow.VLID_GEOM_MODIF, ManagerWindow.VLID_FOTO]
+			for vlid in layers:
+				layer = QgsMapLayerRegistry.instance().mapLayer( vlid )
+				if layer != None:
+					layer.removeSelection()
+					lid = layer.id() if hasattr(layer, 'id') else layer.getLayerID()	# old API compatibility
+					layerIds.insert(0, lid)
+
+			mapRenderer.setLayerSet( layerIds )
+
+			# select the geometries
+			layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
+			if layerModif != None:
+				query = AutomagicallyUpdater.Query( "SELECT gmod.ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gmod JOIN SCHEDA_UNITA_VOLUMETRICA AS suv ON gmod.ID_UV_NEW = suv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE SCHEDA_EDIFICIOID = ?", [ self._ID ] ).getQuery()
+				if query.exec_():
+					selIds = []
+					while query.next():
+						selIds.append( query.value(0).toInt()[0] )
+					layerModif.setSelectedFeatures( selIds )
+
+				mapRenderer.setExtent( layerModif.boundingBoxOfSelected() )
+
+			# zoom at the scale
+			extent = mapRenderer.extent()
+			extent.scale( float(scale) / mapRenderer.scale() )
+			mapRenderer.setExtent( extent )
+
+			# render now!
+			painter = QPainter()
+			painter.begin( image )
+
+			#settings = QSettings()
+			#antiAliasingEnabled = settings.value( "/qgis/enable_anti_aliasing", False ).toBool()
+			#painter.setRenderHints( QPainter.RenderHints() | (QPainter.Antialiasing if antiAliasingEnabled else 0) )
+
+			mapRenderer.render( painter )
+			renderScaleLabel(painter, scale)
+
+			painter.end()
+			del painter
+
+			mapRenderer.deleteLater()
+			del mapRenderer
+
+			# save the image to a file
+			image.save( filename, ext.upper() )
+			del image
+
+			return filename, extent
+
+
+		if outpath is None:
+			# get a new temp file
+			from Utils import TemporaryFile
+			tmp = TemporaryFile.getNewFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+			if not tmp.open():
+				TemporaryFile.delFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+				return QString(), None
+			filename = unicode( tmp.fileName() )
+			tmp.close()
+
+		else:
+			filename = u"%s/stralcio.%s" % (outpath, ext)
+
+		# override the canvas render flag
 		mainCanvas = ManagerWindow.instance.iface.mapCanvas()
 		prevRenderFlag = mainCanvas.renderFlag()
 		mainCanvas.setRenderFlag( False )
-		mainRenderer = ManagerWindow.instance.iface.mapCanvas().mapRenderer()
-
-		# create the output image and pre-fill it
-		image = QImage( size, QImage.Format_ARGB32_Premultiplied )
-		image.fill( QColor(255, 255, 255, 0).value() )
-
-		# create a new renderer and setup it
-		mapRenderer = qgis.core.QgsMapRenderer()
-		mapRenderer.setOutputSize( size, image.logicalDpiX() )
-		mapRenderer.setDestinationSrs( mainRenderer.destinationSrs() )
-		mapRenderer.setMapUnits( mainRenderer.mapUnits() )
-		mapRenderer.setProjectionsEnabled( mainRenderer.hasCrsTransformEnabled() )
 
 		# override the selection color
 		prevColor = QgsRenderer.selectionColor()
@@ -205,63 +413,39 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		newColor.setAlpha(127)
 		QgsRenderer.setSelectionColor( newColor )
 
-		# add layers to renderer layer set
-		layerIds = []
-		# add WMS layers
-		for order, rlid in sorted( ManagerWindow.RLID_WMS.iteritems() ):
-			layer = QgsMapLayerRegistry.instance().mapLayer( rlid )
-			if layer != None and ManagerWindow.instance.iface.legendInterface().isLayerVisible( layer ):
-				layerIds.insert(0, getattr(layer, 'id', layer.getLayerID)() )
+		# set layers visible
+		legend = ManagerWindow.instance.iface.legendInterface()
+		layerOrig = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG )
+		if layerOrig != None:
+			prevOrigState = ManagerWindow.instance.iface.legendInterface().isLayerVisible( layerOrig )
+			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerOrig, True )
 
-		# add other layers
-		layers = [ManagerWindow.VLID_GEOM_ORIG, ManagerWindow.VLID_GEOM_MODIF, ManagerWindow.VLID_FOTO]
-		for vlid in layers:
-			layer = QgsMapLayerRegistry.instance().mapLayer( vlid )
-			if layer != None:
-				layer.removeSelection()
-				layerIds.insert(0, getattr(layer, 'id', layer.getLayerID)() )
-
-		mapRenderer.setLayerSet( layerIds )
-
-		# select the geometries
 		layerModif = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF )
 		if layerModif != None:
-			query = AutomagicallyUpdater.Query( "SELECT gmod.ROWID FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gmod JOIN SCHEDA_UNITA_VOLUMETRICA AS suv ON gmod.ID_UV_NEW = suv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE SCHEDA_EDIFICIOID = ?", [ self._ID ] ).getQuery()
-			if query.exec_():
-				selIds = []
-				while query.next():
-					selIds.append( query.value(0).toInt()[0] )
-				layerModif.setSelectedFeatures( selIds )
+			prevModifState = ManagerWindow.instance.iface.legendInterface().isLayerVisible( layerModif )
+			prevSelection = layerModif.selectedFeaturesIds()
+			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerModif, True )
 
-			mapRenderer.setExtent( layerModif.boundingBoxOfSelected() )
+		try:
+			if True:
+				# XXX: why? the output image seems to be generated at a wrong scale using a new renderer
+				filename, extent = createStralcioUsingCanvas(filename, size, scale, ext, factor)
+			else:
+				filename, extent = createStralcioUsingRenderer(filename, size, scale, ext, factor)
+		finally:
+			# restore the original layers' state and selection
+			if layerOrig != None:
+				legend.setLayerVisible( layerOrig, prevOrigState )
+			if layerModif != None:
+				legend.setLayerVisible( layerModif, prevModifState )
+				layerModif.setSelectedFeatures( prevSelection )
 
-		# zoom at the scale
-		extent = mapRenderer.extent()
-		extent.scale( scale / mapRenderer.scale() )
-		mapRenderer.setExtent( extent )
-
-		settings = QSettings()
-		antiAliasingEnabled = settings.value( "/qgis/enable_anti_aliasing", QVariant(False) ).toBool()
-
-		painter = QPainter( image )
-		painter.setRenderHints( QPainter.RenderHints() | (QPainter.Antialiasing if antiAliasingEnabled else 0) )
-
-		mapRenderer.render( painter )
-		renderScaleLabel(painter, scale)
-
-		mapRenderer.deleteLater()
-		del mapRenderer
-		del painter
-
-		# save the image to a file
-		image.save( filename, ext.upper() )
-		del image
-
-		# restore the canvas original state and selection color
-		QgsRenderer.setSelectionColor( prevColor )
-		mainCanvas.setRenderFlag( prevRenderFlag )
+			# restore the canvas original state and selection color
+			QgsRenderer.setSelectionColor( prevColor )
+			mainCanvas.setRenderFlag( prevRenderFlag )
 
 		return filename, extent
+
 
 	def setMinimized(self, minimize=True):
 		if minimize:
@@ -296,19 +480,32 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		from ManagerWindow import ManagerWindow
 		ManagerWindow.instance.aggiornaLayerFoto()
 
-	def toHtml(self):
+	def toHtml(self, prefix=None):
 		import os.path
 		currentPath = os.path.dirname(__file__)
 
-		css = os.path.join( currentPath, "docs", "default.css" )
+		# path to css file
+		css_orig = os.path.join( currentPath, "docs", "default.css" )
+		if prefix is None:
+			css = css_orig
+		else:
+			# copy the css file to the output folder
+			css = QDir( prefix ).filePath( "default.css" )
+			if not QFile.exists( css ) and not QFile.copy( css_orig, css ):
+				css = css_orig
 		css = QUrl.fromLocalFile(css).toString()
 
-		dbPath = AutomagicallyUpdater._getPathToDb()
-		logo = QFileInfo( dbPath ).dir().filePath( "omero_stampa_logo.jpg" )
+		# path to the logo
+		if prefix is None:
+			logoDir = QDir( AutomagicallyUpdater._getPathToDb() )
+		else:
+			logoDir = QDir( prefix )
+
+		logo = logoDir.filePath( "omero_stampa_logo.jpg" )
 		if not QFile.exists( logo ):
-			logoOrig = os.path.join( currentPath, "docs", "omero_stampa_logo.jpg" )
-			if not QFile.copy( logoOrig, logo ):
-				logo = logoOrig
+			logo_orig = os.path.join( currentPath, "docs", "omero_stampa_logo.jpg" )
+			if not QFile.copy( logo_orig, logo ):
+				logo = logo_orig
 		logo = QUrl.fromLocalFile(logo).toString()
 
 		comune = AutomagicallyUpdater.Query( "SELECT NOME FROM ZZ_COMUNI WHERE ISTATCOM = ?", [AutomagicallyUpdater._getIDComune()] ).getFirstResult()
@@ -345,8 +542,58 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 	<p id="data">scheda stampata il %s</p>
 	<p id="info">(QuantumGIS - Omero - Regione Toscana - S.I.T.A.)</p>
 </div>
-%s %s %s %s %s %s %s %s 
+%s %s %s %s %s %s %s 
+<div id="sez8" class="block">
+<p class="section">SEZIONE A8 - FOTOGRAFIE</p>
+%s %s
+</div>
 </body>
 </html>
-""" % (css, logo, comune, nome_edificio if nome_edificio != None else '', via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.FOTO.toHtml() )
+""" % (css, logo, comune, nome_edificio if nome_edificio != None else '', via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.stralcioToHtml(prefix), self.FOTO.toHtml(prefix))
 )
+
+	def stralcioToHtml(self, prefix=None):
+		xmin = ymin = xmax = ymax = ""
+
+		# dimensioni e scala originali
+		realwidth = 700
+		realscale = 1000
+
+		# TRICK! aumenta la risoluzione dell'immagine
+		# riduce la scala e ingrandisce le dimensioni dell'immagine in output
+		factor = 1
+
+		# size and scale will be passed to the map renderer
+		renderwidth = realwidth * factor
+		renderscale = realscale / factor
+
+		# create the image
+		filename, extent = self.creaStralcioCartografico( QSize(renderwidth, renderwidth), renderscale, "png", factor, outpath=prefix )
+		filename = QUrl.fromLocalFile(filename).toString()
+		if extent != None:
+			xmin = extent.xMinimum()
+			ymin = extent.yMinimum()
+			xmax = extent.xMaximum()
+			ymax = extent.yMaximum()
+
+		# size of the image displayed in the HTML page
+		printwidth = realwidth*1.25
+
+		return QString( u"""
+<table class="border">
+	<tr>
+		<td colspan="4">Stralcio cartografico dell'edificio</td>
+	</tr>
+	<tr>
+		<td colspan="4" class="mapContainer"><img class="map border" style="width: %spx; height: %spx;" src="%s" alt="stralcio cartografico"></td>
+	</tr>
+	<tr>
+		<td>xmin</td><td class="value">%s</td>
+		<td>ymin</td><td class="value">%s</td>
+	</tr>
+	<tr>
+		<td>xmax</td><td class="value">%s</td>
+		<td>ymax</td><td class="value">%s</td>
+	</tr>
+</table>
+""" % (printwidth, printwidth, filename, xmin, ymin, xmax, ymax) )

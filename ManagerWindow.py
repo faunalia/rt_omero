@@ -1197,7 +1197,16 @@ WHERE
 	@classmethod
 	def getPrinter(self):
 		if not hasattr(ManagerWindow.instance, '_printer'):
-			ManagerWindow.instance._printer = QPrinter( QPrinter.HighResolution )
+			mode, resolution = AutomagicallyUpdater.printBehavior()
+			if mode < 0:
+				mode = QPrinter.NativeFormat
+
+			if mode != QPrinter.PdfFormat:
+				resolution = QPrinter.HighResolution
+
+			ManagerWindow.instance._printer = QPrinter( resolution )
+			ManagerWindow.instance._printer.setCreator( "Omero RT plugin (Quantum GIS)" )
+			ManagerWindow.instance._printer.setOutputFormat( mode )
 
 			# try to avoid huge PDF files on Win
 			try:

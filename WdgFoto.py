@@ -161,9 +161,17 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		return AutomagicallyUpdater._saveValue(name2valueDict, table, pk, ID)
 
 
-	def toHtml(self, index):
+	def toHtml(self, index, prefix=None):
 		ext = QFileInfo( self.getValue(self.FILENAME) ).suffix()
-		filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+
+		# save the image
+		if prefix is None:
+			filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
+		else:
+			filename = u"%s/img_%s.%s" % (outpath, self._ID, ext)
+			with open( filename, "wb" ) as fout:
+				fout.write( str( self.getValue(self.IMAGE) ) )
+
 		filename = QUrl.fromLocalFile( filename ).toString()
 
 		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''

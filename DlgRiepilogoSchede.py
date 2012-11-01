@@ -160,10 +160,12 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 		self.toPrint = []
 		self.currentIndex = -1
 
-		if len(self.schedeList.selectedItems()) > 1:
-			# permetti all'utente di selezionare la directory di output
+		printMode, _ = AutomagicallyUpdater.printBehavior()
+
+		if printMode != QPrinter.NativeFormat and len(self.schedeList.selectedItems()) > 1:
+			# ask to the user where to store the PDF/HTML files
 			lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
-			lastDir = QFileDialog.getExistingDirectory(self, u"Salvataggio le schede", lastDir, QFileDialog.ShowDirsOnly )
+			lastDir = QFileDialog.getExistingDirectory(self, u"Salvataggio schede", lastDir, QFileDialog.ShowDirsOnly )
 			if lastDir.isEmpty():
 				return
 			AutomagicallyUpdater._setLastUsedDir( 'pdf', lastDir )
