@@ -495,6 +495,17 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 				css = css_orig
 		css = QUrl.fromLocalFile(css).toString()
 
+		# path to the omero banner
+		banner_orig = os.path.join( currentPath, "docs", "banner_omero.gif" )
+		if prefix is None:
+			banner = banner_orig
+		else:
+			# copy the omero banner file to the output folder
+			banner = QDir( prefix ).filePath( "banner_omero.gif" )
+			if not QFile.exists( banner ) and not QFile.copy( banner_orig, banner ):
+				banner = banner_orig
+		banner = QUrl.fromLocalFile(banner).toString()
+
 		# path to the logo
 		if prefix is None:
 			logoDir = QDir( AutomagicallyUpdater._getPathToDb() )
@@ -531,7 +542,12 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 <body>
 
 <div id="header">
-	<img id="logo" src="%s" alt="Logo">
+	<div id="omero">
+		<img src="%s" alt="Omero">
+	</div>
+	<div id="logo">
+		<img src="%s" alt="Logo">
+	</div>
 	<p id="comune">Comune di %s</p>
 	<p id="titolo">Scheda edificio</p>
 	<div id="edificio">
@@ -549,7 +565,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 </div>
 </body>
 </html>
-""" % (css, logo, comune, nome_edificio if nome_edificio != None else '', via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.stralcioToHtml(prefix), self.FOTO.toHtml(prefix))
+""" % (css, banner, logo, comune, nome_edificio if nome_edificio != None else '', via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.stralcioToHtml(prefix), self.FOTO.toHtml(prefix))
 )
 
 	def stralcioToHtml(self, prefix=None):

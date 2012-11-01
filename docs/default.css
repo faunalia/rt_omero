@@ -8,12 +8,19 @@ body {
 }
 
 #header {
-	margin-top: 300px;
+	margin-top: 130px;
 	text-align: center;
 	font-size: 18px;
 }
 
-#logo {
+#omero {
+	margin-bottom: 150px;
+}
+
+#omero img {
+	width: 280px;
+}
+#logo img {
 	width: 280px;
 }
 
