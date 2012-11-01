@@ -1009,32 +1009,35 @@ WHERE
 		oldSnapOptions = customizeSnapping( customSnapOptions )
 
 		try:
-			# recupera dal database il CRS e lo imposta in canvas
+			# get the CRS from the DB and set the canvas CRS to be it
 			self.reloadCrs()
 
-			# carica i layer wms
+			# load wms layers
 			from DlgWmsLayersManager import DlgWmsLayersManager
 			if not DlgWmsLayersManager.loadWmsLayers(firstStart):
 				return False
 
 			conn = ConnectionManager.getConnection()
-			# carica il layer con le geometrie (originali e modificate)
+			# load the vector layers (original and changed geometries)
 			if not self.loadLayerGeomOrig(conn) or not self.loadLayerGeomModif(conn):
 				return False
 
-			# carica il layer con le foto
+			# load the layer containing photos
 			self.loadLayerFoto()
 
+			# reload the canvas CRS, the first added layer could have changed it
+			self.reloadCrs()
+
 			if firstStart:
-				# imposta l'ultimo extent usato
+				# if it's the first start, restore the last used extent
 				self.loadLastUsedExtent()
 
 		finally:
-			# ripristina le opzioni originali di snapping
+			# restore the snapping options
 			customizeSnapping( oldSnapOptions )
-			# ripristina il rendering
+			# restore the rendering flag
 			self.canvas.setRenderFlag( prevRenderFlag )
-			# ripristina la creazione delle icone per i layer raster
+			# restore the raster legend icons creation
 			settings.setValue("/qgis/createRasterLegendIcons", prevRasterIcons)
 
 			QApplication.restoreOverrideCursor()
