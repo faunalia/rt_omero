@@ -11,5 +11,6 @@
         <file>icons/about.png</file>
         <file>icons/stradario.png</file>
         <file>icons/foto.png</file>
+        <file>icons/settings.png</file>
     </qresource>
 </RCC>
