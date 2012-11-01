@@ -43,7 +43,7 @@ def authorName():
 	return author();
 
 def version():
-	return "Version 1.1.5"
+	return "Version 1.1.6"
 
 def qgisMinimumVersion():
 	return "1.7.0"
