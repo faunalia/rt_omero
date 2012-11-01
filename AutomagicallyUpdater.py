@@ -53,7 +53,7 @@ class AutomagicallyUpdater:
 	def _getMacAddress(self):
 		if AutomagicallyUpdater.MAC_ADDRESS == None:
 			settings = QSettings()
-			macAddress = settings.value( "/omero_RT/mac3chars", QVariant("") ).toString()
+			macAddress = settings.value( "/omero_RT/mac3chars", "" ).toString()
 			if macAddress.isEmpty():
 				try:
 					import uuid
@@ -64,35 +64,35 @@ class AutomagicallyUpdater:
 					import random
 					value = random.randint(0x0, 0xFFFF)
 					macAddress = hex(value)[2:]
-				settings.setValue( "/omero_RT/mac3chars", QVariant(macAddress) )
+				settings.setValue( "/omero_RT/mac3chars", macAddress )
 			AutomagicallyUpdater.MAC_ADDRESS = macAddress
 		return AutomagicallyUpdater.MAC_ADDRESS
 
 	@classmethod
 	def _getIDComune(self):
 		settings = QSettings()
-		return settings.value( "/omero_RT/lastIDComune", QVariant("") ).toString()
+		return settings.value( "/omero_RT/lastIDComune", "" ).toString()
 
 	@classmethod
 	def _getIDRilevatore(self):
 		settings = QSettings()
-		return settings.value( "/omero_RT/lastIDRilevatore", QVariant("") ).toString()
+		return settings.value( "/omero_RT/lastIDRilevatore", "" ).toString()
 
 	@classmethod
 	def _getPathToDb(self):
 		settings = QSettings()
-		return settings.value( "/omero_RT/pathToSqliteDB", QVariant("") ).toString()
+		return settings.value( "/omero_RT/pathToSqliteDB", "" ).toString()
 
 	@classmethod
 	def _setPathToDb(self, path):
 		settings = QSettings()
-		settings.setValue( "/omero_RT/pathToSqliteDB", QVariant(path) )
+		settings.setValue( "/omero_RT/pathToSqliteDB", path )
 
 	@classmethod
 	def _getLastUsedDir(self, key):
 		settings = QSettings()
-		lastProjectDir = settings.value( "/UI/lastProjectDir", QVariant("") ).toString()
-		return settings.value( "/omero_RT/lastUsedDir/%s" % key, QVariant(lastProjectDir) ).toString()
+		lastProjectDir = settings.value( "/UI/lastProjectDir", "" ).toString()
+		return settings.value( "/omero_RT/lastUsedDir/%s" % key, lastProjectDir ).toString()
 
 	@classmethod
 	def _setLastUsedDir(self, key, filePath):
@@ -102,37 +102,54 @@ class AutomagicallyUpdater:
 			dirPath = fileInfo.filePath()
 		else:
 			dirPath = fileInfo.path()
-		settings.setValue( "/omero_RT/lastUsedDir/%s" % key, QVariant(dirPath) )
+		settings.setValue( "/omero_RT/lastUsedDir/%s" % key, dirPath )
 
 	@classmethod
 	def offlineMode(self):
 		settings = QSettings()
-		return settings.value( "/omero_RT/offlineMode", QVariant(False) ).toBool()
+		return settings.value( "/omero_RT/offlineMode", False ).toBool()
 
 	@classmethod
 	def setOfflineMode(self, value):
 		settings = QSettings()
-		settings.setValue( "/omero_RT/offlineMode", QVariant(value) )
+		settings.setValue( "/omero_RT/offlineMode", value )
 
 	@classmethod
 	def getPathToCache(self):
 		settings = QSettings()
-		return settings.value( "/omero_RT/pathToCache", QVariant() ).toString()
+		return settings.value( "/omero_RT/pathToCache", "" ).toString()
 
 	@classmethod
 	def setPathToCache(self, value):
 		settings = QSettings()
-		settings.setValue( "/omero_RT/pathToCache", QVariant(value) )
+		settings.setValue( "/omero_RT/pathToCache", value )
 
 	@classmethod
 	def getCachedExternalWms(self):
 		settings = QSettings()
-		return settings.value( "/omero_RT/cachedExternalWms", QVariant({}) ).toMap()
+		return settings.value( "/omero_RT/cachedExternalWms", {} ).toMap()
 
 	@classmethod
 	def setCachedExternalWms(self, value):
 		settings = QSettings()
-		settings.setValue( "/omero_RT/cachedExternalWms", QVariant(value) )
+		settings.setValue( "/omero_RT/cachedExternalWms", value )
+
+	@classmethod
+	def printBehavior(self):
+		settings = QSettings()
+		mode = settings.value( "/omero_RT/printBehavior", QPrinter.PdfFormat ).toInt()[0]
+		res = settings.value( "/omero_RT/printResolution", QPrinter.HighResolution ).toInt()[0]
+		return mode, res
+
+	@classmethod
+	def setPrintBehavior(self, mode, res):
+		settings = QSettings()
+		settings.setValue( "/omero_RT/printBehavior", mode )
+		settings.setValue( "/omero_RT/printResolution", res )
+
+		# destroy the printer so the resolution can be updated
+		from ManagerWindow import ManagerWindow
+		ManagerWindow.destroyPrinter()
 
 
 	class Query():

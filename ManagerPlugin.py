@@ -19,6 +19,9 @@ class ManagerPlugin:
 
 		#self.createEmptyDbAction = QAction(QIcon(""), "Crea DB vuoto", self.iface.mainWindow())
 		#QObject.connect(self.createEmptyDbAction, SIGNAL("triggered()"), self.createEmptyDb)
+
+		self.settingsAction = QAction(QIcon(":/icons/settings.png"), "Impostazioni", self.iface.mainWindow())
+		QObject.connect(self.settingsAction, SIGNAL("triggered()"), self.settings)
 	
 		# Add toolbar button and menu item
 		if hasattr( self.iface, 'addDatabaseToolBarIcon' ):
@@ -28,9 +31,11 @@ class ManagerPlugin:
 		if hasattr( self.iface, 'addPluginToDatabaseMenu' ):
 			self.iface.addPluginToDatabaseMenu("&Omero RT", self.action)
 			#self.iface.addPluginToDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToDatabaseMenu("&Omero RT", self.settingsAction)
 		else:
 			self.iface.addPluginToMenu("&Omero RT", self.action)
 			#self.iface.addPluginToMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToMenu("&Omero RT", self.settingsAction)
 
 		QObject.connect(self.iface, SIGNAL("projectRead()"), self.loadProject)
 	
@@ -41,9 +46,11 @@ class ManagerPlugin:
 		if hasattr( self.iface, 'removePluginDatabaseMenu' ):
 			self.iface.removePluginDatabaseMenu("&Omero RT", self.action)
 			#self.iface.removePluginDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginDatabaseMenu("&Omero RT", self.settingsAction)
 		else:
 			self.iface.removePluginMenu("&Omero RT", self.action)
 			#self.iface.removePluginMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginMenu("&Omero RT", self.settingsAction)
 
 		if hasattr( self.iface, 'removeDatabaseToolBarIcon' ):
 			self.iface.removeDatabaseToolBarIcon(self.action)
@@ -52,6 +59,11 @@ class ManagerPlugin:
 
 		if self.dlg:
 			self.dlg.close()
+
+
+	def settings(self):
+		from DlgSettings import DlgSettings
+		DlgSettings().exec_()
 	
 	def run(self):
 		try:
