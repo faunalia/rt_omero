@@ -161,11 +161,16 @@ class FeatureFinder(MapTool):
 	def findAtPoint(self, layer, point, onlyTheClosestOne=True, onlyIds=False):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
+		point = MapTool.canvas.mapRenderer().mapToLayerCoordinates(layer, point)
+
 		# recupera il valore del raggio di ricerca
 		settings = QSettings()
 		(radius, ok) = settings.value( "/Map/identifyRadius", QGis.DEFAULT_IDENTIFY_RADIUS ).toDouble()
 		if not ok or radius <= 0:
-			radius = QGis.DEFAULT_IDENTIFY_RADIUS
+			# XXX: in QGis 1.8 QGis.DEFAULT_IDENTIFY_RADIUS is 0, 
+			# this cause the rectangle is empty and the select 
+			# returns all the features...
+			radius = 0.5	# it means 0.50% of the canvas extent
 		radius = MapTool.canvas.extent().width() * radius/100
 
 		# crea il rettangolo da usare per la ricerca
@@ -174,7 +179,6 @@ class FeatureFinder(MapTool):
 		rect.setXMaximum(point.x() + radius)
 		rect.setYMinimum(point.y() - radius)
 		rect.setYMaximum(point.y() + radius)
-		rect = MapTool.canvas.mapRenderer().mapToLayerCoordinates(layer, rect)
 
 		# recupera le feature che intersecano il rettangolo
 		layer.select([], rect, True, True)
