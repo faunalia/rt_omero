@@ -106,7 +106,9 @@ class ConnectionManager:
 	@classmethod
 	def abortTransaction(self, errorMsg=QString()):
 		if not self.isTransaction:
-			return
+			# XXX: why aborting a non-transaction happens??
+			raise ConnectionManager.AbortedException( errorMsg )
+
 		self.transactionError = True
 
 		conn = self.getConnection(0)
