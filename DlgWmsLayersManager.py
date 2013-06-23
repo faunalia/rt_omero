@@ -370,7 +370,7 @@ class DlgWmsLayersManager(DlgWaiting):
 			version = query.value(7).toString()
 
 			layers = layers.split(",")
-			styles = [ 'pseudo' ] * len(layers)
+			styles = [ '' ] * len(layers)
 			format = "image/%s" % format.toLower()
 
 			if not ManagerWindow.instance.offlineMode:
