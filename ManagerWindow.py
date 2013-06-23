@@ -1062,7 +1062,7 @@ WHERE
 			self.iface.legendInterface().refreshLayerSymbology(vl)
 
 			ManagerWindow.VLID_GEOM_ORIG = self._getLayerId(vl)
-			QgsMapLayerRegistry.instance().addMapLayer(vl)
+			self._addMapLayer(vl)
 			# set custom property
 			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_ORIG") )
 		return True
@@ -1085,7 +1085,7 @@ WHERE
 			self.iface.legendInterface().refreshLayerSymbology(vl)
 
 			ManagerWindow.VLID_GEOM_MODIF = self._getLayerId(vl)
-			QgsMapLayerRegistry.instance().addMapLayer(vl)
+			self._addMapLayer(vl)
 			# set custom property
 			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_MODIF") )
 		return True
@@ -1112,7 +1112,7 @@ WHERE
 			self.iface.legendInterface().refreshLayerSymbology(vl)
 
 			ManagerWindow.VLID_FOTO = vl.getLayerID()
-			QgsMapLayerRegistry.instance().addMapLayer(vl)
+			self._addMapLayer(vl)
 			# set custom property
 			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_FOTO") )
 		return True
@@ -1126,16 +1126,16 @@ WHERE
 		# rimuovi i layer WMS
 		for order, rlid in ManagerWindow.RLID_WMS.iteritems():
 			if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
-				QgsMapLayerRegistry.instance().removeMapLayer(rlid)
+				self._removeMapLayer(rlid)
 		ManagerWindow.RLID_WMS = {}
 
 		# rimuovi i layer delle geometrie
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG ) != None:
-			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_ORIG)
+			self._removeMapLayer(ManagerWindow.VLID_GEOM_ORIG)
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF ) != None:
-			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_MODIF)
+			self._removeMapLayer(ManagerWindow.VLID_GEOM_MODIF)
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) != None:
-			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_FOTO)
+			self._removeMapLayer(ManagerWindow.VLID_FOTO)
 
 		self.canvas.setRenderFlag(prevRenderFlag)
 		QApplication.restoreOverrideCursor()
@@ -1296,4 +1296,16 @@ WHERE
 		if hasattr(renderer, 'setDestinationCrs'):
 			return renderer.setDestinationCrs( crs )
 		return renderer.setDestinationSrs( crs )
+
+	@classmethod
+	def _addMapLayer(self, vl):
+		if hasattr(QgsMapLayerRegistry.instance(), 'addMapLayers'):
+			return QgsMapLayerRegistry.instance().addMapLayers( [vl] )
+		return QgsMapLayerRegistry.instance().addMapLayer(vl)
+
+	@classmethod
+	def _removeMapLayer(self, vl):
+		if hasattr(QgsMapLayerRegistry.instance(), 'removeMapLayers'):
+			return QgsMapLayerRegistry.instance().removeMapLayers( [vl] )
+		return QgsMapLayerRegistry.instance().removeMapLayer(vl)
 

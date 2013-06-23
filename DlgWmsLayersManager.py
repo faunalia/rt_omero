@@ -214,7 +214,7 @@ class DlgWmsLayersManager(DlgWaiting):
 
 				if saved:
 					# remove the online layer and add the offline one
-					QgsMapLayerRegistry.instance().removeMapLayer(layerid)
+					ManagerWindow._removeMapLayer(layerid)
 					layer = self.iface.addRasterLayer( out_path, "CACHED - %s" % name )
 					if layer and layer.isValid():
 						# set the layer custom property
@@ -300,7 +300,7 @@ class DlgWmsLayersManager(DlgWaiting):
 
 				elif prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
 					# a wms layer loaded by omero, remove it
-					QgsMapLayerRegistry.instance().removeMapLayer( layerid )
+					ManagerWindow._removeMapLayer( layerid )
 					continue
 
 				elif prop.toString().startsWith( "WMS_OFFLINE" ):
@@ -312,7 +312,7 @@ class DlgWmsLayersManager(DlgWaiting):
 					continue
 
 				# remove the offline layer and add the online one
-				QgsMapLayerRegistry.instance().removeMapLayer(layerid)
+				ManagerWindow._removeMapLayer(layerid)
 
 			ManagerWindow.instance.offlineMode = False
 
@@ -402,7 +402,7 @@ class DlgWmsLayersManager(DlgWaiting):
 				continue
 
 			ManagerWindow.RLID_WMS[order] = ManagerWindow._getLayerId(rl)
-			QgsMapLayerRegistry.instance().addMapLayer(rl)
+			ManagerWindow._addMapLayer(rl)
 			ManagerWindow.instance.iface.legendInterface().setLayerVisible( rl, False )
 			# set custom property
 			rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant(prop) )
