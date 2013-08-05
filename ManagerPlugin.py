@@ -17,8 +17,11 @@ class ManagerPlugin:
 		self.action = QAction(QIcon(":/icons/rt_omero.png"), "RT Omero", self.iface.mainWindow())
 		QObject.connect(self.action, SIGNAL("triggered()"), self.run)
 
-		#self.createEmptyDbAction = QAction(QIcon(""), "Crea DB vuoto", self.iface.mainWindow())
-		#QObject.connect(self.createEmptyDbAction, SIGNAL("triggered()"), self.createEmptyDb)
+		self.createEmptyDbAction = QAction(QIcon(""), "Crea DB vuoto", self.iface.mainWindow())
+		QObject.connect(self.createEmptyDbAction, SIGNAL("triggered()"), self.createEmptyDb)
+		
+		self.unisci2DbAction = QAction(QIcon(""), "Unisci 2 DB", self.iface.mainWindow())
+		QObject.connect(self.unisci2DbAction, SIGNAL("triggered()"), self.unisci2Db)
 
 		self.settingsAction = QAction(QIcon(":/icons/settings.png"), "Impostazioni", self.iface.mainWindow())
 		QObject.connect(self.settingsAction, SIGNAL("triggered()"), self.settings)
@@ -28,13 +31,16 @@ class ManagerPlugin:
 			self.iface.addDatabaseToolBarIcon(self.action)
 		else:
 			self.iface.addToolBarIcon(self.action)
+			
 		if hasattr( self.iface, 'addPluginToDatabaseMenu' ):
 			self.iface.addPluginToDatabaseMenu("&Omero RT", self.action)
-			#self.iface.addPluginToDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToDatabaseMenu("&Omero RT", self.unisci2DbAction)
 			self.iface.addPluginToDatabaseMenu("&Omero RT", self.settingsAction)
 		else:
 			self.iface.addPluginToMenu("&Omero RT", self.action)
-			#self.iface.addPluginToMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.addPluginToMenu("&Omero RT", self.unisci2DbAction)
 			self.iface.addPluginToMenu("&Omero RT", self.settingsAction)
 
 		QObject.connect(self.iface, SIGNAL("projectRead()"), self.loadProject)
@@ -45,11 +51,13 @@ class ManagerPlugin:
 		# Remove the plugin menu item and icon
 		if hasattr( self.iface, 'removePluginDatabaseMenu' ):
 			self.iface.removePluginDatabaseMenu("&Omero RT", self.action)
-			#self.iface.removePluginDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginDatabaseMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginDatabaseMenu("&Omero RT", self.unisci2DbAction)
 			self.iface.removePluginDatabaseMenu("&Omero RT", self.settingsAction)
 		else:
 			self.iface.removePluginMenu("&Omero RT", self.action)
-			#self.iface.removePluginMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginMenu("&Omero RT", self.createEmptyDbAction)
+			self.iface.removePluginMenu("&Omero RT", self.unisci2DbAction)
 			self.iface.removePluginMenu("&Omero RT", self.settingsAction)
 
 		if hasattr( self.iface, 'removeDatabaseToolBarIcon' ):
@@ -98,3 +106,7 @@ class ManagerPlugin:
 		from DlgCreaDbVuoto import DlgCreaDbVuoto
 		DlgCreaDbVuoto().exec_()
 
+
+	def unisci2Db(self):
+		from DlgUnisci2Db import DlgUnisci2Db
+		DlgUnisci2Db().exec_()
