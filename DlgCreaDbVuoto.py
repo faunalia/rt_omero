@@ -124,15 +124,16 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 
 	def getOutputPath(self):
 		lastUsedDir = QFileInfo(AutomagicallyUpdater._getPathToDb()).path()
-		output = QFileDialog.getSaveFileName(self, u"Salva un database", lastUsedDir, "SQLite database (*.db3)")
-		if not output.isEmpty():
-			if output[-4:] != ".db3":
-				output += ".db3"
+		output = QFileDialog.getSaveFileName(self, u"Salva un database", lastUsedDir, "SQLite database (*.db3 *.sqlite);;Tutti i file (*)")
+		if not output:
+			return
+		if output[-4:] != ".db3" and output[-7:] != ".sqlite" and output[-3:] != ".db":
+			output += ".db3"
 		return output
 
 	def accept(self):
 		self.outputPath = self.getOutputPath()
-		if self.outputPath.isEmpty():
+		if not self.outputPath:
 			return
 
 		self.buttonBox.button( QDialogButtonBox.Ok ).setEnabled(False)
@@ -218,8 +219,8 @@ class CreateDbThread(QThread):
 
 	def run(self):
 		# Let's catch all the exceptions to avoid crashes! 
-		# QGis displays a dialog with the traceback for non-catched exceptions 
-		# but GUI can be drawn in the main thread only
+		# QGis tries to display a dialog with the traceback for uncaugth exceptions 
+		# but GUI can't be drawn out of the main thread
 		try:
 			self.exec_()
 		except:
