@@ -302,6 +302,7 @@ WHERE
 
 		query = ConnectionManager.getNewQuery( AutomagicallyUpdater.EDIT_CONN_TYPE )
 		if query == None:
+			QMessageBox.information(None, "ok", "query: %s" % geomSubQuery.query)
 			return False
 
 		query.prepare( "SELECT count(*) FROM (%s) AS com, (%s) AS geo WHERE ST_Intersects(geo.edificio, com.confine) = 1""" % (comSubQuery, geomSubQuery.query) )
@@ -318,8 +319,9 @@ WHERE
 		ok = query.value(0).toInt()[0] > 0
 
 		if not ok:
-			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è ammessa perché fuori dal confine del comune%s." % (actionName, comune) )
+			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è ammessa perché fuori dal confine del comune %s." % (actionName, comune) )
 			return False
+			
 		return True
 
 	@classmethod
@@ -1014,8 +1016,7 @@ WHERE
 
 			# load wms layers
 			from DlgWmsLayersManager import DlgWmsLayersManager
-			if not DlgWmsLayersManager.loadWmsLayers(firstStart):
-				return False
+			DlgWmsLayersManager.loadWmsLayers(firstStart)
 
 			conn = ConnectionManager.getConnection()
 			# load the vector layers (original and changed geometries)
@@ -1111,7 +1112,7 @@ WHERE
 			(errorMsg, result) = vl.loadNamedStyle( style_path )
 			self.iface.legendInterface().refreshLayerSymbology(vl)
 
-			ManagerWindow.VLID_FOTO = vl.getLayerID()
+			ManagerWindow.VLID_FOTO = self._getLayerId(vl)
 			self._addMapLayer(vl)
 			# set custom property
 			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_FOTO") )
@@ -1126,16 +1127,16 @@ WHERE
 		# rimuovi i layer WMS
 		for order, rlid in ManagerWindow.RLID_WMS.iteritems():
 			if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
-				self._removeMapLayer(rlid)
+				QgsMapLayerRegistry.instance().removeMapLayer(rlid)
 		ManagerWindow.RLID_WMS = {}
 
 		# rimuovi i layer delle geometrie
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_ORIG ) != None:
-			self._removeMapLayer(ManagerWindow.VLID_GEOM_ORIG)
+			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_ORIG)
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_GEOM_MODIF ) != None:
-			self._removeMapLayer(ManagerWindow.VLID_GEOM_MODIF)
+			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_GEOM_MODIF)
 		if QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO ) != None:
-			self._removeMapLayer(ManagerWindow.VLID_FOTO)
+			QgsMapLayerRegistry.instance().removeMapLayer(ManagerWindow.VLID_FOTO)
 
 		self.canvas.setRenderFlag(prevRenderFlag)
 		QApplication.restoreOverrideCursor()
@@ -1298,14 +1299,13 @@ WHERE
 		return renderer.setDestinationSrs( crs )
 
 	@classmethod
-	def _addMapLayer(self, vl):
+	def _addMapLayer(self, layer):
 		if hasattr(QgsMapLayerRegistry.instance(), 'addMapLayers'):
-			return QgsMapLayerRegistry.instance().addMapLayers( [vl] )
-		return QgsMapLayerRegistry.instance().addMapLayer(vl)
+			return QgsMapLayerRegistry.instance().addMapLayers( [layer] )
+		return QgsMapLayerRegistry.instance().addMapLayer(layer)
 
 	@classmethod
-	def _removeMapLayer(self, vl):
+	def _removeMapLayer(self, layer):
 		if hasattr(QgsMapLayerRegistry.instance(), 'removeMapLayers'):
-			return QgsMapLayerRegistry.instance().removeMapLayers( [vl] )
-		return QgsMapLayerRegistry.instance().removeMapLayer(vl)
-
+			return QgsMapLayerRegistry.instance().removeMapLayers( [layer] )
+		return QgsMapLayerRegistry.instance().removeMapLayer(layer)

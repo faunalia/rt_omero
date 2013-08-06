@@ -35,8 +35,11 @@ class DlgSettings(QDialog, Ui_Dialog):
 	def __init__(self, parent=None):
 		QDialog.__init__(self, parent)
 		self.setupUi(self)
+		
 		self.restorePrintBehavior()
 		self.initPrintPdfResolution()
+		
+		self.restoreWMSRepoUrl()
 
 
 	def initPrintPdfResolution(self):
@@ -68,9 +71,17 @@ class DlgSettings(QDialog, Ui_Dialog):
 		else: res = QPrinter.HighResolution
 
 		AutomagicallyUpdater.setPrintBehavior( mode, res )
+	
+	
+	def restoreWMSRepoUrl(self):
+		self.wmsRepoUrlEdit.setText( AutomagicallyUpdater.getWMSRepositoryUrl() )
+
+	def updateWMSRepoUrl(self):
+		AutomagicallyUpdater.setWMSRepositoryUrl( self.wmsRepoUrlEdit.text() )
 
 
 	def accept(self):
 		self.updatePrintBehavior()
+		self.updateWMSRepoUrl()
 		QDialog.accept(self)
 

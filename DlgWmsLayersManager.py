@@ -25,6 +25,7 @@ Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.h
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtNetwork import *
 
 from qgis.core import *
 
@@ -42,24 +43,25 @@ class DlgWmsLayersManager(DlgWaiting):
 	def run(self):
 		self.reset()
 		try:
-			ret = self.onlineMode() if ManagerWindow.instance.offlineMode else self.offlineMode()
+			ret = self.switchToOnlineMode() if ManagerWindow.instance.offlineMode else self.switchToOfflineMode()
 			self.onProgress(-1)
 		finally:
 			self.finished = True
 		self.done(ret)
 
-	def offlineMode(self):
+	def switchToOfflineMode(self):
+		# offline mode is already on
 		if ManagerWindow.instance.offlineMode:
 			return False
 
 		def saveWorldFile(imgpath, pxdim, extent):
-			# save worldfile
+			""" create a worldfile """
 			out = open( u"%s.wld" % imgpath[:-4], 'w')
 			out.write( u"%.16f\n%.16f\n%.16f\n%.16f\n%.16f\n%.16f" % (pxdim, 0.0, 0.0, -pxdim, extent.xMinimum(), extent.yMaximum()) )
 			out.close()
 
 		def buildAllPyramids(layer):
-			# create raster pyramids
+			""" build raster pyramids """
 			evloop = QEventLoop()
 			thread = BuildPyramidsThread(layer)
 			QObject.connect( thread, SIGNAL("finished()"), evloop.quit )
@@ -97,10 +99,18 @@ class DlgWmsLayersManager(DlgWaiting):
 		# get central point
 		rect = self.canvas.extent()
 		center = QgsPoint(rect.xMinimum() + rect.width()/2, rect.yMinimum() + rect.height()/2)
-
+		
+		# dump the wms layers' info from online repository to cache file
+		layersinfo = self.retrieveWmsLayerList()
+		wmslistfn = QDir(cache_path).absoluteFilePath("zz_wms.list.txt")
+		with open(unicode(wmslistfn), 'w') as f:
+			if layersinfo is not None:
+				import json
+				json.dump(layersinfo, f)
+				
 		cached_images = {}
 		try:
-			# get the list of wms layers to switch
+			# get the list of wms layers to be switched
 			wms_layers = []
 			legend = self.iface.legendInterface()
 			for layer in reversed(legend.layers()):
@@ -116,26 +126,29 @@ class DlgWmsLayersManager(DlgWaiting):
 
 				elif prop.toString().startsWith( "RLID_WMS" ) and not prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
 					# a wms layer loaded by omero
-					# get scale and extent from database
+					# get cache scale and extent for the layer
+					if layersinfo is None:
+						continue
+						
+					# get layer info by order
 					order = int(prop.toString()[9:])
-					res = AutomagicallyUpdater.Query( u'SELECT CACHE_SCALA, CACHE_ESTENSIONE FROM ZZ_WMS WHERE "ORDER" = %s' % order ).getRow(0, 2)
-					if res == None:
+					linfos = filter(lambda x: x['order'] == order, layersinfo)
+					if len(linfos) <= 0:
 						continue
-					scale, extent = res
-					if scale is None or not scale.toInt()[1]:
+					# use just the first item
+					linfo = linfos[0]
+						
+					scale, extent = linfo['cache_scale'], linfo['cache_extent']
+					if scale is None:
 						continue
-					else:
-						scale = scale.toInt()[0]
-					if extent is None or not extent.toInt()[1]:
+					if extent is None:
 						extent = default_extent
-					else:
-						extent = extent.toInt()[0]
 
 					prop = QVariant( u"RLID_WMS_OFFLINE %s" % order )
 					wms_layers.append( (layer, scale, extent, prop) )
 
 
-			# convert each wms in an offline layer
+			# convert each wms to an offline layer
 			for idx_layer, val_layer in enumerate(wms_layers):
 				layer, scale, extent, prop = val_layer
 
@@ -164,7 +177,7 @@ class DlgWmsLayersManager(DlgWaiting):
 				p = layer.dataProvider()
 
 				# use a vrt catalog to store the cached layer instead
-				# of write all the tiles on a single image
+				# of write all the tiles onto a single image
 				escaped_name = name.replace( QRegExp("[^a-zA-Z0-9]"), "_" ).toLower()[:100]
 				use_catalog = True
 				if not use_catalog:
@@ -212,10 +225,21 @@ class DlgWmsLayersManager(DlgWaiting):
 					saved = (0 == subprocess.call( cmd ))
 				self.onProgress()
 
-				if saved:
-					# remove the online layer and add the offline one
+				if saved:				
+					# remove the online layer
 					ManagerWindow._removeMapLayer(layerid)
-					layer = self.iface.addRasterLayer( out_path, "CACHED - %s" % name )
+
+					# override projection behaviour: do not ask for CRS
+					settings = QSettings()
+					oldProjectionBehaviour = settings.value( "/Projections/defaultBehaviour", "prompt" )
+					settings.setValue( "/Projections/defaultBehaviour", "useProject" )
+					# add the offline layer
+					try:
+						layer = self.iface.addRasterLayer( out_path, "CACHED - %s" % name )
+					finally:
+						# restore projection behaviour
+						settings.setValue( "/Projections/defaultBehaviour", oldProjectionBehaviour )
+						
 					if layer and layer.isValid():
 						# set the layer custom property
 						layer.setCustomProperty( "loadedByOmeroRTPlugin", QVariant(prop) )
@@ -271,7 +295,8 @@ class DlgWmsLayersManager(DlgWaiting):
 
 		return True
 
-	def onlineMode(self):
+	def switchToOnlineMode(self):
+		# check if online mode is already on
 		if not ManagerWindow.instance.offlineMode:
 			return False
 
@@ -283,6 +308,7 @@ class DlgWmsLayersManager(DlgWaiting):
 		try:
 			cached_images = AutomagicallyUpdater.getCachedExternalWms()
 
+			# remove offline WMS layers, so the plugin can add the online ones
 			legend = self.iface.legendInterface()
 			for layer in reversed(legend.layers()):
 				p = layer.dataProvider()
@@ -311,7 +337,7 @@ class DlgWmsLayersManager(DlgWaiting):
 				else:
 					continue
 
-				# remove the offline layer and add the online one
+				# remove the offline layer
 				ManagerWindow._removeMapLayer(layerid)
 
 			ManagerWindow.instance.offlineMode = False
@@ -324,7 +350,9 @@ class DlgWmsLayersManager(DlgWaiting):
 
 	@classmethod
 	def loadWmsLayers(self, firstStart):
+	
 		def isHostAccessible(host):
+			""" check whether a host can be reached """
 			from PyQt4.QtNetwork import QHostInfo
 			info = QHostInfo.fromName( host )
 			if info.error() == QHostInfo.NoError:
@@ -335,47 +363,38 @@ class DlgWmsLayersManager(DlgWaiting):
 		if not firstStart and ManagerWindow.instance.offlineMode != AutomagicallyUpdater.offlineMode():
 
 			# show progress bar
-			if not DlgWmsLayersManager( ManagerWindow.instance.iface ).exec_():	# no switch occurs
+			if not DlgWmsLayersManager( ManagerWindow.instance.iface ).exec_():
+				# no switch has occurred
 				return True
 
+			# a mode switch has occurred
 			# now AutomagicallyUpdater.offlineMode() == self.offlineMode
-			if AutomagicallyUpdater.offlineMode():	# switched from online to offline mode
+			if AutomagicallyUpdater.offlineMode():
+				# we are now in offline mode
 				return True
 
 		else:
 			ManagerWindow.instance.offlineMode = AutomagicallyUpdater.offlineMode()
 
+		cache_path = AutomagicallyUpdater.getPathToCache()
 
-		# lista dei layer wms già caricati
-		loaded_wms = QStringList()
+		# get the list of already loaded WMS layers
+		loaded_wms = []
 		for order, rlid in ManagerWindow.RLID_WMS.iteritems():
 			if QgsMapLayerRegistry.instance().mapLayer( rlid ) != None:
-				loaded_wms << "'%s'" % order
+				loaded_wms.append( order )
 
-		# recupera le informazioni sui layer wms da caricare
-		query = AutomagicallyUpdater.Query( 'SELECT * FROM ZZ_WMS WHERE "ORDER" NOT IN (%s) ORDER BY "ORDER" ASC' % loaded_wms.join(",") )
-		query = query.getQuery()
-		if not query.exec_():
-			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), ManagerWindow.instance )
+		layersinfo = self.retrieveWmsLayerList( excludeList = loaded_wms )
+		if layersinfo is None:
 			return False
-
-		while query.next():
-			order = query.value(0).toInt()[0]
-			title = query.value(1).toString()
-			url = query.value(2).toString()
-			layers = query.value(3).toString()
-			crs = query.value(4).toString()
-			format = query.value(5).toString()
-			transparent = query.value(6).toString()
-			version = query.value(7).toString()
-
-			layers = layers.split(",")
-			styles = [ '' ] * len(layers)
-			format = "image/%s" % format.toLower()
+		
+		for l in layersinfo:
+			order, url, title = l['order'], l['url'], l['title'], 
+			layers, styles, format, crs = l['layers'], l['styles'], l['format'], l['crs']
 
 			if not ManagerWindow.instance.offlineMode:
 				# online mode, load layers from the wms server
-				if QGis.QGIS_VERSION[0:3] <= "1.8":	# API changes from QGis 1.9
+				if QGis.QGIS_VERSION[0:3] <= "1.8":	# handle QGIS API changes
 					rl = QgsRasterLayer(0, url, title, 'wms', layers, styles, format, crs)
 				else:
 					uri = QgsDataSourceURI()
@@ -388,13 +407,24 @@ class DlgWmsLayersManager(DlgWaiting):
 					rl = QgsRasterLayer(QString(uri.encodedUri()), title, 'wms')
 
 				prop = "RLID_WMS %s" % order
+				
 			else:
 				# offline mode, load layers from local cache
-				escaped_title = title.replace( QRegExp("[^a-zA-Z0-9]"), "_" ).toLower()[:100]
-				vrt_path = QDir( AutomagicallyUpdater.getPathToCache() ).absoluteFilePath( u'%s.vrt' % escaped_title )
+				escaped_title = QString(title).replace( QRegExp("[^a-zA-Z0-9]"), "_" ).toLower()[:100]
+				vrt_path = QDir( cache_path ).absoluteFilePath( u'%s.vrt' % escaped_title )
 				if not QFileInfo( vrt_path ).exists():
 					continue
-				rl = QgsRasterLayer( vrt_path, u"CACHED - %s" % title )
+					
+				# override projection behaviour: do not ask for CRS
+				settings = QSettings()
+				oldProjectionBehaviour = settings.value( "/Projections/defaultBehaviour", "prompt" )
+				settings.setValue( "/Projections/defaultBehaviour", "useProject" )
+				try:
+					rl = QgsRasterLayer( vrt_path, u"CACHED - %s" % title )
+				finally:
+					# restore projection behaviour
+					settings.setValue( "/Projections/defaultBehaviour", oldProjectionBehaviour )
+				
 				rl.setTransparentBandName( "Band 4" )
 				prop = "RLID_WMS_OFFLINE %s" % order
 
@@ -404,10 +434,182 @@ class DlgWmsLayersManager(DlgWaiting):
 			ManagerWindow.RLID_WMS[order] = ManagerWindow._getLayerId(rl)
 			ManagerWindow._addMapLayer(rl)
 			ManagerWindow.instance.iface.legendInterface().setLayerVisible( rl, False )
+
 			# set custom property
 			rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant(prop) )
-
+			
 		return True
+		
+	@classmethod
+	def retrieveWmsLayerList(self, excludeList=None, retrieveList=None):
+		if excludeList is None:
+			excludeList = []
+		if retrieveList is None:
+			# empty list means retrieve ALL the layers
+			retrieveList = []
+
+		layersinfo = []
+		
+		if ManagerWindow.instance.offlineMode:
+			# offline mode is on, get the wms list from cache
+			cache_path = AutomagicallyUpdater.getPathToCache()
+			wmslistfn = QDir(cache_path).absoluteFilePath("zz_wms.list.txt")
+			try:
+				with open(unicode(wmslistfn), 'r') as f:
+					import json
+					cachedinfo = json.load(f)
+			except (IOError, ValueError):
+				return None
+
+			for linfo in cachedinfo:
+				# check whether retrieve or not the layer
+				order = linfo['order']
+				if order in excludeList:
+					continue
+				if len(retrieveList) > 0 and order not in retrieveList:
+					continue
+					
+				layersinfo.append( linfo )
+
+			return layersinfo
+		
+		# online mode, get the WMS layer list from online repository
+		repourl = AutomagicallyUpdater.getWMSRepositoryUrl()
+		if repourl is None or repourl == "":
+			# XXX: old behaviour, retrieve WMS layer list from database
+			whereclauses = [ "1=1" ]
+			if len(retrieveList) > 0:
+				whereclauses.append( u'"ORDER" IN (%s)' % u",".join( map(str, retrieveList) ) )
+			if len(excludeList) > 0:
+				whereclauses.append( u'"ORDER" NOT IN (%s)' % u",".join( map(str, excludeList) ) )
+			
+			query = AutomagicallyUpdater.Query( u'SELECT * FROM ZZ_WMS WHERE %s ORDER BY "ORDER" ASC' % " AND ".join(whereclauses) )
+			query = query.getQuery()
+			if not query.exec_():
+				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), ManagerWindow.instance )
+				return
+
+			while query.next():
+				layer = {}
+				layer['order'] = query.value(0).toInt()[0]
+				layer['title'] = query.value(1).toString()
+				layer['url'] = query.value(2).toString()
+				
+				layer['layers'] = query.value(3).toString().split(",")
+				layer['styles'] = [ '' ] * len( layer['layers'] )
+				layer['crs'] = query.value(4).toString()
+				layer['format'] = "image/%s" % query.value(5).toString().toLower()
+				layer['transparent'] = query.value(6).toString()
+				layer['version'] = query.value(7).toString()
+				
+				layer['cache_scale'], ok = query.value(8).toInt()
+				if not ok:
+					layer['cache_scale']= None
+				layer['cache_extent'], ok = query.value(9).toInt()
+				if not ok:
+					layer['cache_extent'] = None
+				
+				layersinfo.append(layer)
+				
+		else:
+			# get layers from WMS repository by URL			
+			def downloadFinished(reply, evloop, done):
+				ok = True
+				if reply.error() != QNetworkReply.NoError:
+					QMessageBox.warning(None, "RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n" +
+							u"Error code: %s" % reply.error() )
+					ok = False
+				else:
+					status = reply.attribute( QNetworkRequest.HttpStatusCodeAttribute )
+					if status is not None and status.toInt()[1] and status.toInt()[0] > 400:
+						phrase = reply.attribute( QNetworkRequest.HttpReasonPhraseAttribute )
+						QMessageBox.warning(None, "RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n" +
+								u"Status: %s\nReason phrase: %s" % (status, phrase ) )
+						ok = False
+				
+				done[0] = ok
+				evloop.exit()
+			
+			done = [False] # trick to be passed by reference
+			evloop = QEventLoop()
+			
+			req = QNetworkRequest( QUrl(repourl) )
+			reply = QgsNetworkAccessManager.instance().get( req )
+			reply.finished.connect( lambda: downloadFinished(reply, evloop, done) )
+
+			# wait until the download finishes
+			evloop.exec_()
+			if not done[0]:
+				return
+			
+			import zipfile
+			try:
+				# we have the data, let's create the zip file
+				tmp = QTemporaryFile()
+				tmp.setFileTemplate( tmp.fileTemplate().append( ".zip" ) )
+				tmp.open( QIODevice.ReadWrite )
+				tmp.write( reply.readAll() )
+				tmp.close()
+			
+				# open the zip file and get the csv/txt file containing the WMS list
+				zf = zipfile.ZipFile(unicode(tmp.fileName()), 'r')
+			
+				# the file within the zip has the same basename of the url file path
+				csv_data = None
+				for name in sorted(zf.namelist()):
+					f_basename = unicode(QFileInfo( QUrl(repourl).path() ).completeBaseName())
+					if not name.lower().startswith( f_basename.lower() ):
+						continue
+					
+					# try to get the file content
+					import csv
+					try:
+						with zf.open( zf.getinfo( name ), 'r' ) as csv_f:
+							csvreader = csv.reader(csv_f, delimiter=',', quotechar="'")
+							for row in csvreader:
+								if row[0] == '*':
+									# XXX: there's a star (*) as EOF. why???
+									break
+
+								linfo = {}
+								linfo['order'] = int(row[0])
+								
+								# check whether retrieve or not the layer
+								if linfo['order'] in excludeList:
+									continue
+								if len(retrieveList) > 0 and linfo['order'] not in retrieveList:
+									continue
+
+								linfo['title'] = row[1]
+								linfo['url'] = row[2]
+								
+								linfo['layers'] = row[3].split(",")
+								linfo['styles'] = [ '' ] * len( linfo['layers'] )
+								linfo['crs'] = row[4]
+								linfo['format'] = "image/%s" % row[5].lower()
+								linfo['transparent'] = row[6]
+								linfo['version'] = row[7]
+								
+								try:
+									linfo['cache_scale'] = int(row[8])
+								except ValueError:
+									linfo['cache_scale'] = None
+								try:
+									linfo['cache_extent'] = int(row[9])
+								except ValueError:
+									linfo['cache_extent'] = None
+								
+								layersinfo.append( linfo )
+								
+					except IOError:
+						continue
+
+			except (IOError, zipfile.BadZipfile) as e:
+				# unable to open the zip file
+				QMessageBox.warning(None, "RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n%s" % unicode(e) )
+				return
+			
+		return layersinfo
 
 
 class BuildPyramidsThread(QThread):
@@ -417,7 +619,7 @@ class BuildPyramidsThread(QThread):
 
 	def run(self):
 		# set to build all available raster pyramids
-		if QGis.QGIS_VERSION[0:3] <= "1.8":	# API changes from QGis 1.9
+		if QGis.QGIS_VERSION[0:3] <= "1.8":	# handle API changes
 			self.layer.dataProvider().buildPyramidList = self.layer.buildPyramidList
 			self.layer.dataProvider().buildPyramids = self.layer.buildPyramids
 
