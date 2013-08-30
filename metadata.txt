@@ -29,7 +29,7 @@ tags=surveys,buildings,RT,spatialite
 
 homepage=http://www.faunalia.com/
 tracker=http://hub.qgis.org/projects/rtomero
-repository=http://hub.qgis.org/projects/rtomero/repository
+repository=https://github.com/faunalia/rt_omero
 
 ; path to a icon within the plugin folder
 icon=icons/rt_omero.png
