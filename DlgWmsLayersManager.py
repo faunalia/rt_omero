@@ -627,15 +627,16 @@ class BuildPyramidsThread(QThread):
 
 	def run(self):
 		# set to build all available raster pyramids
+		provider = self.layer.dataProvider()
 		if QGis.QGIS_VERSION[0:3] <= "1.8":	# handle API changes
-			self.layer.dataProvider().buildPyramidList = self.layer.buildPyramidList
-			self.layer.dataProvider().buildPyramids = self.layer.buildPyramids
+			provider.buildPyramidList = self.layer.buildPyramidList
+			provider.buildPyramids = self.layer.buildPyramids
 
-		pyramids = self.layer.dataProvider().buildPyramidList()
+		pyramids = provider.buildPyramidList()
 		for i in range( len(pyramids) ):
 			# mark to be pyramided
 			pyramids[i].build = True
 
 		method = QCoreApplication.translate("QgsGdalProvider", "Average",  None, QApplication.UnicodeUTF8)
-		self.layer.dataProvider().buildPyramids( pyramids, method, True )
+		provider.buildPyramids( pyramids, method, True )
 
