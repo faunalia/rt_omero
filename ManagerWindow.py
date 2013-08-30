@@ -1309,3 +1309,11 @@ WHERE
 		if hasattr(QgsMapLayerRegistry.instance(), 'removeMapLayers'):
 			return QgsMapLayerRegistry.instance().removeMapLayers( [layer] )
 		return QgsMapLayerRegistry.instance().removeMapLayer(layer)
+
+	@classmethod
+	def _logMessage(self, group, msg):
+		try:
+			QgsMessageLog.logMessage( msg, group )
+		except:
+			pass
+

@@ -454,12 +454,14 @@ class DlgWmsLayersManager(DlgWaiting):
 			# offline mode is on, get the wms list from cache
 			cache_path = AutomagicallyUpdater.getPathToCache()
 			wmslistfn = QDir(cache_path).absoluteFilePath("zz_wms.list.txt")
+
+			cachedinfo = []
 			try:
 				with open(unicode(wmslistfn), 'r') as f:
 					import json
 					cachedinfo = json.load(f)
-			except (IOError, ValueError):
-				return None
+			except (IOError, ImportError, ValueError) as e:
+				ManagerWindow._logMessage("RT Omero", u"Impossibile recuperare la lista dei layer WMS dal file %s.\n%s" % ( wmslistfn, unicode(e)) )
 
 			for linfo in cachedinfo:
 				# check whether retrieve or not the layer
@@ -468,15 +470,119 @@ class DlgWmsLayersManager(DlgWaiting):
 					continue
 				if len(retrieveList) > 0 and order not in retrieveList:
 					continue
-					
+				
 				layersinfo.append( linfo )
 
-			return layersinfo
-		
-		# online mode, get the WMS layer list from online repository
-		repourl = AutomagicallyUpdater.getWMSRepositoryUrl()
-		if repourl is None or repourl == "":
-			# XXX: old behaviour, retrieve WMS layer list from database
+		else:
+			# online mode, get the WMS layer list from online repository 
+			repourl = AutomagicallyUpdater.getWMSRepositoryUrl()
+			if repourl:
+				# get layers from WMS repository by URL			
+				def downloadFinished(reply, evloop, done):
+					ok = True
+					if reply.error() != QNetworkReply.NoError:
+						ManagerWindow._logMessage("RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n" +
+								u"Error code: %s" % reply.error() )
+						ok = False
+					else:
+						status = reply.attribute( QNetworkRequest.HttpStatusCodeAttribute )
+						if status is not None and status.toInt()[1] and status.toInt()[0] > 400:
+							phrase = reply.attribute( QNetworkRequest.HttpReasonPhraseAttribute )
+							ManagerWindow._logMessage("RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n" +
+									u"Status: %s\nReason phrase: %s" % (status, phrase ) )
+							ok = False
+					
+					done[0] = ok
+					evloop.exit()
+				
+				done = [False] # trick to pass the value by reference
+				evloop = QEventLoop()
+				
+				req = QNetworkRequest( QUrl(repourl) )
+				reply = QgsNetworkAccessManager.instance().get( req )
+				reply.finished.connect( lambda: downloadFinished(reply, evloop, done) )
+
+				# wait until the download finishes
+				evloop.exec_()
+				if done[0]:
+					import zipfile
+					try:
+						# we have the data, let's create the zip file
+						tmp = QTemporaryFile()
+						tmp.setFileTemplate( tmp.fileTemplate().append( ".zip" ) )
+						tmp.open( QIODevice.ReadWrite )
+						tmp.write( reply.readAll() )
+						tmp.close()
+					
+						# open the zip file and get the csv/txt file containing the WMS list
+						zf = zipfile.ZipFile(unicode(tmp.fileName()), 'r')
+					
+						# the file within the zip has the same basename of the url file path
+						csv_data = None
+						for name in sorted(zf.namelist()):
+							f_basename = unicode(QFileInfo( QUrl(repourl).path() ).completeBaseName())
+							if not name.lower().startswith( f_basename.lower() ):
+								continue
+							
+							# try to get the file content
+							import csv
+							try:
+								with zf.open( zf.getinfo( name ), 'r' ) as csv_f:
+									csvreader = csv.reader(csv_f, delimiter=',', quotechar="'")
+									for row in csvreader:
+										if row[0] == '*':
+											# XXX: the file ends with a star (*) as EOF. why???
+											break
+
+										linfo = {}
+										linfo['order'] = int(row[0])
+										
+										# check whether retrieve or not the layer
+										if linfo['order'] in excludeList:
+											continue
+										if len(retrieveList) > 0 and linfo['order'] not in retrieveList:
+											continue
+
+										linfo['title'] = row[1]
+										linfo['url'] = row[2]
+										
+										linfo['layers'] = row[3].split(",")
+										linfo['styles'] = [ '' ] * len( linfo['layers'] )
+										linfo['crs'] = row[4]
+										linfo['format'] = "image/%s" % row[5].lower()
+										linfo['transparent'] = row[6]
+										linfo['version'] = row[7]
+										
+										try:
+											linfo['cache_scale'] = int(row[8])
+										except ValueError:
+											linfo['cache_scale'] = None
+										try:
+											linfo['cache_extent'] = int(row[9])
+										except ValueError:
+											linfo['cache_extent'] = None
+										
+										layersinfo.append( linfo )
+										
+										# update ZZ_WMS entries replacing the ones with the same order number
+										query = AutomagicallyUpdater.Query( u'DELETE FROM ZZ_WMS WHERE "ORDER" = ?' , linfo['order'] )
+										query.getQuery().exec_()
+										query = AutomagicallyUpdater.Query( u'''INSERT INTO ZZ_WMS
+												("ORDER", TITLE, URL, LAYERS, SRS, FORMAT, TRANSPARENT, VERSION, CACHE_SCALA, CACHE_ESTENSIONE)
+												VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''' , row )
+										query.getQuery().exec_()
+									
+							except IOError:
+								continue
+
+					except (IOError, zipfile.BadZipfile) as e:
+						# unable to open the zip file
+						ManagerWindow._logMessage("RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n%s" % unicode(e) )
+				
+		if len(layersinfo) <= 0:
+			# unable to retrieve the list, get values from ZZ_WMS table
+			ManagerWindow._logMessage("RT Omero", u"Recupero la lista dei layer WMS dal database..." )
+			
 			whereclauses = [ "1=1" ]
 			if len(retrieveList) > 0:
 				whereclauses.append( u'"ORDER" IN (%s)' % u",".join( map(str, retrieveList) ) )
@@ -510,104 +616,6 @@ class DlgWmsLayersManager(DlgWaiting):
 					layer['cache_extent'] = None
 				
 				layersinfo.append(layer)
-				
-		else:
-			# get layers from WMS repository by URL			
-			def downloadFinished(reply, evloop, done):
-				ok = True
-				if reply.error() != QNetworkReply.NoError:
-					QMessageBox.warning(None, "RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n" +
-							u"Error code: %s" % reply.error() )
-					ok = False
-				else:
-					status = reply.attribute( QNetworkRequest.HttpStatusCodeAttribute )
-					if status is not None and status.toInt()[1] and status.toInt()[0] > 400:
-						phrase = reply.attribute( QNetworkRequest.HttpReasonPhraseAttribute )
-						QMessageBox.warning(None, "RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n" +
-								u"Status: %s\nReason phrase: %s" % (status, phrase ) )
-						ok = False
-				
-				done[0] = ok
-				evloop.exit()
-			
-			done = [False] # trick to be passed by reference
-			evloop = QEventLoop()
-			
-			req = QNetworkRequest( QUrl(repourl) )
-			reply = QgsNetworkAccessManager.instance().get( req )
-			reply.finished.connect( lambda: downloadFinished(reply, evloop, done) )
-
-			# wait until the download finishes
-			evloop.exec_()
-			if not done[0]:
-				return
-			
-			import zipfile
-			try:
-				# we have the data, let's create the zip file
-				tmp = QTemporaryFile()
-				tmp.setFileTemplate( tmp.fileTemplate().append( ".zip" ) )
-				tmp.open( QIODevice.ReadWrite )
-				tmp.write( reply.readAll() )
-				tmp.close()
-			
-				# open the zip file and get the csv/txt file containing the WMS list
-				zf = zipfile.ZipFile(unicode(tmp.fileName()), 'r')
-			
-				# the file within the zip has the same basename of the url file path
-				csv_data = None
-				for name in sorted(zf.namelist()):
-					f_basename = unicode(QFileInfo( QUrl(repourl).path() ).completeBaseName())
-					if not name.lower().startswith( f_basename.lower() ):
-						continue
-					
-					# try to get the file content
-					import csv
-					try:
-						with zf.open( zf.getinfo( name ), 'r' ) as csv_f:
-							csvreader = csv.reader(csv_f, delimiter=',', quotechar="'")
-							for row in csvreader:
-								if row[0] == '*':
-									# XXX: there's a star (*) as EOF. why???
-									break
-
-								linfo = {}
-								linfo['order'] = int(row[0])
-								
-								# check whether retrieve or not the layer
-								if linfo['order'] in excludeList:
-									continue
-								if len(retrieveList) > 0 and linfo['order'] not in retrieveList:
-									continue
-
-								linfo['title'] = row[1]
-								linfo['url'] = row[2]
-								
-								linfo['layers'] = row[3].split(",")
-								linfo['styles'] = [ '' ] * len( linfo['layers'] )
-								linfo['crs'] = row[4]
-								linfo['format'] = "image/%s" % row[5].lower()
-								linfo['transparent'] = row[6]
-								linfo['version'] = row[7]
-								
-								try:
-									linfo['cache_scale'] = int(row[8])
-								except ValueError:
-									linfo['cache_scale'] = None
-								try:
-									linfo['cache_extent'] = int(row[9])
-								except ValueError:
-									linfo['cache_extent'] = None
-								
-								layersinfo.append( linfo )
-								
-					except IOError:
-						continue
-
-			except (IOError, zipfile.BadZipfile) as e:
-				# unable to open the zip file
-				QMessageBox.warning(None, "RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n%s" % unicode(e) )
-				return
 			
 		return layersinfo
 

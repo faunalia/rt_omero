@@ -151,6 +151,16 @@ class AutomagicallyUpdater:
 		from ManagerWindow import ManagerWindow
 		ManagerWindow.destroyPrinter()
 
+	@classmethod
+	def getWMSRepositoryUrl(self):
+		settings = QSettings()
+		return settings.value( "/omero_RT/wmsRepositoryURL", "http://www502.regione.toscana.it/geoscopio/documenti/omero/zz_wms.zip" ).toString()
+
+	@classmethod
+	def setWMSRepositoryUrl(self, value):
+		settings = QSettings()
+		settings.setValue( "/omero_RT/wmsRepositoryURL", value )
+
 
 	class Query():
 		def __init__(self, query, params=None, conntype=None):
