@@ -168,7 +168,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		if prefix is None:
 			filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
 		else:
-			filename = u"%s/img_%s.%s" % (outpath, self._ID, ext)
+			filename = u"%s/img_%s.%s" % (prefix, self._ID, ext)
 			with open( filename, "wb" ) as fout:
 				fout.write( str( self.getValue(self.IMAGE) ) )
 
