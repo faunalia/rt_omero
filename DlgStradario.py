@@ -82,8 +82,8 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 			# recupera la via selezionata
 			query = AutomagicallyUpdater.Query( "SELECT ZZ_COMUNIISTATCOM, VIA FROM INDIRIZZO_VIA WHERE ID_INDIRIZZO = ?", [ IDindirizzo ] ).getQuery()
 			if query.exec_() and query.next():
-				IDcomune = query.value(0).toString()
-				via = query.value(1).toString()
+				IDcomune = str( query.value(0) )
+				via = str( query.value(1) )
 
 		self.setValue(self.comuneCombo, IDcomune)
 		self.setValue(self.viaEdit, via)
@@ -119,7 +119,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 
 	def aggiungiVia(self):
 		IDcomune = self.getValue(self.comuneCombo)
-		via = self.viaEdit.text().toUpper()
+		via = str(self.viaEdit.text()).upper()
 		if IDcomune == None or via.isEmpty():
 			return
 
@@ -138,7 +138,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 			self.aggiornaVie()
 
 	def testModificaVia(self, comune, via, ID):
-		via = QString( via ).toUpper()
+		via = str( via ).upper()
 		try:
 			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 			ConnectionManager.startTransaction()
@@ -167,7 +167,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 				self._deleteValue( 'INDIRIZZO_VIA', { 'ID_INDIRIZZO' : ID } )
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", str(e) )
 			return False
 
 		finally:
@@ -191,9 +191,9 @@ class EditVieTableModel(QSqlQueryModel):
 	#def data(self, index, role = Qt.DisplayRole):
 	#	if not index.isValid() or role != Qt.BackgroundRole or self.isEditable( index.row() ):
 	#		return QSqlQueryModel.data(self, index, role)
-	#	return QVariant( QBrush(QColor(210, 210, 210)) )
+	#	return QVari---ant( QBrush(QColor(210, 210, 210)) )
 
 	def isEditable(self, row):
 		sqlRecord = self.record(row)
-		return sqlRecord.value(1).toBool()
+		return bool( sqlRecord.value(1) )
 

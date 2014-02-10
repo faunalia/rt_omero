@@ -276,9 +276,9 @@ WHERE
 			return False
 		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
 
-		comune = query.value(0).toString()
+		comune = str( query.value(0) )
 		comune = u' "%s"' % comune if comune and len(comune) > 0 else ''
-		ok = query.value(1).toInt()[0]
+		ok = int( query.value(1) )
 		if ok > 0:	# action permitted
 			return True
 
@@ -309,14 +309,14 @@ WHERE
 		params = [ comuneID ]
 		params.extend( geomSubQuery.params )
 		for p in params:
-			query.addBindValue( p if p != None else QVariant() )
+			query.addBindValue( p )
 
 		if not query.exec_() or not query.next():
 			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return False
 		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
 
-		ok = query.value(0).toInt()[0] > 0
+		ok = int( query.value(0) ) > 0
 
 		if not ok:
 			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è ammessa perché fuori dal confine del comune %s." % (actionName, comune) )
@@ -326,7 +326,7 @@ WHERE
 
 	@classmethod
 	def checkActionSpatialFromFeature(self, actionName, feat, onLayerModif):
-		codice = feat.attributeMap()[0].toString()
+		codice = str( feat.attribute( 0 ) )
 		return self.checkActionSpatialFromId(actionName, codice, onLayerModif)
 
 	@classmethod
@@ -377,7 +377,7 @@ WHERE
 				return self.nuovaPointEmitter.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = feat.attributeMap()[0].toString()
+			codice = str( feat.attribute( 0 ) )
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
 			if abbinato:
 				# NO, c'è già una scheda associata
@@ -438,11 +438,11 @@ WHERE
 				return self.esistentePointEmitter.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = feat.attributeMap()[0].toString()
+			codice = str( feat.attribute( 0 ) )
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
 			if abbinato:
 				# OK, c'è già una scheda associata
-				codice = feat.attributeMap()[0].toString()
+				codice = str( feat.attribute( 0 ) )
 				if self.isApriScheda:
 					self.apriScheda( codice )
 				else:
@@ -531,8 +531,8 @@ WHERE
 			featureList = []
 			while query.next():
 				ID = None
-				codice = query.value(0).toString()
-				wkt = query.value(1).toString()
+				codice = str( query.value(0) )
+				wkt = str( query.value(1) )
 				featureList.append( (ID, codice, wkt) )
 
 			for ID, codice, wkt in featureList:
@@ -560,10 +560,10 @@ WHERE
 
 			featureList = []
 			while query.next():
-				ID = query.value(0).toString()
-				codice = query.value(1).toString()
-				stato = query.value(2).toString()
-				wkt = query.value(3).toString()
+				ID = str( query.value(0) )
+				codice = str( query.value(1) )
+				stato = str( query.value(2) )
+				wkt = str( query.value(3) )
 				featureList.append( (ID, codice, stato, wkt) )
 
 			for ID, codice, stato, wkt in featureList:
@@ -590,7 +590,7 @@ WHERE
 					del geometry
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", str( e ))
 			return False
 
 		finally:
@@ -629,7 +629,7 @@ WHERE
 				return False
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", str( e ))
 			return False
 
 		finally:
@@ -652,13 +652,13 @@ WHERE
 			ConnectionManager.startTransaction()
 
 			# copia la geometria selezionata nel layer delle geometrie nuove o modificate
-			codice = feat.attributeMap()[0].toString()
+			codice = str( feat.attribute( 0 ) )
 			ID = AutomagicallyUpdater._insertGeometriaCopiata( codice )
 			if ID == None:
 				return
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(None, "Errore", e.toString())
+			QMessageBox.critical(None, "Errore", str( e ))
 			return
 
 		finally:
@@ -701,7 +701,7 @@ WHERE
 			AutomagicallyUpdater._deleteGeometria( None, "ID_UV_NEW IN (SELECT gm1.ID_UV_NEW FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' /* non spezzate */ AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) /* senza scheda associata */ ) OR (gm1.ZZ_STATO_GEOMETRIAID = '2' AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE)))" )
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", str( e ))
 			return
 
 		finally:
@@ -730,7 +730,7 @@ WHERE
 				self.scheda.save()
 				AutomagicallyUpdater._updateValue( { "ABBINATO_A_SCHEDA" : '1' }, "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE", "ID_UV_NEW", uvID )
 			except ConnectionManager.AbortedException, e:
-				QMessageBox.critical(self, "Errore", e.toString())
+				QMessageBox.critical(self, "Errore", str( e ))
 				return
 
 			finally:
@@ -800,7 +800,7 @@ WHERE
 			scheda.delete()
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", str( e ))
 			return
 
 		finally:
@@ -826,7 +826,7 @@ WHERE
 			return
 
 		layerModif.removeSelection(False)
-		layerModif.select(int(geomID), not centra)
+		layerModif.select(int(geomID))
 		if centra:
 			self.canvas.zoomToSelected( layerModif )
 
@@ -911,9 +911,9 @@ WHERE
 				lid = self._getLayerId( l )
 
 				# setup the plugin vars
-				parts = prop.toString().split( " " )
+				parts = str(prop).split( " " )
 				key = parts[0]
-				if key.startsWith( "RLID_WMS" ):
+				if key.startswith( "RLID_WMS" ):
 					# wms layer needs order
 					if len(parts) < 2:
 						continue
@@ -926,14 +926,14 @@ WHERE
 						l.setTransparentBandName( "Band 4" )
 						offline = True
 
-				elif key.startsWith( "VLID_" ):
+				elif key.startswith( "VLID_" ):
 					setattr( ManagerWindow, str(key), lid )
 
 					# set the vector as a read-only layer
 					if isinstance( l, QgsVectorLayer ):
 						l.setReadOnly(True)
 
-				elif key.startsWith( "WMS_OFFLINE" ):
+				elif key.startswith( "WMS_OFFLINE" ):
 					offline = True
 					l.setTransparentBandName( "Band 4" )
 
@@ -987,19 +987,19 @@ WHERE
 		def customizeSnapping(option):
 			oldSnap = {}
 			settings = QSettings()
-			oldSnap['mode'] = settings.value( "/Qgis/digitizing/default_snap_mode", QVariant( "to vertex" ) ).toString()
-			oldSnap['tollerance'] = settings.value( "/Qgis/digitizing/default_snapping_tolerance", QVariant( 0 ) ).toDouble()[0]
-			oldSnap['unit'] = settings.value( "/Qgis/digitizing/default_snapping_tolerance_unit", QVariant( 1 ) ).toInt()[0]
-			settings.setValue( "/Qgis/digitizing/default_snap_mode", QVariant( option['mode'] ) )
-			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance", QVariant( option['tollerance'] ) )
-			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance_unit", QVariant( option['unit'] ) )
+			oldSnap['mode'] = settings.value( "/Qgis/digitizing/default_snap_mode", "to vertex", type=str)
+			oldSnap['tollerance'] = settings.value( "/Qgis/digitizing/default_snapping_tolerance", 0, type=float)
+			oldSnap['unit'] = settings.value( "/Qgis/digitizing/default_snapping_tolerance_unit", 1, type=int )
+			settings.setValue( "/Qgis/digitizing/default_snap_mode", option['mode'] )
+			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance", option['tollerance'] )
+			settings.setValue( "/Qgis/digitizing/default_snapping_tolerance_unit", option['unit'] )
 			return oldSnap
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
 		# disabilita le icone per i layer raster
 		settings = QSettings()
-		prevRasterIcons = settings.value("/qgis/createRasterLegendIcons", True)
+		prevRasterIcons = settings.value("/qgis/createRasterLegendIcons", True, type=bool)
 		settings.setValue("/qgis/createRasterLegendIcons", False)
 
 		# disabilita il rendering
@@ -1065,7 +1065,7 @@ WHERE
 			ManagerWindow.VLID_GEOM_ORIG = self._getLayerId(vl)
 			self._addMapLayer(vl)
 			# set custom property
-			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_ORIG") )
+			vl.setCustomProperty( "loadedByOmeroRTPlugin", "VLID_GEOM_ORIG" )
 		return True
 
 	def loadLayerGeomModif(self, conn):
@@ -1088,7 +1088,7 @@ WHERE
 			ManagerWindow.VLID_GEOM_MODIF = self._getLayerId(vl)
 			self._addMapLayer(vl)
 			# set custom property
-			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_GEOM_MODIF") )
+			vl.setCustomProperty( "loadedByOmeroRTPlugin", "VLID_GEOM_MODIF" )
 		return True
 
 
@@ -1115,7 +1115,7 @@ WHERE
 			ManagerWindow.VLID_FOTO = self._getLayerId(vl)
 			self._addMapLayer(vl)
 			# set custom property
-			vl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant("VLID_FOTO") )
+			vl.setCustomProperty( "loadedByOmeroRTPlugin", "VLID_FOTO" )
 		return True
 
 
@@ -1168,16 +1168,18 @@ WHERE
 		# recupera l'extent memorizzato
 		query = AutomagicallyUpdater.Query( "SELECT XMIN, YMIN, XMAX, YMAX FROM ZZ_DISCLAIMER" ).getQuery()
 		if query.exec_() and query.next():
-			xmin, ok1 = query.value(0).toDouble()
-			ymin, ok2 = query.value(1).toDouble()
-			xmax, ok3 = query.value(2).toDouble()
-			ymax, ok4 = query.value(3).toDouble()
+			try:
+				xmin = float( query.value(0) )
+				ymin = float( query.value(1) )
+				xmax = float( query.value(2) )
+				ymax = float( query.value(3) )
 
-			# imposta l'extent memorizzato come attuale
-			if ok1 and ok2 and ok3 and ok4:
+				# imposta l'extent memorizzato come attuale
 				extent = QgsRectangle( xmin, ymin, xmax, ymax )
 				self.canvas.setExtent( extent )
 				return
+			except:
+				pass
 
 		# nessuno extent memorizzato o extent non valido, 
 		# fai zoom all'estenzione del layer delle geometrie originali

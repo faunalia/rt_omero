@@ -63,9 +63,9 @@ class WdgElencoFoto(MultiTabSection):
 		if not self.hasTabs():
 			index = 0
 		else:
-			index = self.tabWidget.addTab(self.basePageWidget(), QString())
+			index = self.tabWidget.addTab(self.basePageWidget(), "")
 		text = "%s%d" % (self.baseTabName, index+1)
-		self.tabWidget.setTabText(index, QString(text) )
+		self.tabWidget.setTabText(index, text )
 		self.addChildRef(self.tabWidget.widget(index))
 		self.setHasTabs(True)
 		return index
@@ -87,7 +87,7 @@ class WdgElencoFoto(MultiTabSection):
 		
 		for i in range(0, self.tabWidget.count()):
 			text = "%s%d" % (self.baseTabName, i+1)
-			self.tabWidget.setTabText(i, QString(text) )
+			self.tabWidget.setTabText(i, text )
 		return ret
 
 

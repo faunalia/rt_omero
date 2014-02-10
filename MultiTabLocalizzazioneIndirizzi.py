@@ -43,7 +43,7 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 
 		if self.firstTab.getComune() == None:
 			settings = QSettings()
-			IDComune = settings.value( "/omero_RT/lastIDComune", QVariant("") ).toString()
+			IDComune = settings.value( "/omero_RT/lastIDComune", "", type=str )
 			self.firstTab.setComune(IDComune)
 
 
@@ -70,7 +70,7 @@ class MultiTabLocalizzazioneIndirizzi(MultiTabSection):
 
 		except Exception, e:
 			if isinstance(e, ConnectionManager.AbortedException):
-				QMessageBox.critical(self, "Errore", e.toString())
+				QMessageBox.critical(self, "Errore", str(e) )
 				return False
 			raise
 

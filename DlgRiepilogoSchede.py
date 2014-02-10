@@ -172,7 +172,7 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 
 		# recupera tutte le schede selezionate
 		for item in self.schedeList.selectedItems():
-			self.toPrint.append( item.data(Qt.UserRole).toString() )
+			self.toPrint.append( str( item.data(Qt.UserRole) ) )
 
 		# avvia la stampa
 		self.printNext()

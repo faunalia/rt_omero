@@ -69,7 +69,7 @@ class ManagerPlugin:
 		try:
 			import pyspatialite
 		except ImportError, e:
-			QMessageBox.information(self.iface.mainWindow(), "Attenzione", QString( u"Modulo 'pyspatialite' non trovato. Senza di esso non è possibile eseguire RT Omero." ) )
+			QMessageBox.information(self.iface.mainWindow(), "Attenzione", u"Modulo 'pyspatialite' non trovato. Senza di esso non è possibile eseguire RT Omero." )
 			return
 
 		if self.dlg == None:

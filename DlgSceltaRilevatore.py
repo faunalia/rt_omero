@@ -95,7 +95,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 				return
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", e)
 			return False
 
 		finally:
@@ -114,7 +114,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 			self._insertRilevatore(self.nomeEdit.text(), self.cognomeEdit.text(), self.getValue(self.comuneCombo))
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", e)
 			return False
 
 		finally:
@@ -145,8 +145,8 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 				return
 			
 		settings = QSettings()
-		settings.setValue( "/omero_RT/lastIDComune", QVariant( self.getValue(self.comuneCombo) ) )
-		settings.setValue( "/omero_RT/lastIDRilevatore", QVariant( self.getValue(self.rilevatoriTable) ) )
+		settings.setValue( "/omero_RT/lastIDComune", self.getValue(self.comuneCombo) )
+		settings.setValue( "/omero_RT/lastIDRilevatore", self.getValue(self.rilevatoriTable) )
 
 		self.setOfflineMode( self.offlineBtn.isChecked() or not self.onlineBtn.isChecked() )
 		return QDialog.accept(self)

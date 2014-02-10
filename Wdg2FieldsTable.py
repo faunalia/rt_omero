@@ -81,7 +81,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			# rimuovi dal db
 			item = self.table.item(row, 0)
 			if item != None:
-				ID = item.data( Qt.UserRole ).toString()
+				ID = str( item.data( Qt.UserRole ) )
 				if ID != None:
 					ConnectionManager.startTransaction()
 					# elimina il valore
@@ -99,7 +99,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		self.dataChanged()
 
 	def rowToString(self, row=0):
-		string = QString()
+		string = ""
 
 		if self.table.rowCount() <= 0:
 			return string
@@ -123,7 +123,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			if item1 == None:
 				continue
 
-			values.append( item1.data(Qt.UserRole).toString() if getIDs else (item1.text(), item2.text() if item2 != None else None) )
+			values.append( str( item1.data(Qt.UserRole) ) if getIDs else (item1.text(), item2.text() if item2 != None else None) )
 		return values
 
 	def clear(self):
@@ -141,7 +141,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		if ID != None:
 			if first != None:
 				item1 = QTableWidgetItem(first)
-				item1.setData( Qt.UserRole, QVariant(ID) )
+				item1.setData( Qt.UserRole, ID )
 				self.table.setItem(newRow, 0, item1)
 
 			if second != None:
@@ -155,9 +155,9 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		if action == None:
 			if self._ID == None:
 				return
-			fields = QStringList()
+			fields = []
 			for c in self.columnFields:
-				fields << "t1.%s" % c
+				fields.append( "t1.%s" % c )
 			action = AutomagicallyUpdater.Query( "SELECT t1.%s, %s FROM %s AS t1 JOIN %s AS t2 ON t1.%s = t2.%s WHERE t2.%s = ?" % (self._tableWithValuesPkColumn, fields.join(", "), self._tableWithValues, self._tableName, self._tableWithValuesPkColumn, self._parentPkColumn, self._pkColumn), [self._ID] )
 
 		query = action.getQuery()
@@ -170,9 +170,9 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		self.clear()
 
 		while query.next():
-			ID = query.value(0).toString()
-			first = query.value(1).toString()
-			second = query.value(2).toString()
+			ID = str( query.value(0) )
+			first = str( query.value(1) )
+			second = str( query.value(2) )
 			self.addNewChild(ID, first, second)
 
 
@@ -195,7 +195,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			if item1 == None or item1.text().isEmpty():
 				continue
 
-			ID = item1.data( Qt.UserRole ).toString()
+			ID = str( item1.data( Qt.UserRole ) )
 			ID = self._getRealValue(ID)
 
 			# salva la riga
@@ -207,7 +207,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			if ID == None:
 				return False
 
-			item1.setData( Qt.UserRole, QVariant(ID) if ID != None else QVariant() )
+			item1.setData( Qt.UserRole, ID if ID != None else None )
 
 			# inserisci i nuovi ID nella tabella di normalizzazione
 			values = {
@@ -228,7 +228,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			if item1 == None:
 				continue
 
-			ID = item1.data( Qt.UserRole ).toString()
+			ID = str( item1.data( Qt.UserRole ) )
 			ID = self._getRealValue(ID)
 			self._deleteValue( self._tableWithValues, { self._tableWithValuesPkColumn : ID } )
 
@@ -247,8 +247,8 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 
 		def setEditorData(self, editor, index):
 			if index.column() == 0:
-				value = index.data().toInt()
-				value = value[0] if value[1] == True else 1
+				value = int( index.data() )
+				value = value if value != None else 1
 					
 				editor.setValue(value)
 			else:

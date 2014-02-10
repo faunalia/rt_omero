@@ -130,11 +130,11 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			index = self.VIA.findData( value )
 			if index >= 0:
 				return value
-			value = value.simplified().toUpper()
+			value = value.simplified().upper()
 
-		index = self.VIA.findText( value if value != None else QString(), Qt.MatchFixedString )
+		index = self.VIA.findText( value if value != None else "", Qt.MatchFixedString )
 		if index >= 0:
-			ID = self._getRealValue( self.VIA.itemData(index).toString() )
+			ID = self._getRealValue( str( self.VIA.itemData(index) ) )
 			if ID != None:
 				return ID
 
@@ -212,7 +212,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 							ID = value
 							break
 					else:
-						value = QString()
+						value = ""
 
 					if self._ID != None:	# la via è stata modificata
 						tipo = AutomagicallyUpdater.Query( "SELECT TIPO FROM %s WHERE %s = ?" % (self._tableName, self._pkColumn), [self._ID] ).getFirstResult()
@@ -254,8 +254,8 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 	def toHtml(self, index):
 		civici = self.NUMERI_CIVICI.getValues(False)
-		civici = QStringList() << map(lambda x: (x[0] if x[0] != None else "") + (x[1] if x[1] != None else ""), civici)
-		return QString( u"""
+		civici = map(lambda x: (x[0] if x[0] != None else "") + (x[1] if x[1] != None else ""), civici)
+		return u"""
 <table class="blue">
 	<tr class="line">
 		<td>Provincia</td><td class="value">%s</td>
@@ -267,5 +267,4 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 </table>
 """ % ( self.ZZ_COMUNIISTATCOM.currentText(), self.ZZ_PROVINCEISTATPROV.currentText(), self.VIA.currentText(), civici.join(", ") )
-)
 

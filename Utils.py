@@ -165,8 +165,8 @@ class FeatureFinder(MapTool):
 
 		# recupera il valore del raggio di ricerca
 		settings = QSettings()
-		(radius, ok) = settings.value( "/Map/identifyRadius", QGis.DEFAULT_IDENTIFY_RADIUS ).toDouble()
-		if not ok or radius <= 0:
+		radius = settings.value( "/Map/identifyRadius", QGis.DEFAULT_IDENTIFY_RADIUS, type=float )
+		if radius and radius <= 0:
 			# XXX: in QGis 1.8 QGis.DEFAULT_IDENTIFY_RADIUS is 0, 
 			# this cause the rectangle is empty and the select 
 			# returns all the features...
@@ -181,7 +181,7 @@ class FeatureFinder(MapTool):
 		rect.setYMaximum(point.y() + radius)
 
 		# recupera le feature che intersecano il rettangolo
-		layer.select([], rect, True, True)
+		layer.select( rect, True )
 
 		ret = None
 
@@ -189,10 +189,8 @@ class FeatureFinder(MapTool):
 			minDist = -1
 			featureId = None
 			rect = QgsGeometry.fromRect(rect)
-			count = 0
 
-			f = QgsFeature()
-			while layer.nextFeature(f):
+			for f in layer.getFeatures():
 				if onlyTheClosestOne:
 					geom = f.geometry()
 					distance = geom.distance(rect)
@@ -203,21 +201,18 @@ class FeatureFinder(MapTool):
 			if onlyIds:
 				ret = featureId
 			elif featureId != None:
-				layer.featureAtId(featureId, f, True, True)
-				ret = f
+				f = layer.getFeatures(QgsFeatureRequest().setFilterFid( featureId ))
+				ret = f.next()
 
 		else:
-			IDs = []
-			f = QgsFeature()
-			while layer.nextFeature(f):
-				IDs.append( f.id() )
+			IDs = [f.id() for f in layer.getFeatures()]
 
 			if onlyIds:
 				ret = IDs
 			else:
 				ret = []
 				for featureId in IDs:
-					layer.featureAtId(featureId, f, True, True)
+					f = layer.getFeatures(QgsFeatureRequest().setFilterFid( featureId ))
 					ret.append( f )
 
 		QApplication.restoreOverrideCursor()
@@ -302,7 +297,7 @@ class PicViewer(QGraphicsView):
 			self.clearCache()
 
 			pixmap = QPixmap()
-			if isinstance(image, str) or isinstance(image, QString):
+			if isinstance(image, str):
 				infile = open( unicode(image).encode('utf8'), "rb" )
 				self.imageBytes = QByteArray( infile.read() )
 				infile.close()

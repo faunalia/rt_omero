@@ -172,7 +172,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 			with open( filename, "wb" ) as fout:
 				fout.write( str( self.getValue(self.IMAGE) ) )
 
-		filename = QUrl.fromLocalFile( filename ).toString()
+		filename = str( QUrl.fromLocalFile( filename ) )
 
 		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''
 		annotazione = self.getValue(self.ANNOTAZIONE)
@@ -181,7 +181,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		georef_y = self.getValue(self.GEOREF_PROIET_Y)
 		georef = '%s , %s' % ( str(georef_x), str(georef_y) ) if georef_x != None and georef_y != None else ''
 		
-		return QString( u"""
+		return u"""
 <table class="border %s">
 	<tr>
 		<td>Foto #%d</td><td class="value">%s</td>
@@ -197,4 +197,3 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 </table>
 """ % ( 'newPage' if index%2 == 0 else '', index+1, fronte_edificio, filename, georef, annotazione if annotazione != None else '' )
-)

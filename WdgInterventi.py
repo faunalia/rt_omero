@@ -92,7 +92,7 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 		titolo_abilitivo = self.getValue(self.TITOLO_ABILITATIVO)
 		data_titolo_abilitativo = self.getValue(self.DATA_TITOLO_ABILITATIVO)
 
-		return QString( u"""
+		return u"""
 <table class="white border">
 	<tr class="line">
 		<td colspan="4" class="subtitle">Interventi strutturali successivi</td>
@@ -117,4 +117,3 @@ class WdgInterventi(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 </table>
 """ % ( self.ZZ_TIPO_INTERVENTOID.currentText(), self.ZZ_NORMATIVA_SISMICAID.currentText(), self.getValue(self.ANNO_PROGETTAZIONE), self.ZZ_QUALITA_INFORMAZIONEID.currentText(), descrizione if descrizione != None else '', titolo_abilitivo if titolo_abilitivo != None else '', data_titolo_abilitativo if data_titolo_abilitativo != None else '', "SI" if self.getValue(self.INTERVENTO_IN_CORSO) else "NO" )
-)

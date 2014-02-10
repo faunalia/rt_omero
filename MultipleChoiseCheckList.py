@@ -67,7 +67,7 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 		for row in range(self.list.count()):
 			item = self.list.item(row)
 			if item.checkState() == Qt.Checked:
-				values.append( item.data(Qt.UserRole).toString() if getIDs else item.text() )
+				values.append( str( item.data(Qt.UserRole) ) if getIDs else item.text() )
 
 		return values
 
@@ -103,7 +103,7 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 		for row in range(self.list.count()):
 			item = self.list.item(row)
 			if item.checkState() == Qt.Checked:
-				ID = item.data(Qt.UserRole).toString()
+				ID = str( item.data(Qt.UserRole) )
 				if not ID in oldIDs:
 					values = {
 						self._pkColumn : ID, 

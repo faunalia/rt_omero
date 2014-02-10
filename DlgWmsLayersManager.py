@@ -22,6 +22,9 @@ Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.h
  *                                                                         *
  ***************************************************************************/
 """
+import re
+import os
+import inspect
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -81,7 +84,7 @@ class DlgWmsLayersManager(DlgWaiting):
 
 		# disable raster icons
 		settings = QSettings()
-		prevRasterIcons = settings.value("/qgis/createRasterLegendIcons", True)
+		prevRasterIcons = settings.value("/qgis/createRasterLegendIcons", True, type=bool)
 		settings.setValue("/qgis/createRasterLegendIcons", False)
 
 
@@ -119,19 +122,19 @@ class DlgWmsLayersManager(DlgWaiting):
 					continue
 
 				prop = layer.customProperty( "loadedByOmeroRTPlugin" )
-				if not prop.isValid() and legend.isLayerVisible(layer):
+				if not prop and legend.isLayerVisible(layer):
 					# a wms layer not loaded by omero, don't cache if it's hidden
-					prop = QVariant( u"WMS_OFFLINE %s" % layer.source() )
+					prop = u"WMS_OFFLINE %s" % layer.source()
 					wms_layers.append( (layer, default_scale, default_extent, prop) )
 
-				elif prop.toString().startsWith( "RLID_WMS" ) and not prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
+				elif prop.startswith( "RLID_WMS" ) and not prop.startswith( "RLID_WMS_OFFLINE" ):
 					# a wms layer loaded by omero
 					# get cache scale and extent for the layer
 					if layersinfo is None:
 						continue
 						
 					# get layer info by order
-					order = int(prop.toString()[9:])
+					order = int(prop[9:])
 					linfos = filter(lambda x: x['order'] == order, layersinfo)
 					if len(linfos) <= 0:
 						continue
@@ -144,7 +147,7 @@ class DlgWmsLayersManager(DlgWaiting):
 					if extent is None:
 						extent = default_extent
 
-					prop = QVariant( u"RLID_WMS_OFFLINE %s" % order )
+					prop = u"RLID_WMS_OFFLINE %s" % order
 					wms_layers.append( (layer, scale, extent, prop) )
 
 
@@ -164,7 +167,7 @@ class DlgWmsLayersManager(DlgWaiting):
 				n = n+1 if n_float > n else n
 
 				# set title and progressbar range
-				self.setWindowTitle( self.tr( "[%1/%2] Download in corso..." ).arg(idx_layer+1).arg(len(wms_layers)) )
+				self.setWindowTitle( self.tr( "[%d/%d] Download in corso..." % ( idx_layer+1, len(wms_layers) ) ) )
 				self.setRange( 0, n*n+1 )
 
 				# bottom-left point
@@ -178,7 +181,7 @@ class DlgWmsLayersManager(DlgWaiting):
 
 				# use a vrt catalog to store the cached layer instead
 				# of write all the tiles onto a single image
-				escaped_name = name.replace( QRegExp("[^a-zA-Z0-9]"), "_" ).toLower()[:100]
+				escaped_name = re.sub( "[^a-zA-Z0-9]", "_", name ).lower()[:100]
 				use_catalog = True
 				if not use_catalog:
 					out_path = QDir(cache_path).absoluteFilePath( u"%s.png" % escaped_name )
@@ -231,7 +234,7 @@ class DlgWmsLayersManager(DlgWaiting):
 
 					# override projection behaviour: do not ask for CRS
 					settings = QSettings()
-					oldProjectionBehaviour = settings.value( "/Projections/defaultBehaviour", "prompt" )
+					oldProjectionBehaviour = settings.value( "/Projections/defaultBehaviour", "prompt", type=str )
 					settings.setValue( "/Projections/defaultBehaviour", "useProject" )
 					# add the offline layer
 					try:
@@ -242,12 +245,12 @@ class DlgWmsLayersManager(DlgWaiting):
 						
 					if layer and layer.isValid():
 						# set the layer custom property
-						layer.setCustomProperty( "loadedByOmeroRTPlugin", QVariant(prop) )
-						if prop.toString().startsWith( "WMS_OFFLINE" ):
+						layer.setCustomProperty( "loadedByOmeroRTPlugin", prop )
+						if prop.startswith( "WMS_OFFLINE" ):
 							cached_images[out_path] = source
 
-						elif prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
-							order = int( prop.toString().split(" ")[1] )
+						elif prop.startswith( "RLID_WMS_OFFLINE" ):
+							order = int( prop.split(" ")[1] )
 							ManagerWindow.RLID_WMS[order] = ManagerWindow._getLayerId(layer)
 
 						# show/hide the layer 
@@ -256,22 +259,22 @@ class DlgWmsLayersManager(DlgWaiting):
 						# set to build all available raste
 						# set title and progressbar range 
 						# then build all available raster pyramids
-						self.setWindowTitle( self.tr( "[%1/%2] Costruzione piramidi..." ).arg(idx_layer+1).arg(len(wms_layers)) )
+						self.setWindowTitle( self.tr( "[%d/%d] Costruzione piramidi..."  % ( idx_layer+1, len(wms_layers) ) ) )
 						self.setRange( 0, 0 )	#self.setRange( 0, len(pyramids) )
 						buildAllPyramids(layer)
 
-						# set the transparent band
-						p = layer.dataProvider()
-						if True:
-							layer.setTransparentBandName( "Band 4" )
-						else:
-							for i in range(layer.bandCount()):
-								# there're no python bindings for both 
-								# QgsRasterDataProvider::colorInterpretation() and
-								# QgsRasterDataProvider::generateBandName() 
-								if p.colorInterpretation(i) == QgsRasterDataProvider.AlphaBand:
-									layer.setTransparentBandName( p.generateBandName(i) )
-									break
+# 						# set the transparent band
+# 						p = layer.dataProvider()
+# 						if True:
+# 							layer.setTransparentBandName( "Band 4" )
+# 						else:
+# 							for i in range(layer.bandCount()):
+# 								# there're no python bindings for both 
+# 								# QgsRasterDataProvider::colorInterpretation() and
+# 								# QgsRasterDataProvider::generateBandName() 
+# 								if p.colorInterpretation(i) == QgsRasterDataProvider.AlphaBand:
+# 									layer.setTransparentBandName( p.generateBandName(i) )
+# 									break
 
 			AutomagicallyUpdater.setCachedExternalWms( cached_images )
 			ManagerWindow.instance.offlineMode = True
@@ -320,16 +323,16 @@ class DlgWmsLayersManager(DlgWaiting):
 				layerid = layer.id()
 
 				prop = layer.customProperty( "loadedByOmeroRTPlugin" )
-				if not prop.isValid():
+				if not prop:
 					# a wms layer not loaded by omero
 					continue
 
-				elif prop.toString().startsWith( "RLID_WMS_OFFLINE" ):
+				elif prop.startswith( "RLID_WMS_OFFLINE" ):
 					# a wms layer loaded by omero, remove it
 					ManagerWindow._removeMapLayer( layerid )
 					continue
 
-				elif prop.toString().startsWith( "WMS_OFFLINE" ):
+				elif prop.startswith( "WMS_OFFLINE" ):
 					# an external cached wms
 					if not cached_images.has_key( layer.source() ):
 						continue
@@ -404,20 +407,20 @@ class DlgWmsLayersManager(DlgWaiting):
 					uri.setParam("format", format)
 					uri.setParam("crs", crs)
 					
-					rl = QgsRasterLayer(QString(uri.encodedUri()), title, 'wms')
+					rl = QgsRasterLayer(str(uri.encodedUri()), title, 'wms')
 
 				prop = "RLID_WMS %s" % order
 				
 			else:
 				# offline mode, load layers from local cache
-				escaped_title = QString(title).replace( QRegExp("[^a-zA-Z0-9]"), "_" ).toLower()[:100]
+				escaped_title = re.sub( "[^a-zA-Z0-9]", "_", title ).lower()[:100]
 				vrt_path = QDir( cache_path ).absoluteFilePath( u'%s.vrt' % escaped_title )
 				if not QFileInfo( vrt_path ).exists():
 					continue
 					
 				# override projection behaviour: do not ask for CRS
 				settings = QSettings()
-				oldProjectionBehaviour = settings.value( "/Projections/defaultBehaviour", "prompt" )
+				oldProjectionBehaviour = settings.value( "/Projections/defaultBehaviour", "prompt", type=str )
 				settings.setValue( "/Projections/defaultBehaviour", "useProject" )
 				try:
 					rl = QgsRasterLayer( vrt_path, u"CACHED - %s" % title )
@@ -425,7 +428,7 @@ class DlgWmsLayersManager(DlgWaiting):
 					# restore projection behaviour
 					settings.setValue( "/Projections/defaultBehaviour", oldProjectionBehaviour )
 				
-				rl.setTransparentBandName( "Band 4" )
+				#rl.setTransparentBandName( "Band 4" )
 				prop = "RLID_WMS_OFFLINE %s" % order
 
 			if not rl.isValid():
@@ -436,7 +439,7 @@ class DlgWmsLayersManager(DlgWaiting):
 			ManagerWindow.instance.iface.legendInterface().setLayerVisible( rl, False )
 
 			# set custom property
-			rl.setCustomProperty( "loadedByOmeroRTPlugin", QVariant(prop) )
+			rl.setCustomProperty( "loadedByOmeroRTPlugin", prop )
 			
 		return True
 		
@@ -486,7 +489,7 @@ class DlgWmsLayersManager(DlgWaiting):
 						ok = False
 					else:
 						status = reply.attribute( QNetworkRequest.HttpStatusCodeAttribute )
-						if status is not None and status.toInt()[1] and status.toInt()[0] > 400:
+						if status is not None and status > 400:
 							phrase = reply.attribute( QNetworkRequest.HttpReasonPhraseAttribute )
 							ManagerWindow._logMessage("RT Omero", u"Impossibile recuperare la lista dei layer WMS dal server.\n" +
 									u"Status: %s\nReason phrase: %s" % (status, phrase ) )
@@ -509,7 +512,7 @@ class DlgWmsLayersManager(DlgWaiting):
 					try:
 						# we have the data, let's create the zip file
 						tmp = QTemporaryFile()
-						tmp.setFileTemplate( tmp.fileTemplate().append( ".zip" ) )
+						tmp.setFileTemplate( tmp.fileTemplate() + ".zip" )
 						tmp.open( QIODevice.ReadWrite )
 						tmp.write( reply.readAll() )
 						tmp.close()
@@ -597,23 +600,19 @@ class DlgWmsLayersManager(DlgWaiting):
 
 			while query.next():
 				layer = {}
-				layer['order'] = query.value(0).toInt()[0]
-				layer['title'] = query.value(1).toString()
-				layer['url'] = query.value(2).toString()
+				layer['order'] = query.value(0)
+				layer['title'] = query.value(1)
+				layer['url'] = query.value(2)
 				
-				layer['layers'] = query.value(3).toString().split(",")
+				layer['layers'] = query.value(3).split(",")
 				layer['styles'] = [ '' ] * len( layer['layers'] )
-				layer['crs'] = query.value(4).toString()
-				layer['format'] = "image/%s" % query.value(5).toString().toLower()
-				layer['transparent'] = query.value(6).toString()
-				layer['version'] = query.value(7).toString()
+				layer['crs'] = query.value(4)
+				layer['format'] = "image/%s" % query.value(5).lower()
+				layer['transparent'] = query.value(6)
+				layer['version'] = query.value(7)
 				
-				layer['cache_scale'], ok = query.value(8).toInt()
-				if not ok:
-					layer['cache_scale']= None
-				layer['cache_extent'], ok = query.value(9).toInt()
-				if not ok:
-					layer['cache_extent'] = None
+				layer['cache_scale'] = query.value(8)
+				layer['cache_extent'] = query.value(9)
 				
 				layersinfo.append(layer)
 			

@@ -90,18 +90,19 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		pass
 
 	def toHtml(self):
-		valori = QStringList() << self.ZZ_TIPO.getValues(False)
+		valori = self.ZZ_TIPO.getValues(False)
 		if self.ALTRO.isEnabled():
 			for i in range(len(valori)):
 				v = valori[i]
-				if v.endsWith("Altro"):
+				if v.endswith("Altro"):
 					valori.removeAt(i)
 					break
-			valori << self.getValue(self.ALTRO)
+			for v in self.getValue(self.ALTRO):
+				valori.append( v )
 
 		incongruenze = self.getValue(self.DESCRIZIONI_INCONGRUENZE)
 
-		return QString( u"""
+		return u"""
 <table class="yellow border">
 	<tr class="line">
 		<td class="subtitle">%s</td><td class="value">%s</td>
@@ -112,4 +113,3 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 </table>
 """ % ( self.getNomeCaratteristica(), valori.join("<br>"), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), 'class="hidden"' if not self.otherInfos else '', "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) else "NO", incongruenze if incongruenze != None else '' )
-)

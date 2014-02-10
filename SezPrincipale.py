@@ -23,6 +23,8 @@ Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.h
  ***************************************************************************/
 """
 
+import re
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -51,7 +53,8 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 	def setValue(self, widget, value):
 		value = self._getRealValue(value)
 		if self._getRealWidget(widget) == self.RILEVATOREID and value != None:
-			IDComune = QString(value).remove( QRegExp('\-.*$') )
+			# check ---------> IDComune = QString(value).remove( QRegExp('\-.*$') )
+			IDComune = re.sub( '\-.*$', '', str(value) )
 
 			query = AutomagicallyUpdater.Query( "SELECT ID, COGNOME, NOME, (SELECT com.NOME || ' (' || prov.NOME || ')' FROM ZZ_PROVINCE AS prov JOIN ZZ_COMUNI AS com ON prov.ISTATPROV = com.ZZ_PROVINCEISTATPROV WHERE com.ISTATCOM = ?) AS \"COMUNE\" FROM RILEVATORE WHERE ID = ?", [ IDComune, value ], 0 )
 			self.loadTables(self.RILEVATOREID, query)
@@ -67,19 +70,24 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		self.setValue(self.schedaID, ID)
 
 	def toHtml(self):
-		comIstat = QString(self._ID).remove( QRegExp('\-.*$') )
-		numScheda = QString(self._ID).mid( len(comIstat)+1 ).remove( QRegExp('\_.*$') )
+		# check ---------> comIstat = QString(self._ID).remove( QRegExp('\-.*$') )
+		# check ---------> numScheda = QString(self._ID).mid( len(comIstat)+1 ).remove( QRegExp('\_.*$') )
+		comIstat = re.sub( '\-.*$', '', str(self._ID) )
+		numScheda = re.sub( '\_.*$', '', str(self._ID)[ len(comIstat)+1: ]  )
 
 		rilevatoreID = self.getValue(self.RILEVATOREID)
 		ril = self.RILEVATOREID.model().record(0)
-		cognome = ril.value(1).toString()
-		nome = ril.value(2).toString()
+		cognome = str(ril.value(1))
+		nome = str(ril.value(2))
 
 		notaStorica = self.getValue(self.NOTA_STORICA)
 		if notaStorica == None or len(notaStorica) <= 0:
 			newLineClass = ''
 			notaStorica = ''
 		else:
+			# prepare string substituting some chars
+			for k,v in  [('&','&amp;'), ('<','&lt;'), ('>','&gt;'), ('\n','<br>')]:
+				notaStorica = re.sub(k,v, notaStorica)
 			newLineClass = ' class="line"'
 			notaStorica = u"""
 <table class="blue">
@@ -87,10 +95,10 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		<td>Nota storiografica</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % QString(notaStorica).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;').replace('\n', '<br>')
+""" % notaStorica
 
 
-		return QString( u"""
+		return u"""
 <div id="sez1" class="block">
 <p class="section"><span class="scheda">SCHEDA A EDIFICIO </span>SEZIONE A1 - IDENTIFICAZIONE</p>
 <div class="border">
@@ -108,4 +116,3 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 </table>%s</div>
 </div>
 """ % (comIstat, numScheda, rilevatoreID, self.getValue(self.DATA_COMPILAZIONE_SCHEDA), newLineClass, nome, cognome, rilevatoreID, notaStorica)
-)

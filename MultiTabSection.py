@@ -77,7 +77,7 @@ class MultiTabSection(QWidget, MappingOne2Many, Ui_MultiTabSection):
 		
 		for i in range(1, self.tabWidget.count()):
 			text = "%s%d" % (self.baseTabName, i+1)
-			self.tabWidget.setTabText(i, QString(text) )
+			self.tabWidget.setTabText(i, str(text) )
 		return ret
 
 	def btnAddTabClicked(self):
@@ -85,9 +85,9 @@ class MultiTabSection(QWidget, MappingOne2Many, Ui_MultiTabSection):
 		self.tabWidget.setCurrentIndex(index)
 
 	def addTab(self):
-		index = self.tabWidget.addTab(self.basePageWidget(), QString())
+		index = self.tabWidget.addTab(self.basePageWidget(), "")
 		text = "%s%d" % (self.baseTabName, index+1)
-		self.tabWidget.setTabText(index, QString(text) )
+		self.tabWidget.setTabText(index, str(text) )
 		self.addChildRef(self.tabWidget.widget(index))
 		return index
 
@@ -111,7 +111,7 @@ class MultiTabSection(QWidget, MappingOne2Many, Ui_MultiTabSection):
 	#	self.tabWidget.setCurrentIndex(0)
 
 	def toHtml(self, *args, **kwargs):
-		html = QString()
+		html = ""
 		for index in range(self.tabWidget.count()):
 			html += self.tabWidget.widget(index).toHtml(index, *args, **kwargs)
 		return html

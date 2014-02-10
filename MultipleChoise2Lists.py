@@ -70,12 +70,12 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
-				itemtext = model.record(row).value(1).toString()
+				itemtext = str( model.record(row).value(1) )
 				if matchFlags == Qt.MatchStartsWith:
-					if itemtext.startsWith( text ):
+					if itemtext.startswith( text ):
 						return True
 				elif matchFlags == Qt.MatchEndsWith:
-					if itemtext.endsWith( text ):
+					if itemtext.endswith( text ):
 						return True
 				else:
 					raise RuntimeError( "Error in MultipleChoise2List: matchFlags %s NOT IMPLEMENTED YET!" % matchFlags )
@@ -96,7 +96,7 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
-				values.append( model.record(row).value(0 if getIDs else 1).toString() )
+				values.append( str( model.record(row).value(0 if getIDs else 1) ) )
 			row = row + 1
 
 		return values
@@ -162,7 +162,7 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
-				ID = model.record(row).value(0).toString()
+				ID = str( model.record(row).value(0) )
 				if not ID in oldIDs:
 					values = {
 						self._pkColumn : ID, 

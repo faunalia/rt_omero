@@ -58,7 +58,7 @@ class WdgStruttureOrizzontaliCoperturaEdificiGrandiLuci(QWidget, MappingOne2One,
 		self.setupValuesUpdater(childrenList)
 
 	def toHtml(self):
-		return QString( u"""
+		return u"""
 <table class="green border">
 	<tr>
 		<td class="title" colspan="4">Strutture orizzontali - Copertura > Edifici con grandi luci (capannoni, palestre, piscine, etc.)</td>
@@ -76,4 +76,3 @@ class WdgStruttureOrizzontaliCoperturaEdificiGrandiLuci(QWidget, MappingOne2One,
 	</tr>
 </table>
 """ % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), self.ZZ_TIPOLOGIA_COSTRUTTIVA_COPERTURA_EDIFICI_GRANDI_LUCIID.currentText(), self.ZZ_MATERIALE_COPERTURA_EDIFICI_GRANDI_LUCIID.currentText(), self.ZZ_COMPORTAMENTO_STRUTTURALE_COPERTURAID.currentText(), self.ZZ_STATO_CONSERVAZIONE_COPERTURA_EDIFICI_ORDINARIID.currentText() )
-)

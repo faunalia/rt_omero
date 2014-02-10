@@ -156,7 +156,7 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 
 	def toHtml(self, index):
 		strutture_oriz_copertura = self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID.toHtml() if self.getValue(self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_ORDINARIID) != None else self.STRUTTURE_ORIZZONTALI_COPERTURA_EDIFICI_GRANDI_LUCIID.toHtml()
-		return QString( u"""
+		return u"""
 <table class="blue border">
 	<tr class="line">
 		<td class="middle subtitle" rowspan="2" width="5%%">UV%d</td>
@@ -177,4 +177,3 @@ class WdgSezUnitaVolumetriche(QWidget, MappingOne2One, Ui_Form):
 </table>
 %s
 """	% ( index+1, self._ID, self.getValue(self.INTERR_NPIANI), self.getValue(self.FUORITERR_NPIANI), self.getValue(self.ALTEZZA_VOLUME), self.ZZ_MORFOLOGIA_COPERTURAID.currentText(), self.MANTO_COPERTURA_UNITA_VOLUMETRICAID.toHtml(), strutture_oriz_copertura )
-)

@@ -215,7 +215,7 @@ class CreateDbThread(QThread):
 		self.dbpath = dbpath
 		self.inputGroups = inputGroups
 		self.geomTables = geomTables
-		self.log = QStringList()
+		self.log = []
 
 	def run(self):
 		# Let's catch all the exceptions to avoid crashes! 
@@ -253,7 +253,7 @@ class CreateDbThread(QThread):
 			return
 
 		ok = self.runScriptsAndFill( scriptsPath, conn )
-		self.emit(SIGNAL("creationDone"), ok, self.log.join("\n"))
+		self.emit(SIGNAL("creationDone"), ok, "\n".join( self.log ))
 		return
 
 
@@ -287,7 +287,7 @@ class CreateDbThread(QThread):
 					f.close()			
 
 				# add geometry columns after the table creation
-				if QString(name).startsWith("01"):
+				if str(name).startswith("01"):
 					index += 1
 					self.emit(SIGNAL("resetProgress"), len(self.geomTables), "(%d/%d) Creazione colonne geometriche..." % (index, count) )
 
@@ -300,7 +300,7 @@ class CreateDbThread(QThread):
 						self.emit(SIGNAL("updateProgress"))
 
 				# populate geometry tables before create triggers
-				if QString(name).startsWith("03"):
+				if str(name).startswith("03"):
 					index += 1
 					self.emit(SIGNAL("resetProgress"), None, "(%d/%d) Riempimento tabelle geometriche..." % (index, count) )
 
@@ -329,7 +329,7 @@ class CreateDbThread(QThread):
 
 		query = conn.getQuery(False)	# disable autocommit
 
-		self.log << u"<h3>Log di creazione nuovo database</h3><ul>"
+		self.log.append( u"<h3>Log di creazione nuovo database</h3><ul>" )
 		errorCount = 0
 
 		for shapegrp, fnedit, browsebtn, fldcombo, prefixcombo in self.inputGroups:
@@ -340,18 +340,18 @@ class CreateDbThread(QThread):
 			if not shapegrp.isChecked() or shppath.isEmpty() or fldname.isEmpty() or prefix.isEmpty():
 				continue
 
-			self.log << u"<li><p><strong>Importazione geometrie dal layer '%s'...</strong></p>" % shppath
+			self.log.append( u"<li><p><strong>Importazione geometrie dal layer '%s'...</strong></p>" % shppath )
 
 			shpvl = QgsVectorLayer(shppath, QFileInfo(shppath).fileName(), 'ogr')
 			if not shpvl or not shpvl.isValid():
-				self.log << u"<p style='color:red'>Impossibile caricare il layer '%s': il layer non è valido ed è stato ignorato</p>" % shppath
+				self.log.append( u"<p style='color:red'>Impossibile caricare il layer '%s': il layer non è valido ed è stato ignorato</p>" % shppath )
 				errorCount += 1
 				continue
 
 			crs = shpvl.crs() if hasattr(shpvl, 'crs') else shpvl.srs()
 			shpSrid = crs.postgisSrid()
 			if shpSrid != geomOrigSrid:
-				self.log << u"<p style='color:red'>Il layer '%s' ha un sistema di riferimento differente da quanto richiesto ed è stato ignorato: trovato %d, richiesto %d</p>" % (shppath, shpSrid, geomOrigSrid)
+				self.log.append( u"<p style='color:red'>Il layer '%s' ha un sistema di riferimento differente da quanto richiesto ed è stato ignorato: trovato %d, richiesto %d</p>" % (shppath, shpSrid, geomOrigSrid) )
 				continue
 
 			# add the features to the table on the database
@@ -359,12 +359,11 @@ class CreateDbThread(QThread):
 
 			feat = QgsFeature()
 			fldindex = shpvl.dataProvider().fieldNameIndex(fldname)
-			shpvl.select([fldindex])
+			# check --------------> shpvl.select([fldindex])
 
-			errors = QStringList()
-			while shpvl.nextFeature(feat):
-				attrs = feat.attributeMap()
-				idval = attrs[fldindex].toString()
+			errors = []
+			for feat in shpvl.getFeatures( QgsFeatureRequest().setSubsetOfAttributes([fldindex]) ):
+				idval = str( feat.attribute(fldindex) )
 
 				newidval = u"%s%s" % (prefix, idval)
 				wkb = QByteArray( feat.geometry().asWkb() )
@@ -376,7 +375,7 @@ class CreateDbThread(QThread):
 
 				if not query.exec_():
 					errorCount += 1
-					errors << u"<p style='color:red'>Errore aggiungendo la geometria [%s = %s]: %s</p>" % (fldname, idval, query.lastError().text())
+					errors.append( u"<p style='color:red'>Errore aggiungendo la geometria [%s = %s]: %s</p>" % (fldname, idval, query.lastError().text()) )
 
 				if len(errors) >= 100:
 					break
@@ -384,12 +383,12 @@ class CreateDbThread(QThread):
 				self.emit(SIGNAL("updateProgress"))
 
 			if errors.isEmpty():
-				self.log << "<p>completata correttamente.</p>"
+				self.log.append( "<p>completata correttamente.</p>" )
 			else:
-				self.log << errors
+				self.log.append( errors )
 
 			if errorCount > 150:
-				self.log << u"<li><p><strong>Si sono verificati troppi errori, il processo sarà stato interrotto.</strong></p>"
+				self.log.append( u"<li><p><strong>Si sono verificati troppi errori, il processo sarà stato interrotto.</strong></p>" )
 				break
 
 		conn.commit()

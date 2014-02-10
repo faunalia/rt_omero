@@ -92,7 +92,6 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		self.PRINCIPALE.printBtn.setEnabled( False )
 		self._previewOnPrinting = preview
 
-		settings = QSettings()
 		self._printMode, _ = AutomagicallyUpdater.printBehavior()
 
 		if self._printMode in (QPrinter.PdfFormat, QPrinter.NativeFormat):
@@ -236,8 +235,8 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			canvas.setRenderFlag( False )
 
 			settings = QSettings()
-			canvas.enableAntiAliasing( settings.value( "/qgis/enable_anti_aliasing", False ).toBool() )
-			canvas.useImageToRender( settings.value( "/qgis/use_qimage_to_render", False ).toBool() )
+			canvas.enableAntiAliasing( settings.value( "/qgis/enable_anti_aliasing", False, type=bool ) )
+			canvas.useImageToRender( settings.value( "/qgis/use_qimage_to_render", False, type=bool ) )
 
 			canvas.mapRenderer().setDestinationSrs( mainRenderer.destinationSrs() )
 			canvas.mapRenderer().setMapUnits( mainRenderer.mapUnits() )
@@ -273,7 +272,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 					if query.exec_():
 						selIds = []
 						while query.next():
-							selIds.append( query.value(0).toInt()[0] )
+							selIds.append( query.value(0) )
 						layerModif.setSelectedFeatures( selIds )
 
 					canvas.zoomToSelected( layerModif )
@@ -355,7 +354,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 				if query.exec_():
 					selIds = []
 					while query.next():
-						selIds.append( query.value(0).toInt()[0] )
+						selIds.append( query.value(0) )
 					layerModif.setSelectedFeatures( selIds )
 
 				mapRenderer.setExtent( layerModif.boundingBoxOfSelected() )
@@ -395,7 +394,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			tmp = TemporaryFile.getNewFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
 			if not tmp.open():
 				TemporaryFile.delFile( TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
-				return QString(), None
+				return "", None
 			filename = unicode( tmp.fileName() )
 			tmp.close()
 
@@ -467,7 +466,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			self.save()
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", e)
 			return
 
 		finally:
@@ -493,7 +492,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			css = QDir( prefix ).filePath( "default.css" )
 			if not QFile.exists( css ) and not QFile.copy( css_orig, css ):
 				css = css_orig
-		css = QUrl.fromLocalFile(css).toString()
+		css = QUrl.fromLocalFile(css)
 
 		# path to the omero banner
 		banner_orig = os.path.join( currentPath, "docs", "banner_omero.gif" )
@@ -504,7 +503,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			banner = QDir( prefix ).filePath( "banner_omero.gif" )
 			if not QFile.exists( banner ) and not QFile.copy( banner_orig, banner ):
 				banner = banner_orig
-		banner = QUrl.fromLocalFile(banner).toString()
+		banner = QUrl.fromLocalFile(banner)
 
 		# path to the logo
 		if prefix is None:
@@ -517,7 +516,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			logo_orig = os.path.join( currentPath, "docs", "omero_stampa_logo.jpg" )
 			if not QFile.copy( logo_orig, logo ):
 				logo = logo_orig
-		logo = QUrl.fromLocalFile(logo).toString()
+		logo = QUrl.fromLocalFile(logo)
 
 		comune = AutomagicallyUpdater.Query( "SELECT NOME FROM ZZ_COMUNI WHERE ISTATCOM = ?", [AutomagicallyUpdater._getIDComune()] ).getFirstResult()
 
@@ -533,7 +532,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		nome_edificio = self.getValue( self.PRINCIPALE.NOME_EDIFICIO )
 		data = QDate.currentDate().toString( "dd/MM/yyyy" )
 
-		return QString( u"""
+		return u"""
 <html>
 <head>
 	<title>Scheda di rilevamento</title>
@@ -566,7 +565,6 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 </body>
 </html>
 """ % (css, banner, logo, comune, nome_edificio if nome_edificio != None else '', via, self._ID, data, self.PRINCIPALE.toHtml(), self.LOCALIZZAZIONE_EDIFICIOIDLOCALIZZ.toHtml(), self.UNITA_VOLUMETRICHE.toHtml(), self.INTERVENTI.toHtml(), self.STATO_UTILIZZO_EDIFICIOID.toHtml(), self.CARATTERISTICHE_STRUTTURALI.toHtml(), self.CARATTERISTICHE_ARCHITETTONICHE_EDIFICIOID.toHtml(), self.stralcioToHtml(prefix), self.FOTO.toHtml(prefix))
-)
 
 	def stralcioToHtml(self, prefix=None):
 		xmin = ymin = xmax = ymax = ""
@@ -585,7 +583,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 		# create the image
 		filename, extent = self.creaStralcioCartografico( QSize(renderwidth, renderwidth), renderscale, "png", factor, outpath=prefix )
-		filename = QUrl.fromLocalFile(filename).toString()
+		filename = QUrl.fromLocalFile(filename)
 		if extent != None:
 			xmin = extent.xMinimum()
 			ymin = extent.yMinimum()
@@ -595,7 +593,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		# size of the image displayed in the HTML page
 		printwidth = realwidth*1.25
 
-		return QString( u"""
+		return u"""
 <table class="border">
 	<tr>
 		<td colspan="4">Stralcio cartografico dell'edificio</td>
@@ -612,4 +610,4 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		<td>ymax</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % (printwidth, printwidth, filename, xmin, ymin, xmax, ymax) )
+""" % (printwidth, printwidth, filename, xmin, ymin, xmax, ymax)

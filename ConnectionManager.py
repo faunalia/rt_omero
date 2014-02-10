@@ -104,7 +104,7 @@ class ConnectionManager:
 		return self.isTransaction
 
 	@classmethod
-	def abortTransaction(self, errorMsg=QString()):
+	def abortTransaction(self, errorMsg=""):
 		if not self.isTransaction:
 			# XXX: why aborting a non-transaction happens??
 			raise ConnectionManager.AbortedException( errorMsg )
@@ -156,17 +156,17 @@ class ConnectionManager:
 			return unicode(self.msg).encode("utf-8")
 
 		def toString(self):
-			return QString(self.msg)
+			return str(self.msg)
 
 
 class PySLDatabase:
 
 	def __init__(self, path):
-		self._error = QString()
+		self._error = ""
 		try:
 			self.connection = sqlite.connect(u"%s" % path)
 		except sqlite.OperationalError, e:
-			self._error = QString( str(e) )
+			self._error = str(e)
 
 	def getQuery(self, autocommit=True):
 		return PySLQuery(self, autocommit)
@@ -194,7 +194,7 @@ class PySLDatabase:
 
 class PySLError:
 	def __init__(self, msg=''):
-		self.msg = QString(msg)
+		self.msg = str(msg)
 
 	def text(self):
 		return self.msg
@@ -208,8 +208,8 @@ class PySLQuery:
 		self.clear()
 
 	def clear(self):
-		self._sql = QString()
-		self._query = QString()
+		self._sql = ""
+		self._query = ""
 		self._markParams = []
 		self._namedParams = {}
 		self._error = PySLError()
@@ -224,16 +224,16 @@ class PySLQuery:
 			return 'NULL'
 
 		if value.type() == QVariant.ByteArray:
-			return buffer( value.toByteArray() )
+			return buffer( value )
 		if value.type() == QVariant.Int:
-			return value.toInt()[0]
+			return int( value )
 		if value.type() == QVariant.Double:
-			return value.toDouble()[0]
+			return float( value )
 
-		return unicode( value.toString() )
+		return unicode( value )
 
 	def convertResult(self, value):
-		return QVariant(value) if value != None else QVariant()
+		return value
 
 	def addBindValue(self, value):
 		self._markParams.append( self.escapeValue(value) )
@@ -243,7 +243,7 @@ class PySLQuery:
 
 	def setQuery(self, sql):
 		self.clear()
-		self._sql = QString(sql)
+		self._sql = str(sql)
 		self._query = self._sql
 
 	def exec_(self, sql=None):
@@ -270,7 +270,7 @@ class PySLQuery:
 		
 
 	def lastQuery(self):
-		return QString(self._sql)
+		return str(self._sql)
 
 	def lastError(self):
 		return self._error

@@ -62,7 +62,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 		self.assegnaGeomEsistenteByUvID( ID )
 
 	def assegnaGeomEsistente(self, feat=None):
-		codice = feat.attributeMap()[0].toString()
+		codice = str( feat.attribute(0) )
 		self.assegnaGeomEsistenteByUvID( codice )
 
 	def assegnaGeomEsistenteByUvID(self, uvID=None):
@@ -78,7 +78,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 			ConnectionManager.startTransaction()
 			AutomagicallyUpdater._updateValue( { "ABBINATO_A_SCHEDA" : '1' }, "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE", "ID_UV_NEW", uvID )
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", str(e) )
 			return
 
 		finally:
@@ -121,7 +121,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 				return self.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = feat.attributeMap()[0].toString()
+			codice = str( feat.attribute(0) )
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
 			if abbinato:
 				# NO, c'è già una scheda associata
@@ -163,7 +163,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 			refreshCanvas = self.deleteTab()
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e.toString())
+			QMessageBox.critical(self, "Errore", str(e) )
 			return False
 
 		finally:
@@ -185,10 +185,9 @@ class SezUnitaVolumetriche(MultiTabSection):
 				return
 
 	def toHtml(self):
-		return QString( u"""
+		return u"""
 <div id="sez3" class="block">
 <p class="section">SEZIONE A3 - IDENTIFICAZIONE DELLE UNITA' VOLUMETRICHE</p>
 %s
 </div>
 """ % MultiTabSection.toHtml(self)
-)

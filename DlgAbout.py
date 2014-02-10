@@ -56,8 +56,8 @@ class DlgAbout(QDialog, Ui_DlgAbout):
 		query = AutomagicallyUpdater.Query( "SELECT DATABASE, DB_VERSION_MAIOR || '.' || DB_VERSION_MINOR, TARGET FROM ZZ_DISCLAIMER" )
 		query = query.getQuery()
 		if query.exec_() and query.next():
-			text = text.replace( "$DB_TYPE$", query.value(0).toString() )
-			text = text.replace( "$DB_VER$", query.value(1).toString() )
-			text = text.replace( "$DB_TARGET$", query.value(2).toString() )
+			text = text.replace( "$DB_TYPE$", query.value(0) )
+			text = text.replace( "$DB_VER$", query.value(1) )
+			text = text.replace( "$DB_TARGET$", query.value(2) )
 
 		self.txt.setHtml(text)
