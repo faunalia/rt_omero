@@ -106,4 +106,4 @@ class SezStatoUtilizzo(QWidget, MappingOne2One, Ui_Form):
 	</tr>
 </table>
 </div>
-"""	% ( self.ZZ_TIPOLOGIA_EDILIZIAID.currentText(), uso_prevalente.join("<br>"), uso_terra.join("<br>"), uso_altri.join("<br>"), self.ZZ_STATO_EDIFICIOID.currentText(), self.ZZ_FRUIZIONE_TEMPORALEID.currentText(), descrizione if descrizione != None else '' )
+"""	% ( self.ZZ_TIPOLOGIA_EDILIZIAID.currentText(), "<br>".join(uso_prevalente), "<br>".join(uso_terra), "<br>".join(uso_altri), self.ZZ_STATO_EDIFICIOID.currentText(), self.ZZ_FRUIZIONE_TEMPORALEID.currentText(), descrizione if descrizione != None else '' )

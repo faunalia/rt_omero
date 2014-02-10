@@ -112,4 +112,4 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 		<td>Presenza di elementi incogruenti</td><td class="value">%s</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.getNomeCaratteristica(), valori.join("<br>"), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), 'class="hidden"' if not self.otherInfos else '', "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) else "NO", incongruenze if incongruenze != None else '' )
+""" % ( self.getNomeCaratteristica(), "<br>".join(valori), self.ZZ_STATO_CONSERVAZIONE_ARCHITETTONICOID.currentText(), 'class="hidden"' if not self.otherInfos else '', "SI" if self.getValue(self.PRESENZA_INCONGRUENZE) else "NO", incongruenze if incongruenze != None else '' )

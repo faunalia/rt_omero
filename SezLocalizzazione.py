@@ -79,4 +79,4 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 </table>
 </div>
 </div>
-""" % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), fogli.join("<br>"), particelle.join("<br>"), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETAID.currentText() )
+""" % ( self.LOCALIZZAZIONE_EDIFICIO_INDIRIZZO_VIA.toHtml(), "<br>".join(fogli), "<br>".join(particelle), "SI" if isolato else "NO", self.ZZ_POSIZIONE_EDIFICIO_AGGREGATOID.currentText(), self.getValue(self.NUM_UNITA_IMMOBILIARI), self.ZZ_PROPRIETAID.currentText() )

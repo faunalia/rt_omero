@@ -158,7 +158,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			fields = []
 			for c in self.columnFields:
 				fields.append( "t1.%s" % c )
-			action = AutomagicallyUpdater.Query( "SELECT t1.%s, %s FROM %s AS t1 JOIN %s AS t2 ON t1.%s = t2.%s WHERE t2.%s = ?" % (self._tableWithValuesPkColumn, fields.join(", "), self._tableWithValues, self._tableName, self._tableWithValuesPkColumn, self._parentPkColumn, self._pkColumn), [self._ID] )
+			action = AutomagicallyUpdater.Query( "SELECT t1.%s, %s FROM %s AS t1 JOIN %s AS t2 ON t1.%s = t2.%s WHERE t2.%s = ?" % (self._tableWithValuesPkColumn, ", ".join(fields), self._tableWithValues, self._tableName, self._tableWithValuesPkColumn, self._parentPkColumn, self._pkColumn), [self._ID] )
 
 		query = action.getQuery()
 		if query == None:

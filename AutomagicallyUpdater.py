@@ -672,7 +672,7 @@ class AutomagicallyUpdater:
 			values.append( value )
 
 		# memorizza la riga
-		query.prepare( "INSERT INTO " + table + " (" + fields.join(", ") + ") VALUES (" + values.join(", ") + ")" )
+		query.prepare( "INSERT INTO " + table + " (" + ", ".join(fields) + ") VALUES (" + ", ".join(values) + ")" )
 		for v in bindValues:
 			query.addBindValue( v if v != None else None )
 
@@ -734,11 +734,11 @@ class AutomagicallyUpdater:
 				bindValues.extend( filterParams )
 
 		whereStr = ''
-		if whereClauses.count() > 0:
-			whereStr = " WHERE " + whereClauses.join(" AND ")
+		if whereClauses.__len__() > 0:
+			whereStr = " WHERE " + " AND ".join(whereClauses)
 
 		# aggiorna la riga
-		query.prepare( "UPDATE " + table + " SET " + assignments.join(", ") + whereStr )
+		query.prepare( "UPDATE " + table + " SET " + ", ".join(assignments) + whereStr )
 		for v in bindValues:
 			query.addBindValue( v if v != None else None )
 
@@ -780,8 +780,8 @@ class AutomagicallyUpdater:
 				bindValues.extend( filterParams )
 
 		whereStr = ''
-		if whereClauses.count() > 0:
-			whereStr = " WHERE " + whereClauses.join(" AND ")
+		if whereClauses.__len__() > 0:
+			whereStr = " WHERE " + " AND ".join(whereClauses)
 		query.prepare( "DELETE FROM " + table + whereStr )
 		for v in bindValues:
 			query.addBindValue( v if v != None else None )
@@ -1175,7 +1175,7 @@ class MappingOne2One(AutomagicallyUpdater):
 			for i, pk in enumerate(self._pkColumn):
 				whereClauses.append( "%s = :id%n" % (pk, i) )
 
-		return AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s" % ( widget.objectName(), self._tableName, whereClauses.join(" AND ") ) )
+		return AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s" % ( widget.objectName(), self._tableName, " AND ".join(whereClauses) ) )
 
 
 	def loadValues(self, widget=None, action=None):
@@ -1260,7 +1260,7 @@ class MappingOne2Many(MappingOne2One):
 			for i, pk in enumerate(self._parentPkColumn):
 				whereClauses.append( "%s = :id%s" % (pk, i) )
 
-		return AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s" % ( self._pkColumn, self._tableName, whereClauses.join(" AND ") ) )
+		return AutomagicallyUpdater.Query( "SELECT %s FROM %s WHERE %s" % ( self._pkColumn, self._tableName, " AND ".join(whereClauses) ) )
 
 	def loadValues(self, action=None):
 		action = self._computeAction(action)

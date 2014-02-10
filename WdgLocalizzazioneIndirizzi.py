@@ -266,5 +266,5 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 		<td class="line">Num. Civici</td><td class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.ZZ_COMUNIISTATCOM.currentText(), self.ZZ_PROVINCEISTATPROV.currentText(), self.VIA.currentText(), civici.join(", ") )
+""" % ( self.ZZ_COMUNIISTATCOM.currentText(), self.ZZ_PROVINCEISTATPROV.currentText(), self.VIA.currentText(), ", ".join(civici) )
 

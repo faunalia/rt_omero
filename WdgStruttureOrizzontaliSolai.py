@@ -73,4 +73,4 @@ class WdgStruttureOrizzontaliSolai(QWidget, MappingOne2One, Ui_Form):
 		<td>Stato di conservazione</td><td colspan="3" class="value">%s</td>
 	</tr>
 </table>
-""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), tipologia.join("<br>"), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText() )
+""" % ( self.ZZ_QUALITA_INFORMAZIONEID.currentText(), "<br>".join(tipologia), self.ZZ_STATO_CONSERVAZIONE_STRUTTURALEID.currentText() )
