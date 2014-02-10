@@ -233,6 +233,7 @@ class PySLQuery:
 		return unicode( value )
 
 	def convertResult(self, value):
+		# do nothing because before there was QVariat => maintained to avoid code changes
 		return value
 
 	def addBindValue(self, value):
