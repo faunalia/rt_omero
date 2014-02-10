@@ -87,7 +87,7 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 
 		lastUsedDir = AutomagicallyUpdater._getLastUsedDir("importshape")
 		infile = QFileDialog.getOpenFileName(self, u"Seleziona uno shapefile di input", lastUsedDir, "Shapefile (*.shp)")
-		if infile.isEmpty():
+		if infile == "":
 			return
 		AutomagicallyUpdater._setLastUsedDir("importshape", infile)
 
@@ -337,7 +337,7 @@ class CreateDbThread(QThread):
 			fldname = fldcombo.currentText()
 			prefix = prefixcombo.currentText()
 
-			if not shapegrp.isChecked() or shppath.isEmpty() or fldname.isEmpty() or prefix.isEmpty():
+			if not shapegrp.isChecked() or shppath == "" or fldname == "" or prefix == "":
 				continue
 
 			self.log.append( u"<li><p><strong>Importazione geometrie dal layer '%s'...</strong></p>" % shppath )
@@ -382,7 +382,7 @@ class CreateDbThread(QThread):
 
 				self.emit(SIGNAL("updateProgress"))
 
-			if errors.isEmpty():
+			if errors == "":
 				self.log.append( "<p>completata correttamente.</p>" )
 			else:
 				self.log.append( errors )

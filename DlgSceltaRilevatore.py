@@ -60,7 +60,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 		enabler = self.getValue(self.comuneCombo) != None
 		self.nuovoRilevatoreGroup.setEnabled( enabler )
 
-		enabler = not self.nomeEdit.text().isEmpty() and not self.cognomeEdit.text().isEmpty()
+		enabler = not self.nomeEdit.text() == "" and not self.cognomeEdit.text() == ""
 		self.addRilevatoreBtn.setEnabled( enabler )
 
 		enabler = self.getValue(self.rilevatoriTable) != None
@@ -105,7 +105,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 		self.loadTables( self.rilevatoriTable )
 
 	def aggiungiRilevatore(self):
-		if self.nomeEdit.text().isEmpty() or self.cognomeEdit.text().isEmpty():
+		if self.nomeEdit.text() == "" or self.cognomeEdit.text() == "":
 			return
 
 		try:
@@ -156,7 +156,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 		subdir = ".omero-cache"
 
 		cache_path = self.getPathToCache()
-		if cache_path.isEmpty():
+		if cache_path == "":
 			cache_path = self._getPathToDb()
 		else:			
 			cache_dir = QDir(cache_path)
@@ -170,7 +170,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 			caption = u"Seleziona la directory da dove recuperare la cache"
 
 		cache_path = QFileDialog.getExistingDirectory(self, caption, cache_path )
-		if cache_path.isEmpty():
+		if cache_path == "":
 			return False
 
 		cache_dir = QDir( cache_path )

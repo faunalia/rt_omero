@@ -192,7 +192,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		for row in range(self.table.rowCount()):
 			item1 = self.table.item(row, 0)
 			item2 = self.table.item(row, 1)
-			if item1 == None or item1.text().isEmpty():
+			if item1 == None or item1.text() == "":
 				continue
 
 			ID = str( item1.data( Qt.UserRole ) )

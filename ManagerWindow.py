@@ -837,7 +837,7 @@ WHERE
 		from DlgSelezionaDB import DlgSelezionaDB
 
 		pathToDB = AutomagicallyUpdater._getPathToDb()
-		if pathToDB.isEmpty() or not QFileInfo( pathToDB ).exists():
+		if pathToDB == "" or not QFileInfo( pathToDB ).exists():
 			if not DlgSelezionaDB( self ).exec_():
 				return
 			return AutomagicallyUpdater._getPathToDb()

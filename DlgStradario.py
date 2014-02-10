@@ -62,7 +62,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 
 		self.delViaBtn.setEnabled( ID != None and self.selectedRowIsEditabile() )
 
-		enabler = self.getValue(self.comuneCombo) != None and not self.viaEdit.text().isEmpty()
+		enabler = self.getValue(self.comuneCombo) != None and not self.viaEdit.text() == ""
 		self.addViaBtn.setEnabled( enabler )
 
 	def selectedRowIsEditabile(self):
@@ -106,7 +106,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 
 		# non eliminare le vie vuote
 		via = AutomagicallyUpdater.Query( "SELECT VIA FROM INDIRIZZO_VIA WHERE ID_INDIRIZZO = ?", [IDindirizzo] ).getFirstResult()
-		if via == None or via.isEmpty():
+		if via == None or via == "":
 			return
 
 		# chiedi conferma all'utente
@@ -120,7 +120,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 	def aggiungiVia(self):
 		IDcomune = self.getValue(self.comuneCombo)
 		via = str(self.viaEdit.text()).upper()
-		if IDcomune == None or via.isEmpty():
+		if IDcomune == None or via == "":
 			return
 
 		IDindirizzo = self.getValue(self.vieTable)

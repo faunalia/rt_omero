@@ -51,7 +51,7 @@ class SezFoto(QWidget, MappingPart, Ui_Form):
 
 		lastDir = AutomagicallyUpdater._getLastUsedDir( 'foto' )
 		filename = QFileDialog.getOpenFileName(self, self.tr( "Seleziona l'immagine" ), lastDir, filterStr)
-		if filename.isEmpty():
+		if filename == "":
 			return
 		AutomagicallyUpdater._setLastUsedDir( 'foto', filename )
 

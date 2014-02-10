@@ -54,7 +54,7 @@ class AutomagicallyUpdater:
 		if AutomagicallyUpdater.MAC_ADDRESS == None:
 			settings = QSettings()
 			macAddress = settings.value( "/omero_RT/mac3chars", "", type=str )
-			if macAddress.isEmpty():
+			if macAddress == "":
 				try:
 					import uuid
 					macAddress = str( uuid.uuid1() )[-5:-1]
@@ -682,7 +682,7 @@ class AutomagicallyUpdater:
 
 		ROWID = str( query.lastInsertId() )	# restituisce ROWID
 		if pk == None:
-			ROWID = None if ROWID.isEmpty() else ROWID
+			ROWID = None if ROWID == "" else ROWID
 			if self.DEBUG:
 				print ">>>", query.lastQuery().toUtf8(), " >>> ROWID = ", ROWID
 			return ROWID

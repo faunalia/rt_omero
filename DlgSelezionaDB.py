@@ -48,7 +48,7 @@ class DlgSelezionaDB(QDialog, Ui_Dlg):
 	def selezionaDB(self, parent=None):
 		path = AutomagicallyUpdater._getPathToDb()
 		dbpath = QFileDialog.getOpenFileName(parent, u"Seleziona il DB di lavoro da utilizzare", path if path != None else "", "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
-		if dbpath.isEmpty():
+		if dbpath == "":
 			return
 		AutomagicallyUpdater._setPathToDb( dbpath )
 		return dbpath
@@ -63,7 +63,7 @@ class DlgSelezionaDB(QDialog, Ui_Dlg):
 		path = AutomagicallyUpdater._getPathToDb()
 		# copia il database di test nella directory indicata dall'utente
 		dbpath = QFileDialog.getSaveFileName(self, u"Salva il DB dimostrativo", path if path != None else "", "Sqlite DB (*.sqlite *.db3);;Tutti i file (*)" )
-		if dbpath.isEmpty():
+		if dbpath == "":
 			return
 
 		import os.path, zipfile

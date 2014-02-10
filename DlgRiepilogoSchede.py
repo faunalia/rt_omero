@@ -166,7 +166,7 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 			# ask to the user where to store the PDF/HTML files
 			lastDir = AutomagicallyUpdater._getLastUsedDir( 'pdf' )
 			lastDir = QFileDialog.getExistingDirectory(self, u"Salvataggio schede", lastDir, QFileDialog.ShowDirsOnly )
-			if lastDir.isEmpty():
+			if lastDir == "":
 				return
 			AutomagicallyUpdater._setLastUsedDir( 'pdf', lastDir )
 

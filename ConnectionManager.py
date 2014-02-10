@@ -178,7 +178,7 @@ class PySLDatabase:
 		return self._error
 
 	def isValid(self):
-		return self._error.isEmpty()
+		return self._error == ""
 
 	def transaction(self):
 		return True
