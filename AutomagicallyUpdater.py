@@ -842,7 +842,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 
-		ROWID = query.lastInsertId().toString()	# restituisce ROWID
+		ROWID = str( query.lastInsertId() )	# restituisce ROWID
 
 		# recupera il valore della pk
 		insertQuery = query.lastQuery()
