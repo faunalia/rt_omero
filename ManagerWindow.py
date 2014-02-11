@@ -326,7 +326,7 @@ WHERE
 
 	@classmethod
 	def checkActionSpatialFromFeature(self, actionName, feat, onLayerModif):
-		codice = str( feat.attribute( 0 ) )
+		codice = str( feat.attributes()[0] )
 		return self.checkActionSpatialFromId(actionName, codice, onLayerModif)
 
 	@classmethod
@@ -377,7 +377,7 @@ WHERE
 				return self.nuovaPointEmitter.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = str( feat.attribute( 0 ) )
+			codice = str( feat.attributes()[0] )
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
 			if abbinato:
 				# NO, c'è già una scheda associata
@@ -438,11 +438,11 @@ WHERE
 				return self.esistentePointEmitter.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = str( feat.attribute( 0 ) )
+			codice = str( feat.attributes()[0] )
 			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
 			if abbinato:
 				# OK, c'è già una scheda associata
-				codice = str( feat.attribute( 0 ) )
+				codice = str( feat.attributes()[0] )
 				if self.isApriScheda:
 					self.apriScheda( codice )
 				else:
@@ -652,7 +652,7 @@ WHERE
 			ConnectionManager.startTransaction()
 
 			# copia la geometria selezionata nel layer delle geometrie nuove o modificate
-			codice = str( feat.attribute( 0 ) )
+			codice = str( feat.attributes()[0] )
 			ID = AutomagicallyUpdater._insertGeometriaCopiata( codice )
 			if ID == None:
 				return
