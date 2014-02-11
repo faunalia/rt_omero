@@ -906,7 +906,7 @@ WHERE
 		# check for valid omero layers
 		for l in self.iface.legendInterface().layers():
 			prop = l.customProperty( "loadedByOmeroRTPlugin" )
-			if prop.isValid():
+			if prop != None:
 				valid = True
 				lid = self._getLayerId( l )
 

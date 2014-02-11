@@ -220,14 +220,14 @@ class PySLQuery:
 
 	def escapeValue(self, value):
 		value = self.convertResult( value )
-		if not value.isValid():
+		if value == None:
 			return 'NULL'
 
-		if value.type() == QVariant.ByteArray:
+		if isinstance(value, bytearray):
 			return buffer( value )
-		if value.type() == QVariant.Int:
+		if isinstance(value, int):
 			return int( value )
-		if value.type() == QVariant.Double:
+		if isinstance(value, float):
 			return float( value )
 
 		return unicode( value )
