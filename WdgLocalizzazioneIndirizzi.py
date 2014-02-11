@@ -23,6 +23,8 @@ Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.h
  ***************************************************************************/
 """
 
+import re
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
@@ -130,7 +132,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 			index = self.VIA.findData( value )
 			if index >= 0:
 				return value
-			value = value.simplified().upper()
+			value = re.sub("\s\s+", " ", value.strip())
 
 		index = self.VIA.findText( value if value != None else "", Qt.MatchFixedString )
 		if index >= 0:
