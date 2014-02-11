@@ -825,7 +825,7 @@ WHERE
 			layerModif.removeSelection()
 			return
 
-		layerModif.removeSelection(False)
+		layerModif.removeSelection()
 		layerModif.select(int(geomID))
 		if centra:
 			self.canvas.zoomToSelected( layerModif )
