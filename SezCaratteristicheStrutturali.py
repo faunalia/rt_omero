@@ -40,7 +40,7 @@ class SezCaratteristicheStrutturali(QWidget, MappingPart, Ui_Form):
 		childrenList = [
 			self.STRUTTURE_PORTANTI_VERTICALIID,
 			self.STRUTTURE_ORIZZONTALI_SOLAI
-		]QString
+		]
 		self.setupValuesUpdater(childrenList)
 
 	def toHtml(self):
