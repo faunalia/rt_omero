@@ -297,7 +297,7 @@ class PicViewer(QGraphicsView):
 			self.clearCache()
 
 			pixmap = QPixmap()
-			if isinstance(image, str):
+			if isinstance(image, str) or isinstance(image, unicode):
 				infile = open( unicode(image).encode('utf8'), "rb" )
 				self.imageBytes = QByteArray( infile.read() )
 				infile.close()

@@ -451,7 +451,7 @@ class AutomagicallyUpdater:
 			if value == None:
 				return
 
-			if isinstance(value, str):
+			if isinstance(value, str) or isinstance(value, unicode):
 				image = QPixmap( value )
 
 			elif isinstance(value, QByteArray):
@@ -471,31 +471,31 @@ class AutomagicallyUpdater:
 				if index >= 0:
 					widget.setCurrentIndex(index)
 				else:
-					index = widget.findText(value)
+					index = widget.findText(unicode( value ))
 					if index >= 0:
 						widget.setCurrentIndex(index)
 					else:
-						widget.setEditText(value)
+						widget.setEditText(unicode( value ))
 			else:
 				widget.setCurrentIndex(-1)
 
 		elif isinstance(widget, QAbstractButton) or (isinstance(widget, QGroupBox) and widget.isCheckable()):
-			if isinstance(value, str):
+			if isinstance(value, str) or isinstance(value, unicode):
 				enabler = value != '0'
 			else:
 				enabler = True if value else False
 			widget.setChecked( enabler )
 
 		elif isinstance(widget, QLineEdit):
-			widget.setText(value) if value != None else widget.clear()
+			widget.setText(unicode( value )) if value != None else widget.clear()
 
 		elif isinstance(widget, QPlainTextEdit):
-			widget.setPlainText(value) if value != None else widget.clear()
+			widget.setPlainText(unicode( value )) if value != None else widget.clear()
 
 		elif isinstance(widget, QDateEdit):
 			if value == None:
 				value = QDate.currentDate()
-			if isinstance(value, str):
+			if isinstance(value, str) or isinstance(value, unicode):
 				value = QDate.fromString( value, widget.displayFormat() )
 			widget.setDate(value)
 
@@ -545,7 +545,7 @@ class AutomagicallyUpdater:
 			row=0
 			model = widget.model()
 			while model.hasIndex(row,0):
-				if value == model.record(row).value(0):
+				if unicode(value) == unicode(model.record(row).value(0)):
 					widget.selectRow(row)
 					break
 				row = row + 1
@@ -554,7 +554,7 @@ class AutomagicallyUpdater:
 			# seleziona la riga che ha ID uguale a quello passato
 			for row in range(widget.count()):
 				item = widget.item(row)
-				enabler = value != None and value == item.data(Qt.UserRole)
+				enabler = value != None and unicode(value) == unicode(item.data(Qt.UserRole))
 				item.setSelected(enabler)
 
 		elif isinstance(widget, QListView):
@@ -567,7 +567,7 @@ class AutomagicallyUpdater:
 			row=0
 			model = widget.model()
 			while model.hasIndex(row,0):
-				if not widget.isRowHidden(row) and value == model.record(row).value(0):
+				if not widget.isRowHidden(row) and unicode(value) == unicode(model.record(row).value(0)):
 					widget.selectionModel().select( model.index(row, 1), QItemSelectionModel.Rows )
 					break
 				row = row + 1
@@ -580,7 +580,7 @@ class AutomagicallyUpdater:
 			return
 		if isinstance(widget, QWidget):
 			return widget
-		if isinstance(widget, str) and hasattr(self, widget):
+		if ( isinstance(widget, str) or isinstance(widget, unicode) ) and hasattr(self, widget):
 			return getattr(self, widget)
 		return
 
