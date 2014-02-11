@@ -684,7 +684,7 @@ class AutomagicallyUpdater:
 		if pk == None:
 			ROWID = None if ROWID == "" else ROWID
 			if self.DEBUG:
-				print ">>>", query.lastQuery().toUtf8(), " >>> ROWID = ", ROWID
+				print ">>>", query.lastQuery(), " >>> ROWID = ", ROWID
 			return ROWID
 
 		# recupera il valore della pk
@@ -697,7 +697,7 @@ class AutomagicallyUpdater:
 
 		ID = unicode( query.value(0) )
 		if self.DEBUG:
-			print ">>>", insertQuery.toUtf8(), " >>> pk = ", ID, ">>> ROWID =", ROWID
+			print ">>>", insertQuery, " >>> pk = ", ID, ">>> ROWID =", ROWID
 
 		return ID
 
@@ -746,7 +746,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 		if self.DEBUG:
-			print ">>>", query.lastQuery().toUtf8(), " >>> pk = ", ID
+			print ">>>", query.lastQuery(), " >>> pk = ", ID
 		return ID
 
 	@classmethod
@@ -791,7 +791,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return False
 		if self.DEBUG:
-			print ">>>", query.lastQuery().toUtf8()
+			print ">>>", query.lastQuery()
 		return True
 
 	@classmethod
@@ -853,7 +853,7 @@ class AutomagicallyUpdater:
 			return
 		ID = unicode( query.value(0) )
 		if self.DEBUG:
-			print ">>>", insertQuery.toUtf8(), ">>> pk =", ID, ">>> ROWID =", ROWID
+			print ">>>", insertQuery, ">>> pk =", ID, ">>> ROWID =", ROWID
 
 		return ID
 
@@ -875,7 +875,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 		if self.DEBUG:
-			print ">>>", query.lastQuery().toUtf8(), ">>> pk =", ID
+			print ">>>", query.lastQuery(), ">>> pk =", ID
 
 		return ID 
 
