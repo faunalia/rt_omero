@@ -1131,7 +1131,7 @@ class MappingOne2One(AutomagicallyUpdater):
 		if query == None:
 			return
 
-		if not query.lastQuery().contains(':id'):
+		if not ':id' in query.lastQuery():
 			return query
 
 		if self._ID == None:
