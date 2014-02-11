@@ -31,7 +31,7 @@ from ConnectionManager import ConnectionManager
 
 class AutomagicallyUpdater:
 
-	DEBUG = False
+	DEBUG = True
 
 	DEFAULT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
@@ -57,7 +57,7 @@ class AutomagicallyUpdater:
 			if macAddress == "":
 				try:
 					import uuid
-					macAddress = str( uuid.uuid1() )[-5:-1]
+					macAddress = unicode( uuid.uuid1() )[-5:-1]
 				except ImportError:
 					# modulo uuid non trovato (molto difficile che ciò avvenga)
 					# genero i caratteri in modo random
@@ -277,10 +277,10 @@ class AutomagicallyUpdater:
 			if isinstance(action, AutomagicallyUpdater.Query):
 				widget.clear()
 				while query.next():
-					ID = str( query.value(0) )
+					ID = unicode( query.value(0) )
 					if ID == self.VALORE_NON_INSERITO:
 						continue
-					name = str( query.value(1) )
+					name = unicode( query.value(1) )
 					widget.addItem( name, ID )
 
 		elif isinstance(widget, QTableWidget):
@@ -305,7 +305,7 @@ class AutomagicallyUpdater:
 						try:
 							value = int( query.value(col+1) )
 						except:
-							value = str( query.value(col+1) )
+							value = unicode( query.value(col+1) )
 						item.setData( Qt.DisplayRole, value )
 						item.setData( Qt.UserRole, ID )
 						widget.setItem( row, col, item )
@@ -326,10 +326,10 @@ class AutomagicallyUpdater:
 			if isinstance(action, AutomagicallyUpdater.Query):
 				widget.clear()
 				while query.next():
-					ID = str( query.value(0) )
+					ID = unicode( query.value(0) )
 					if ID == self.VALORE_NON_INSERITO:
 						continue
-					name = str( query.value(1) )
+					name = unicode( query.value(1) )
 					item = QListWidgetItem( name )
 					item.setData( Qt.UserRole, ID )
 					widget.addItem( item )
@@ -381,7 +381,7 @@ class AutomagicallyUpdater:
 			index = widget.currentIndex()
 			text = widget.currentText()
 			if index >= 0 and widget.itemText(index) == text:
-				value = str( widget.itemData(index) )
+				value = unicode( widget.itemData(index) )
 				value = self._getRealValue(value)
 				if value == None:
 					value = text
@@ -401,15 +401,15 @@ class AutomagicallyUpdater:
 			value = widget.date().toString( widget.displayFormat() )
 
 		elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
-			value = str( widget.value() )
+			value = unicode( widget.value() )
 
 		elif isinstance(widget, QDoubleSpinBox):
-			value = str( widget.value() )
+			value = unicode( widget.value() )
 
 		elif isinstance(widget, (QTableWidget, QListWidget)):
 			selItems = widget.selectedItems()
 			if len(selItems) > 0:
-				value = str( selItems[0].data(Qt.UserRole) )
+				value = unicode( selItems[0].data(Qt.UserRole) )
 
 		elif isinstance(widget, (QTableView, QListView)):
 			selIndexes = widget.selectedIndexes()
@@ -417,7 +417,7 @@ class AutomagicallyUpdater:
 				# recupera l'ID dal modello
 				row = selIndexes[0].row()
 				sqlRecord = widget.model().record(row)
-				value = str( sqlRecord.value(0) )
+				value = unicode( sqlRecord.value(0) )
 
 		return self._getRealValue(value)
 
@@ -588,7 +588,7 @@ class AutomagicallyUpdater:
 	def _getRealValue(self, value):
 
 		if isinstance(value, buffer):
-			value = QByteArray( str(value) )
+			value = QByteArray( unicode(value) )
 
 # 		if isinstance(value, QVariant):
 # 			if not value.isValid():
@@ -658,11 +658,11 @@ class AutomagicallyUpdater:
 		bindValues = []
 		if pk != None:
 			fields.append( pk )
-			values.append( "'" + IDComune + "-'||strftime('%Y%m%d%H%M%S', 'now')||'-" + macAddress + "-" + str(progressivo) + "_" + IDRilevatore + "'" )
+			values.append( "'" + IDComune + "-'||strftime('%Y%m%d%H%M%S', 'now')||'-" + macAddress + "-" + unicode(progressivo) + "_" + IDRilevatore + "'" )
 			
 		for name, value in name2valueDict.iteritems():
 			fields.append( name ) 
-			if value == None and str(name).startswith( "ZZ" ):
+			if value == None and unicode(name).startswith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
 			elif isinstance(value, (buffer, QByteArray)):
 				bindValues.append( value )
@@ -680,7 +680,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 
-		ROWID = str( query.lastInsertId() )	# restituisce ROWID
+		ROWID = unicode( query.lastInsertId() )	# restituisce ROWID
 		if pk == None:
 			ROWID = None if ROWID == "" else ROWID
 			if self.DEBUG:
@@ -695,7 +695,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 
-		ID = str( query.value(0) )
+		ID = unicode( query.value(0) )
 		if self.DEBUG:
 			print ">>>", insertQuery.toUtf8(), " >>> pk = ", ID, ">>> ROWID =", ROWID
 
@@ -713,7 +713,7 @@ class AutomagicallyUpdater:
 		assignments = []
 		bindValues = []
 		for name, value in name2valueDict.iteritems():
-			if value == None and str(name).startswith( "ZZ" ):
+			if value == None and unicode(name).startswith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
 			elif isinstance(value, (buffer, QByteArray)):
 				bindValues.append( value )
@@ -761,7 +761,7 @@ class AutomagicallyUpdater:
 		whereClauses = []
 		bindValues = []
 		for name, value in name2valueDict.iteritems():
-			if value == None and str(name).startswith( "ZZ" ):
+			if value == None and unicode(name).startswith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
 			elif isinstance(value, (buffer, QByteArray)):
 				bindValues.append( value )
@@ -817,7 +817,7 @@ class AutomagicallyUpdater:
 		progressivo = self._getProgressivoID()
 		macAddress = self._getMacAddress()
 
-		IDGeometria = "'" + IDComune + "-'||strftime('%Y%m%d%H%M%S', 'now')||'-" + macAddress + "-" + str(progressivo) + "_" + IDRilevatore + "'"
+		IDGeometria = "'" + IDComune + "-'||strftime('%Y%m%d%H%M%S', 'now')||'-" + macAddress + "-" + unicode(progressivo) + "_" + IDRilevatore + "'"
 
 		# costruisci la query
 		insertStr = "INSERT INTO GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE (ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ABBINATO_A_SCHEDA, geometria)"
@@ -842,7 +842,7 @@ class AutomagicallyUpdater:
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
 
-		ROWID = str( query.lastInsertId() )	# restituisce ROWID
+		ROWID = unicode( query.lastInsertId() )	# restituisce ROWID
 
 		# recupera il valore della pk
 		insertQuery = query.lastQuery()
@@ -851,7 +851,7 @@ class AutomagicallyUpdater:
 		if not query.exec_() or not query.next():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
-		ID = str( query.value(0) )
+		ID = unicode( query.value(0) )
 		if self.DEBUG:
 			print ">>>", insertQuery.toUtf8(), ">>> pk =", ID, ">>> ROWID =", ROWID
 
@@ -899,13 +899,13 @@ class AutomagicallyUpdater:
 
 		# memorizza il rilevatore
 		query.prepare( "INSERT INTO RILEVATORE (ID, NOME, COGNOME) SELECT " + IDRilevatore + ", ?, ? FROM RILEVATORE WHERE ID LIKE '" + IDComune + "%'" )
-		query.addBindValue( str(nome).upper() )
-		query.addBindValue( str(cognome).lower() )
+		query.addBindValue( unicode(nome).upper() )
+		query.addBindValue( unicode(cognome).lower() )
 
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return
-		return str( query.lastInsertId() )
+		return unicode( query.lastInsertId() )
 
 	@classmethod
 	def _onQueryError(self, query, error, widget=None):
@@ -1007,8 +1007,8 @@ class MappingOne2One(AutomagicallyUpdater):
 			return
 
 		while query.next():
-			if str( query.value(5) ) == "1":
-				return str( query.value(1) )
+			if unicode( query.value(5) ) == "1":
+				return unicode( query.value(1) )
 		return
 
 	def _refreshWidgetColor(self, widget):
@@ -1276,7 +1276,7 @@ class MappingOne2Many(MappingOne2One):
 			
 			i = 0
 			while query.next():
-				subID = str( query.value(0) )
+				subID = unicode( query.value(0) )
 				if i >= len(self._childrenRefs):
 					if self.addNewChild() == False:
 						break
@@ -1306,7 +1306,7 @@ class MappingMany2Many(MappingOne2Many):
 			values = []
 			i = 0
 			while query.next():
-				values.append( str( query.value(0) ) )
+				values.append( unicode( query.value(0) ) )
 				i = i + 1
 
 			self.setValues(values)

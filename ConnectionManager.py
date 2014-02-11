@@ -156,7 +156,7 @@ class ConnectionManager:
 			return unicode(self.msg).encode("utf-8")
 
 		def toString(self):
-			return str(self.msg)
+			return unicode(self.msg)
 
 
 class PySLDatabase:
@@ -166,7 +166,7 @@ class PySLDatabase:
 		try:
 			self.connection = sqlite.connect(u"%s" % path)
 		except sqlite.OperationalError, e:
-			self._error = str(e)
+			self._error = unicode(e)
 
 	def getQuery(self, autocommit=True):
 		return PySLQuery(self, autocommit)
@@ -194,7 +194,7 @@ class PySLDatabase:
 
 class PySLError:
 	def __init__(self, msg=''):
-		self.msg = str(msg)
+		self.msg = unicode(msg)
 
 	def text(self):
 		return self.msg
@@ -244,7 +244,7 @@ class PySLQuery:
 
 	def setQuery(self, sql):
 		self.clear()
-		self._sql = str(sql)
+		self._sql = unicode(sql)
 		self._query = self._sql
 
 	def exec_(self, sql=None):
@@ -271,7 +271,7 @@ class PySLQuery:
 		
 
 	def lastQuery(self):
-		return str(self._sql)
+		return unicode(self._sql)
 
 	def lastError(self):
 		return self._error
