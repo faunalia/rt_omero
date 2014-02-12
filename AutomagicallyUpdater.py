@@ -588,7 +588,10 @@ class AutomagicallyUpdater:
 	def _getRealValue(self, value):
 
 		if isinstance(value, buffer):
-			value = QByteArray( unicode(value) )
+			pass
+
+# 		if isinstance(value, QByteArray):
+# 			value = QByteArray( value.decode("utf-8") )
 
 # 		if isinstance(value, QVariant):
 # 			if not value.isValid():
