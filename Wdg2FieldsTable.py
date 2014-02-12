@@ -82,6 +82,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			item = self.table.item(row, 0)
 			if item != None:
 				ID = str( item.data( Qt.UserRole ) )
+				ID = ID if ID != "None" else None
 				if ID != None:
 					ConnectionManager.startTransaction()
 					# elimina il valore
@@ -196,6 +197,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 				continue
 
 			ID = str( item1.data( Qt.UserRole ) )
+			ID = ID if ID != "None" else None
 			ID = self._getRealValue(ID)
 
 			# salva la riga
@@ -229,6 +231,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 				continue
 
 			ID = str( item1.data( Qt.UserRole ) )
+			ID = ID if ID != "None" else None
 			ID = self._getRealValue(ID)
 			self._deleteValue( self._tableWithValues, { self._tableWithValuesPkColumn : ID } )
 
@@ -247,7 +250,11 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 
 		def setEditorData(self, editor, index):
 			if index.column() == 0:
-				value = int( index.data() )
+				value = None
+				try:
+					value = int( index.data() )
+				except:
+					pass
 				value = value if value != None else 1
 					
 				editor.setValue(value)

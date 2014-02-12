@@ -163,6 +163,7 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
 				ID = str( model.record(row).value(0) )
+				ID = ID if ID != "None" else None
 				if not ID in oldIDs:
 					values = {
 						self._pkColumn : ID, 

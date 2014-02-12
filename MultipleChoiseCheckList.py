@@ -104,6 +104,7 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 			item = self.list.item(row)
 			if item.checkState() == Qt.Checked:
 				ID = str( item.data(Qt.UserRole) )
+				ID = ID if ID != "None" else None
 				if not ID in oldIDs:
 					values = {
 						self._pkColumn : ID, 

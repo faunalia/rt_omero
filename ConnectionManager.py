@@ -222,9 +222,9 @@ class PySLQuery:
 		value = self.convertResult( value )
 		if value == None:
 			return 'NULL'
-
-		if isinstance(value, bytearray):
-			return buffer( value )
+		
+		if isinstance(value, bytearray) or isinstance(value, QByteArray):
+			return value
 		if isinstance(value, int):
 			return int( value )
 		if isinstance(value, float):
