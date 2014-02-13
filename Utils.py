@@ -304,7 +304,7 @@ class PicViewer(QGraphicsView):
 					infile.close()
 					pixmap = QPixmap( image )
 				except Exception as e:
-					self.imageBytes = QByteArray.fromRawData(image)
+					self.imageBytes = QByteArray.fromHex(QByteArray(image))
 					pixmap.loadFromData( self.imageBytes )
 
 			elif isinstance(image, QByteArray):
@@ -384,9 +384,9 @@ class TemporaryFile:
 		filename = tmp.fileName()
 		tmp.close()
 
-		outfile = open( filename.toUtf8(), "wb" )
+		outfile = open( filename.encode("utf-8"), "wb" )
 		try:
-			outfile.write( str(dati) )
+			outfile.write( dati )
 		finally:
 			outfile.close()
 

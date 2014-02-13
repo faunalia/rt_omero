@@ -120,7 +120,8 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		widget = self._getRealWidget(widget)
 
 		if widget == self.IMAGE and self._ID != None:
-			return AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ID = ?", [self._ID] ).getFirstResult()
+			imagestr = AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ID = ?", [self._ID] ).getFirstResult()
+			return QByteArray.fromHex(QByteArray(imagestr))
 
 		if widget == self.GEOREF_EPSG4326_X or widget == self.GEOREF_EPSG4326_Y or \
 				widget == self.GEOREF_PROIET_X or widget == self.GEOREF_PROIET_Y:
