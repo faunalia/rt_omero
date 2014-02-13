@@ -298,10 +298,14 @@ class PicViewer(QGraphicsView):
 
 			pixmap = QPixmap()
 			if isinstance(image, str) or isinstance(image, unicode):
-				infile = open( unicode(image).encode('utf8'), "rb" )
-				self.imageBytes = QByteArray( infile.read() )
-				infile.close()
-				pixmap = QPixmap( image )
+				try:
+					infile = open( unicode(image).encode('utf8'), "rb" )
+					self.imageBytes = QByteArray( infile.read() )
+					infile.close()
+					pixmap = QPixmap( image )
+				except Exception as e:
+					self.imageBytes = QByteArray.fromRawData(image)
+					pixmap.loadFromData( self.imageBytes )
 
 			elif isinstance(image, QByteArray):
 				self.imageBytes = image
@@ -331,7 +335,7 @@ class TemporaryFile:
 	def getNewFile(key=None, ext=None):
 		tmp = QTemporaryFile()
 		if ext != None:
-			tmp.setFileTemplate( tmp.fileTemplate().append( ".%s" % ext ) )
+			tmp.setFileTemplate( "%s.%s" % ( tmp.fileTemplate(), ext ) )
 		if not TemporaryFile.tmpFiles.has_key( key ):
 			TemporaryFile.tmpFiles[ key ] = [ tmp ]
 		else:
