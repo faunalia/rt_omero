@@ -57,11 +57,6 @@ class SezLocalizzazione(QWidget, MappingOne2One, Ui_Form):
 		fogli = map(lambda x: x[0] if x[0] != None else "", catastali)
 		particelle =  map(lambda x: x[1] if x[1] != None else "", catastali)
 		isolato = self.getValue(self.EDIFICIO_ISOLATO)
-		
-		
-		print fogli, particelle, isolato
-		
-		
 		return u"""
 <div id="sez2" class="block">
 <p class="section">SEZIONE A2 - LOCALIZZAZIONE DELL'EDIFICIO</p>
