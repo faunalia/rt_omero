@@ -238,7 +238,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			canvas.enableAntiAliasing( settings.value( "/qgis/enable_anti_aliasing", False, type=bool ) )
 			canvas.useImageToRender( settings.value( "/qgis/use_qimage_to_render", False, type=bool ) )
 
-			canvas.mapRenderer().setDestinationSrs( mainRenderer.destinationSrs() )
+			canvas.mapRenderer().setDestinationCrs( mainRenderer.destinationCrs() )
 			canvas.mapRenderer().setMapUnits( mainRenderer.mapUnits() )
 
 			try:
@@ -407,10 +407,14 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		mainCanvas.setRenderFlag( False )
 
 		# override the selection color
-		prevColor = QgsRenderer.selectionColor()
+		#prevColor = QgsRenderer.selectionColor()
+		#newColor = QColor( Qt.yellow )
+		#newColor.setAlpha(127)
+		#QgsRenderer.setSelectionColor( newColor )
+		prevColor = mainCanvas.mapRenderer().rendererContext().selectionColor()
 		newColor = QColor( Qt.yellow )
 		newColor.setAlpha(127)
-		QgsRenderer.setSelectionColor( newColor )
+		mainCanvas.mapRenderer().rendererContext().setSelectionColor( newColor )
 
 		# set layers visible
 		legend = ManagerWindow.instance.iface.legendInterface()
@@ -440,7 +444,8 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 				layerModif.setSelectedFeatures( prevSelection )
 
 			# restore the canvas original state and selection color
-			QgsRenderer.setSelectionColor( prevColor )
+			#QgsRenderer.setSelectionColor( prevColor )
+			mainCanvas.mapRenderer().rendererContext().setSelectionColor( prevColor )
 			mainCanvas.setRenderFlag( prevRenderFlag )
 
 		return filename, extent
