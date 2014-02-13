@@ -378,7 +378,8 @@ WHERE
 
 			# controlla se tale geometria ha qualche scheda associata
 			codice = str( feat.attributes()[0] )
-			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
+			ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult()
+			abbinato = (str(ret) == "1") if ret != None else 0
 			if abbinato:
 				# NO, c'è già una scheda associata
 				QMessageBox.warning( self, "RT Omero", "La geometria selezionata appartiene ad un edificio gia' esistente" )
@@ -773,8 +774,8 @@ WHERE
 				# geometria non associata a una scheda uv
 				# potrebbe però essere una nuova uv selezionata nella scheda 
 				# aperta e per questo non ancora salvata
-				aperta = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [ codice ] ).getFirstResult() == '1'
-				
+				ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [ codice ] ).getFirstResult()
+				aperta = (str(ret) == "1") if ret != None else 0
 			if aperta:
 				QMessageBox.warning( self, "Eliminazione scheda", u"La geometria selezionata appartiene alla scheda edificio aperta. Prima di proseguire è necessario chiudere la scheda.", QMessageBox.Ok )
 				self.scheda.setMinimized( False )
