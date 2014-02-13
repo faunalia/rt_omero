@@ -439,7 +439,8 @@ WHERE
 
 			# controlla se tale geometria ha qualche scheda associata
 			codice = str( feat.attributes()[0] )
-			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
+			ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult()
+			abbinato = (str(ret) == "1") if ret != None else 0
 			if abbinato:
 				# OK, c'è già una scheda associata
 				codice = str( feat.attributes()[0] )

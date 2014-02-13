@@ -188,12 +188,12 @@ class FeatureFinder(MapTool):
 		if onlyTheClosestOne:
 			minDist = -1
 			featureId = None
-			rect = QgsGeometry.fromRect(rect)
+			rectClosest = QgsGeometry.fromRect(rect)
 
-			for f in layer.getFeatures():
+			for f in layer.getFeatures(QgsFeatureRequest(rect)):
 				if onlyTheClosestOne:
 					geom = f.geometry()
-					distance = geom.distance(rect)
+					distance = geom.distance(rectClosest)
 					if minDist < 0 or distance < minDist:
 						minDist = distance
 						featureId = f.id()
@@ -205,7 +205,7 @@ class FeatureFinder(MapTool):
 				ret = f.next()
 
 		else:
-			IDs = [f.id() for f in layer.getFeatures()]
+			IDs = [f.id() for f in layer.getFeatures(QgsFeatureRequest(rect))]
 
 			if onlyIds:
 				ret = IDs
