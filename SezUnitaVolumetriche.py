@@ -122,7 +122,8 @@ class SezUnitaVolumetriche(MultiTabSection):
 
 			# controlla se tale geometria ha qualche scheda associata
 			codice = str( feat.attribute(0) )
-			abbinato = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult() == '1'
+			ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult()
+			abbinato = (str(ret) == "1") if ret != None else 0
 			if abbinato:
 				# NO, c'è già una scheda associata
 				QMessageBox.warning( self, "RT Omero", u"La geometria selezionata appartiene ad un edificio già esistente" )
