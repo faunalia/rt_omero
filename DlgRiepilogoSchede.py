@@ -28,6 +28,7 @@ from PyQt4.QtGui import *
 
 from ui.dlgRiepilogoSchede_ui import Ui_Dialog
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class DlgRiepilogoSchede(QDialog, Ui_Dialog):
 
@@ -172,7 +173,7 @@ ORDER BY com.NOME, ind.VIA ASC""" % (indirizzo_non_inserito, indirizzo_non_valid
 
 		# recupera tutte le schede selezionate
 		for item in self.schedeList.selectedItems():
-			self.toPrint.append( str( item.data(Qt.UserRole) ) )
+			self.toPrint.append( Porting.str( item.data(Qt.UserRole) ) )
 
 		# avvia la stampa
 		self.printNext()

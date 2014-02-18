@@ -30,6 +30,7 @@ from PyQt4.QtGui import *
 
 from ui.wdgSezPrincipale_ui import Ui_Form
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class SezPrincipale(QWidget, MappingPart, Ui_Form):
 
@@ -54,7 +55,7 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 		value = self._getRealValue(value)
 		if self._getRealWidget(widget) == self.RILEVATOREID and value != None:
 			# check ---------> IDComune = QString(value).remove( QRegExp('\-.*$') )
-			IDComune = re.sub( '\-.*$', '', str(value) )
+			IDComune = re.sub( '\-.*$', '', Porting.str(value) )
 
 			query = AutomagicallyUpdater.Query( "SELECT ID, COGNOME, NOME, (SELECT com.NOME || ' (' || prov.NOME || ')' FROM ZZ_PROVINCE AS prov JOIN ZZ_COMUNI AS com ON prov.ISTATPROV = com.ZZ_PROVINCEISTATPROV WHERE com.ISTATCOM = ?) AS \"COMUNE\" FROM RILEVATORE WHERE ID = ?", [ IDComune, value ], 0 )
 			self.loadTables(self.RILEVATOREID, query)
@@ -72,13 +73,13 @@ class SezPrincipale(QWidget, MappingPart, Ui_Form):
 	def toHtml(self):
 		# check ---------> comIstat = QString(self._ID).remove( QRegExp('\-.*$') )
 		# check ---------> numScheda = QString(self._ID).mid( len(comIstat)+1 ).remove( QRegExp('\_.*$') )
-		comIstat = re.sub( '\-.*$', '', str(self._ID) )
-		numScheda = re.sub( '\_.*$', '', str(self._ID)[ len(comIstat)+1: ]  )
+		comIstat = re.sub( '\-.*$', '', Porting.str(self._ID) )
+		numScheda = re.sub( '\_.*$', '', Porting.str(self._ID)[ len(comIstat)+1: ]  )
 
 		rilevatoreID = self.getValue(self.RILEVATOREID)
 		ril = self.RILEVATOREID.model().record(0)
-		cognome = str(ril.value(1))
-		nome = str(ril.value(2))
+		cognome = Porting.str(ril.value(1))
+		nome = Porting.str(ril.value(2))
 
 		notaStorica = self.getValue(self.NOTA_STORICA)
 		if notaStorica == None or len(notaStorica) <= 0:

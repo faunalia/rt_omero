@@ -323,7 +323,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			# create a new renderer and setup it
 			mapRenderer = qgis.core.QgsMapRenderer()
 			mapRenderer.setOutputSize( size, image.logicalDpiX() )
-			mapRenderer.setDestinationSrs( mainRenderer.destinationSrs() )
+			mapRenderer.setDestinationCrs( mainRenderer.destinationCrs() )
 			mapRenderer.setMapUnits( mainRenderer.mapUnits() )
 			mapRenderer.setProjectionsEnabled( mainRenderer.hasCrsTransformEnabled() )
 
@@ -411,10 +411,10 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 		#newColor = QColor( Qt.yellow )
 		#newColor.setAlpha(127)
 		#QgsRenderer.setSelectionColor( newColor )
-		prevColor = mainCanvas.mapRenderer().rendererContext().selectionColor()
+		prevColor = qgis.core.QgsMapRenderer().rendererContext().selectionColor()
 		newColor = QColor( Qt.yellow )
 		newColor.setAlpha(127)
-		mainCanvas.mapRenderer().rendererContext().setSelectionColor( newColor )
+		qgis.core.QgsMapRenderer().rendererContext().setSelectionColor( newColor )
 
 		# set layers visible
 		legend = ManagerWindow.instance.iface.legendInterface()
@@ -436,6 +436,9 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			else:
 				filename, extent = createStralcioUsingRenderer(filename, size, scale, ext, factor)
 		finally:
+			
+			print "<<<<<<<<<<<<<<<<<<<<<<<<<<", filename
+			
 			# restore the original layers' state and selection
 			if layerOrig != None:
 				legend.setLayerVisible( layerOrig, prevOrigState )
@@ -445,7 +448,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 			# restore the canvas original state and selection color
 			#QgsRenderer.setSelectionColor( prevColor )
-			mainCanvas.mapRenderer().rendererContext().setSelectionColor( prevColor )
+			qgis.core.QgsMapRenderer().rendererContext().setSelectionColor( prevColor )
 			mainCanvas.setRenderFlag( prevRenderFlag )
 
 		return filename, extent

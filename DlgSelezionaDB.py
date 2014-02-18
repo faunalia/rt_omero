@@ -28,6 +28,7 @@ from PyQt4.QtGui import *
 
 from ui.dlgSelezionaDB_ui import Ui_DlgSelezionaDB as Ui_Dlg
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class DlgSelezionaDB(QDialog, Ui_Dlg):
 
@@ -81,7 +82,7 @@ class DlgSelezionaDB(QDialog, Ui_Dlg):
 				outfile.close()
 
 		except (IOError, zipfile.BadZipfile), e:
-			QMessageBox.critical( self, u"Errore", u"Impossibile estrarre dall'archivio contenente il DB dimostrativo.\n\nError message: %s" % unicode(str(e), 'utf8') )
+			QMessageBox.critical( self, u"Errore", u"Impossibile estrarre dall'archivio contenente il DB dimostrativo.\n\nError message: %s" % unicode(Porting.str(e), 'utf8') )
 			return self.reject()
 
 		AutomagicallyUpdater._setPathToDb( dbpath )

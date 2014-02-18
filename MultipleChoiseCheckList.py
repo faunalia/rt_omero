@@ -27,6 +27,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 
@@ -67,7 +68,7 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 		for row in range(self.list.count()):
 			item = self.list.item(row)
 			if item.checkState() == Qt.Checked:
-				values.append( str( item.data(Qt.UserRole) ) if getIDs else item.text() )
+				values.append( Porting.str( item.data(Qt.UserRole) ) if getIDs else item.text() )
 
 		return values
 
@@ -103,7 +104,7 @@ class MultipleChoiseCheckList(QWidget, MappingMany2Many):
 		for row in range(self.list.count()):
 			item = self.list.item(row)
 			if item.checkState() == Qt.Checked:
-				ID = str( item.data(Qt.UserRole) )
+				ID = Porting.str( item.data(Qt.UserRole) )
 				ID = ID if ID != "None" else None
 				if not ID in oldIDs:
 					values = {

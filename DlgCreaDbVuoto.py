@@ -29,6 +29,7 @@ from PyQt4.QtGui import *
 from ui.dlgCreaDbVuoto_ui import Ui_Dialog
 from AutomagicallyUpdater import *
 from ConnectionManager import PySLDatabase, SqlException
+from Utils import Porting
 
 from qgis.core import *
 from qgis.gui import QgsMessageViewer
@@ -287,7 +288,7 @@ class CreateDbThread(QThread):
 					f.close()			
 
 				# add geometry columns after the table creation
-				if str(name).startswith("01"):
+				if Porting.str(name).startswith("01"):
 					index += 1
 					self.emit(SIGNAL("resetProgress"), len(self.geomTables), "(%d/%d) Creazione colonne geometriche..." % (index, count) )
 
@@ -300,7 +301,7 @@ class CreateDbThread(QThread):
 						self.emit(SIGNAL("updateProgress"))
 
 				# populate geometry tables before create triggers
-				if str(name).startswith("03"):
+				if Porting.str(name).startswith("03"):
 					index += 1
 					self.emit(SIGNAL("resetProgress"), None, "(%d/%d) Riempimento tabelle geometriche..." % (index, count) )
 
@@ -363,7 +364,7 @@ class CreateDbThread(QThread):
 
 			errors = []
 			for feat in shpvl.getFeatures( QgsFeatureRequest().setSubsetOfAttributes([fldindex]) ):
-				idval = str( feat.attribute(fldindex) )
+				idval = Porting.str( feat.attribute(fldindex) )
 
 				newidval = u"%s%s" % (prefix, idval)
 				wkb = QByteArray( feat.geometry().asWkb() )

@@ -28,6 +28,7 @@ from PyQt4.QtGui import *
 
 from ui.wdgSezFoto_ui import Ui_Form
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class SezFoto(QWidget, MappingPart, Ui_Form):
 
@@ -46,7 +47,7 @@ class SezFoto(QWidget, MappingPart, Ui_Form):
 
 	def loadFile(self):
 		supportedFormats = QImageReader.supportedImageFormats()
-		supportedFormats = map( lambda x: "*.%s *.%s" % ( str(x).lower(), str(x).upper() ), supportedFormats )
+		supportedFormats = map( lambda x: "*.%s *.%s" % ( Porting.str(x).lower(), Porting.str(x).upper() ), supportedFormats )
 		filterStr = "Immagini (%s);; Tutti i file (*);;" % " ".join( supportedFormats )
 
 		lastDir = AutomagicallyUpdater._getLastUsedDir( 'foto' )

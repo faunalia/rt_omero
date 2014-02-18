@@ -28,6 +28,7 @@ from PyQt4.QtGui import *
 
 from ui.multipleChoise2Lists_ui import Ui_MultipleChoise
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 
@@ -70,7 +71,7 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
-				itemtext = str( model.record(row).value(1) )
+				itemtext = Porting.str( model.record(row).value(1) )
 				if matchFlags == Qt.MatchStartsWith:
 					if itemtext.startswith( text ):
 						return True
@@ -96,7 +97,7 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
-				values.append( str( model.record(row).value(0 if getIDs else 1) ) )
+				values.append( Porting.str( model.record(row).value(0 if getIDs else 1) ) )
 			row = row + 1
 
 		return values
@@ -162,7 +163,7 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
 			if not self.selezionateList.isRowHidden(row):
-				ID = str( model.record(row).value(0) )
+				ID = Porting.str( model.record(row).value(0) )
 				ID = ID if ID != "None" else None
 				if not ID in oldIDs:
 					values = {

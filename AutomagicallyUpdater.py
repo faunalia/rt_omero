@@ -28,6 +28,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 
 from ConnectionManager import ConnectionManager
+from Utils import Porting
 
 class AutomagicallyUpdater:
 
@@ -667,8 +668,11 @@ class AutomagicallyUpdater:
 			fields.append( name ) 
 			if value == None and unicode(name).startswith( "ZZ" ):
 				value = self.VALORE_NON_INSERITO
-			elif isinstance(value, (buffer, QByteArray)):
+			elif isinstance(value, (buffer)):
 				bindValues.append( value )
+				value = '?'
+			elif isinstance(value, (QByteArray)):
+				bindValues.append( Porting.str( value.toHex() ) )
 				value = '?'
 			else:
 				value = self._getDBStrValue(value)
@@ -677,7 +681,7 @@ class AutomagicallyUpdater:
 		# memorizza la riga
 		query.prepare( "INSERT INTO " + table + " (" + ", ".join(fields) + ") VALUES (" + ", ".join(values) + ")" )
 		for v in bindValues:
-			query.addBindValue( v if v != None else None )
+			query.addBindValue( v )
 
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )

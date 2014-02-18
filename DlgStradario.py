@@ -29,6 +29,7 @@ from PyQt4.QtGui import *
 from ui.dlgStradario_ui import Ui_Dialog
 from ConnectionManager import ConnectionManager
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 
@@ -82,8 +83,8 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 			# recupera la via selezionata
 			query = AutomagicallyUpdater.Query( "SELECT ZZ_COMUNIISTATCOM, VIA FROM INDIRIZZO_VIA WHERE ID_INDIRIZZO = ?", [ IDindirizzo ] ).getQuery()
 			if query.exec_() and query.next():
-				IDcomune = str( query.value(0) )
-				via = str( query.value(1) )
+				IDcomune = Porting.str( query.value(0) )
+				via = Porting.str( query.value(1) )
 
 		self.setValue(self.comuneCombo, IDcomune)
 		self.setValue(self.viaEdit, via)
@@ -119,7 +120,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 
 	def aggiungiVia(self):
 		IDcomune = self.getValue(self.comuneCombo)
-		via = str(self.viaEdit.text()).upper()
+		via = Porting.str(self.viaEdit.text()).upper()
 		if IDcomune == None or via == "":
 			return
 
@@ -138,7 +139,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 			self.aggiornaVie()
 
 	def testModificaVia(self, comune, via, ID):
-		via = str( via ).upper()
+		via = Porting.str( via ).upper()
 		try:
 			QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 			ConnectionManager.startTransaction()
@@ -167,7 +168,7 @@ class DlgStradario(QDialog, MappingOne2One, Ui_Dialog):
 				self._deleteValue( 'INDIRIZZO_VIA', { 'ID_INDIRIZZO' : ID } )
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", str(e) )
+			QMessageBox.critical(self, "Errore", Porting.str(e) )
 			return False
 
 		finally:

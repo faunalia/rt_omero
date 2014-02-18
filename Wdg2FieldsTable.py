@@ -29,6 +29,7 @@ from PyQt4.QtGui import *
 from ui.wdg2FieldsTable_ui import Ui_Form
 from ConnectionManager import ConnectionManager
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 
@@ -81,8 +82,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			# rimuovi dal db
 			item = self.table.item(row, 0)
 			if item != None:
-				ID = str( item.data( Qt.UserRole ) )
-				ID = ID if ID != "None" else None
+				ID = Porting.str( item.data( Qt.UserRole ) )
 				if ID != None:
 					ConnectionManager.startTransaction()
 					# elimina il valore
@@ -124,7 +124,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			if item1 == None:
 				continue
 
-			values.append( str( item1.data(Qt.UserRole) ) if getIDs else (item1.text(), item2.text() if item2 != None else None) )
+			values.append( Porting.str( item1.data(Qt.UserRole) ) if getIDs else (item1.text(), item2.text() if item2 != None else None) )
 		return values
 
 	def clear(self):
@@ -171,9 +171,9 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 		self.clear()
 
 		while query.next():
-			ID = str( query.value(0) )
-			first = str( query.value(1) )
-			second = str( query.value(2) )
+			ID = Porting.str( query.value(0) )
+			first = Porting.str( query.value(1) )
+			second = Porting.str( query.value(2) )
 			self.addNewChild(ID, first, second)
 
 
@@ -196,8 +196,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			if item1 == None or item1.text() == "":
 				continue
 
-			ID = str( item1.data( Qt.UserRole ) )
-			ID = ID if ID != "None" else None
+			ID = Porting.str( item1.data( Qt.UserRole ) )
 			ID = self._getRealValue(ID)
 
 			# salva la riga
@@ -230,8 +229,7 @@ class Wdg2FieldsTable(QWidget, MappingMany2Many, Ui_Form):
 			if item1 == None:
 				continue
 
-			ID = str( item1.data( Qt.UserRole ) )
-			ID = ID if ID != "None" else None
+			ID = Porting.str( item1.data( Qt.UserRole ) )
 			ID = self._getRealValue(ID)
 			self._deleteValue( self._tableWithValues, { self._tableWithValuesPkColumn : ID } )
 

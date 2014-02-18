@@ -392,3 +392,13 @@ class TemporaryFile:
 
 		return filename
 
+
+class Porting:
+	
+	@staticmethod
+	def str(value):
+		''' utility function to sobstitute QString method avoiding str(None) producing 'None' '''
+		if value:
+			return str(value)
+		else:
+			return None 

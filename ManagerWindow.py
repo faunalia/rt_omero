@@ -276,7 +276,7 @@ WHERE
 			return False
 		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
 
-		comune = str( query.value(0) )
+		comune = Porting.str( query.value(0) )
 		comune = u' "%s"' % comune if comune and len(comune) > 0 else ''
 		ok = int( query.value(1) )
 		if ok > 0:	# action permitted
@@ -326,7 +326,7 @@ WHERE
 
 	@classmethod
 	def checkActionSpatialFromFeature(self, actionName, feat, onLayerModif):
-		codice = str( feat.attributes()[0] )
+		codice = Porting.str( feat.attributes()[0] )
 		return self.checkActionSpatialFromId(actionName, codice, onLayerModif)
 
 	@classmethod
@@ -377,9 +377,9 @@ WHERE
 				return self.nuovaPointEmitter.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = str( feat.attributes()[0] )
+			codice = Porting.str( feat.attributes()[0] )
 			ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult()
-			abbinato = (str(ret) == "1") if ret != None else 0
+			abbinato = (Porting.str(ret) == "1") if ret != None else 0
 			if abbinato:
 				# NO, c'è già una scheda associata
 				QMessageBox.warning( self, "RT Omero", "La geometria selezionata appartiene ad un edificio gia' esistente" )
@@ -439,12 +439,12 @@ WHERE
 				return self.esistentePointEmitter.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = str( feat.attributes()[0] )
+			codice = Porting.str( feat.attributes()[0] )
 			ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult()
-			abbinato = (str(ret) == "1") if ret != None else 0
+			abbinato = (Porting.str(ret) == "1") if ret != None else 0
 			if abbinato:
 				# OK, c'è già una scheda associata
-				codice = str( feat.attributes()[0] )
+				codice = Porting.str( feat.attributes()[0] )
 				if self.isApriScheda:
 					self.apriScheda( codice )
 				else:
@@ -533,8 +533,8 @@ WHERE
 			featureList = []
 			while query.next():
 				ID = None
-				codice = str( query.value(0) )
-				wkt = str( query.value(1) )
+				codice = Porting.str( query.value(0) )
+				wkt = Porting.str( query.value(1) )
 				featureList.append( (ID, codice, wkt) )
 
 			for ID, codice, wkt in featureList:
@@ -562,10 +562,10 @@ WHERE
 
 			featureList = []
 			while query.next():
-				ID = str( query.value(0) )
-				codice = str( query.value(1) )
-				stato = str( query.value(2) )
-				wkt = str( query.value(3) )
+				ID = Porting.str( query.value(0) )
+				codice = Porting.str( query.value(1) )
+				stato = Porting.str( query.value(2) )
+				wkt = Porting.str( query.value(3) )
 				featureList.append( (ID, codice, stato, wkt) )
 
 			for ID, codice, stato, wkt in featureList:
@@ -592,7 +592,7 @@ WHERE
 					del geometry
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", str( e ))
+			QMessageBox.critical(self, "Errore", Porting.str( e ))
 			return False
 
 		finally:
@@ -631,7 +631,7 @@ WHERE
 				return False
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", str( e ))
+			QMessageBox.critical(self, "Errore", Porting.str( e ))
 			return False
 
 		finally:
@@ -654,13 +654,13 @@ WHERE
 			ConnectionManager.startTransaction()
 
 			# copia la geometria selezionata nel layer delle geometrie nuove o modificate
-			codice = str( feat.attributes()[0] )
+			codice = Porting.str( feat.attributes()[0] )
 			ID = AutomagicallyUpdater._insertGeometriaCopiata( codice )
 			if ID == None:
 				return
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(None, "Errore", str( e ))
+			QMessageBox.critical(None, "Errore", Porting.str( e ))
 			return
 
 		finally:
@@ -703,7 +703,7 @@ WHERE
 			AutomagicallyUpdater._deleteGeometria( None, "ID_UV_NEW IN (SELECT gm1.ID_UV_NEW FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE AS gm1 WHERE (gm1.ZZ_STATO_GEOMETRIAID <> '2' /* non spezzate */ AND gm1.ID_UV_NEW NOT IN (SELECT GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW FROM SCHEDA_UNITA_VOLUMETRICA) /* senza scheda associata */ ) OR (gm1.ZZ_STATO_GEOMETRIAID = '2' AND 0 = (SELECT count(*) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE as gm2 JOIN SCHEDA_UNITA_VOLUMETRICA AS uv ON gm2.ID_UV_NEW = uv.GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATEID_UV_NEW WHERE gm1.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE = gm2.GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE)))" )
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", str( e ))
+			QMessageBox.critical(self, "Errore", Porting.str( e ))
 			return
 
 		finally:
@@ -732,7 +732,7 @@ WHERE
 				self.scheda.save()
 				AutomagicallyUpdater._updateValue( { "ABBINATO_A_SCHEDA" : '1' }, "GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE", "ID_UV_NEW", uvID )
 			except ConnectionManager.AbortedException, e:
-				QMessageBox.critical(self, "Errore", str( e ))
+				QMessageBox.critical(self, "Errore", Porting.str( e ))
 				return
 
 			finally:
@@ -775,7 +775,7 @@ WHERE
 				# potrebbe però essere una nuova uv selezionata nella scheda 
 				# aperta e per questo non ancora salvata
 				ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [ codice ] ).getFirstResult()
-				aperta = (str(ret) == "1") if ret != None else 0
+				aperta = (Porting.str(ret) == "1") if ret != None else 0
 			if aperta:
 				QMessageBox.warning( self, "Eliminazione scheda", u"La geometria selezionata appartiene alla scheda edificio aperta. Prima di proseguire è necessario chiudere la scheda.", QMessageBox.Ok )
 				self.scheda.setMinimized( False )
@@ -802,7 +802,7 @@ WHERE
 			scheda.delete()
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", str( e ))
+			QMessageBox.critical(self, "Errore", Porting.str( e ))
 			return
 
 		finally:
@@ -913,7 +913,7 @@ WHERE
 				lid = self._getLayerId( l )
 
 				# setup the plugin vars
-				parts = str(prop).split( " " )
+				parts = Porting.str(prop).split( " " )
 				key = parts[0]
 				if key.startswith( "RLID_WMS" ):
 					# wms layer needs order
@@ -929,7 +929,7 @@ WHERE
 						offline = True
 
 				elif key.startswith( "VLID_" ):
-					setattr( ManagerWindow, str(key), lid )
+					setattr( ManagerWindow, Porting.str(key), lid )
 
 					# set the vector as a read-only layer
 					if isinstance( l, QgsVectorLayer ):

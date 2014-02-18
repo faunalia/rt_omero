@@ -30,6 +30,7 @@ from PyQt4.QtGui import *
 
 from ui.wdgLocalizzazioneIndirizzi_ui import Ui_Form
 from AutomagicallyUpdater import *
+from Utils import Porting
 
 class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
@@ -136,7 +137,7 @@ class WdgLocalizzazioneIndirizzi(QWidget, MappingOne2One, Ui_Form):
 
 		index = self.VIA.findText( value if value != None else "", Qt.MatchFixedString )
 		if index >= 0:
-			ID = self._getRealValue( str( self.VIA.itemData(index) ) )
+			ID = self._getRealValue( Porting.str( self.VIA.itemData(index) ) )
 			if ID != None:
 				return ID
 

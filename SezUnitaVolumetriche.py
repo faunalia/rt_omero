@@ -62,7 +62,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 		self.assegnaGeomEsistenteByUvID( ID )
 
 	def assegnaGeomEsistente(self, feat=None):
-		codice = str( feat.attribute(0) )
+		codice = Porting.str( feat.attribute(0) )
 		self.assegnaGeomEsistenteByUvID( codice )
 
 	def assegnaGeomEsistenteByUvID(self, uvID=None):

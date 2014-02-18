@@ -30,7 +30,7 @@ import qgis.core
 
 from ui.wdgFoto_ui import Ui_Form
 from AutomagicallyUpdater import *
-from Utils import TemporaryFile
+from Utils import TemporaryFile, Porting
 
 class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
@@ -99,8 +99,8 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		if latitude != None and longitude != None:
 			point4326 = qgis.core.QgsPoint(longitude, latitude)
 
-			self.setValue( self.GEOREF_EPSG4326_X, str(point4326.x()) )
-			self.setValue( self.GEOREF_EPSG4326_Y, str(point4326.y()) )
+			self.setValue( self.GEOREF_EPSG4326_X, Porting.str(point4326.x()) )
+			self.setValue( self.GEOREF_EPSG4326_Y, Porting.str(point4326.y()) )
 
 		from ManagerWindow import ManagerWindow
 		uvID = ManagerWindow.instance.scheda.UNITA_VOLUMETRICHE.firstTab.getUV()
@@ -171,16 +171,16 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		else:
 			filename = u"%s/img_%s.%s" % (prefix, self._ID, ext)
 			with open( filename, "wb" ) as fout:
-				fout.write( str( self.getValue(self.IMAGE) ) )
+				fout.write( Porting.str( self.getValue(self.IMAGE) ) )
 
-		filename = str( QUrl.fromLocalFile( filename ) )
+		filename = Porting.str( QUrl.fromLocalFile( filename ) )
 
 		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''
 		annotazione = self.getValue(self.ANNOTAZIONE)
 
 		georef_x = self.getValue(self.GEOREF_PROIET_X)
 		georef_y = self.getValue(self.GEOREF_PROIET_Y)
-		georef = '%s , %s' % ( str(georef_x), str(georef_y) ) if georef_x != None and georef_y != None else ''
+		georef = '%s , %s' % ( Porting.str(georef_x), Porting.str(georef_y) ) if georef_x != None and georef_y != None else ''
 		
 		return u"""
 <table class="border %s">
