@@ -401,4 +401,7 @@ class Porting:
 		if value:
 			return str(value)
 		else:
-			return None 
+			if isinstance(value, str):
+				return ''
+			else:
+				return None 
