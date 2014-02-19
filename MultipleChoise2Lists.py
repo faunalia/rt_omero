@@ -107,11 +107,12 @@ class MultipleChoise2Lists(QWidget, MappingMany2Many, Ui_MultipleChoise):
 			values = []
 		if not hasattr(values, '__iter__'):
 			values = [values]
-
+		checkValues = [unicode(v) for v in values]
+		
 		row=0
 		model = self.selezionateList.model()
 		while model.hasIndex(row,0):
-			hide = model.record(row).value(0) in values
+			hide = unicode(model.record(row).value(0)) in checkValues
 			self.selezionateList.setRowHidden(row, not hide)
 			self.nonSelezionateList.setRowHidden(row, hide)
 			row = row + 1
