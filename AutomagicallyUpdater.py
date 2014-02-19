@@ -128,7 +128,7 @@ class AutomagicallyUpdater:
 	@classmethod
 	def getCachedExternalWms(self):
 		settings = QSettings()
-		return settings.value( "/omero_RT/cachedExternalWms", {}, type=map )
+		return settings.value( "/omero_RT/cachedExternalWms", {} )
 
 	@classmethod
 	def setCachedExternalWms(self, value):
