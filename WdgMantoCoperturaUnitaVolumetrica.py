@@ -60,6 +60,14 @@ class WdgMantoCoperturaUnitaVolumetrica(QWidget, MappingOne2One, Ui_Form):
 		enabler = self.ZZ_TIPO_MANTO_COPERTURAID.currentText().endswith('Altro')
 		self.ALTRO_MANTO_COPERTURA.setEnabled(enabler)
 
+	def setValue(self, widget, value):
+		widget = self._getRealWidget(widget)
+		value = self._getRealValue(value)
+		if widget == self.DESCRIZIONE_INCONGRUENZA:
+			print value
+			self.PRESENZA_INCONGRUENZE.setChecked( value != None and value != "" )
+		return AutomagicallyUpdater.setValue(widget, value)
+
 	def toHtml(self):
 		incongruenza = self.getValue(self.DESCRIZIONE_INCONGRUENZA)
 		return u"""
