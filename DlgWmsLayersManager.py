@@ -189,7 +189,11 @@ class DlgWmsLayersManager(DlgWaiting):
 				else:
 					out_path = QDir(cache_path).absoluteFilePath( u"%s.vrt" % escaped_name )
 
-				# get all tiles
+				# get all tiles disabling enable_render_caching because if enabled
+				# rendering is not produced (due to some characteristic of draw())
+				prevRenderCache = settings.value("/qgis/enable_render_caching", False, type=bool)
+				settings.setValue("/qgis/enable_render_caching", False)
+				
 				in_images = []
 				for i in range( n*n ):
 					row, col = i/n, i%n
@@ -216,6 +220,9 @@ class DlgWmsLayersManager(DlgWaiting):
 						saveWorldFile(in_path, m_px, reqextent)
 
 					self.onProgress()
+				
+				# re set to previous enable_render_caching  configuration
+				settings.setValue("/qgis/enable_render_caching", prevRenderCache)
 
 				saved = False
 				if not use_catalog:
@@ -600,19 +607,19 @@ class DlgWmsLayersManager(DlgWaiting):
 
 			while query.next():
 				layer = {}
-				layer['order'] = query.value(0)
-				layer['title'] = query.value(1)
-				layer['url'] = query.value(2)
+				layer['order'] = int( query.value(0) )
+				layer['title'] = Porting.str( query.value(1) )
+				layer['url'] = Porting.str( query.value(2) )
 				
 				layer['layers'] = query.value(3).split(",")
 				layer['styles'] = [ '' ] * len( layer['layers'] )
-				layer['crs'] = query.value(4)
+				layer['crs'] = Porting.str( query.value(4) )
 				layer['format'] = "image/%s" % query.value(5).lower()
-				layer['transparent'] = query.value(6)
-				layer['version'] = query.value(7)
+				layer['transparent'] = Porting.str( query.value(6) )
+				layer['version'] = Porting.str( query.value(7) )
 				
-				layer['cache_scale'] = query.value(8)
-				layer['cache_extent'] = query.value(9)
+				layer['cache_scale'] = int( query.value(8) )
+				layer['cache_extent'] = int( query.value(9) )
 				
 				layersinfo.append(layer)
 			
