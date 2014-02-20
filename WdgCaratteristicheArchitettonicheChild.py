@@ -95,7 +95,7 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 			for i in range(len(valori)):
 				v = valori[i]
 				if v.endswith("Altro"):
-					valori.removeAt(i)
+					del valori[i]
 					break
 			for v in self.getValue(self.ALTRO):
 				valori.append( v )
