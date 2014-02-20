@@ -64,7 +64,6 @@ class WdgMantoCoperturaUnitaVolumetrica(QWidget, MappingOne2One, Ui_Form):
 		widget = self._getRealWidget(widget)
 		value = self._getRealValue(value)
 		if widget == self.DESCRIZIONE_INCONGRUENZA:
-			print value
 			self.PRESENZA_INCONGRUENZE.setChecked( value != None and value != "" )
 		return AutomagicallyUpdater.setValue(widget, value)
 
