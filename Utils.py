@@ -223,7 +223,7 @@ class PolygonDrawer(MapTool):
 
 	class PolygonDrawer(MapTool.Drawer):
 		def __init__(self, canvas):
-			MapTool.Drawer.__init__(self, canvas, True)
+			MapTool.Drawer.__init__(self, canvas, QGis.Polygon)
 
 	def __init__(self, canvas=None):
 		MapTool.__init__(self, self.PolygonDrawer, canvas)
@@ -232,7 +232,7 @@ class LineDrawer(MapTool):
 
 	class LineDrawer(MapTool.Drawer):
 		def __init__(self, canvas):
-			MapTool.Drawer.__init__(self, canvas, False)
+			MapTool.Drawer.__init__(self, canvas, QGis.Line)
 
 	def __init__(self, canvas=None):
 		MapTool.__init__(self, self.LineDrawer, canvas)
