@@ -210,7 +210,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			bufferSize = 1
 			backColor = Qt.white
 			foreColor = Qt.black
-    
+
 			# first the buffer
 			painter.setPen( backColor )
 			fontWidth = fontMetrics.width( text )
@@ -436,9 +436,6 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			else:
 				filename, extent = createStralcioUsingRenderer(filename, size, scale, ext, factor)
 		finally:
-			
-			print "<<<<<<<<<<<<<<<<<<<<<<<<<<", filename
-			
 			# restore the original layers' state and selection
 			if layerOrig != None:
 				legend.setLayerVisible( layerOrig, prevOrigState )
