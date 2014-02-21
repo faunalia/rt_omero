@@ -190,6 +190,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			del self._webView
 
 		self.PRINCIPALE.printBtn.setEnabled( True )
+
 		QApplication.restoreOverrideCursor()
 		self.emit( SIGNAL("printFinished"), ok, self._ID )
 		return ok
@@ -430,7 +431,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerModif, True )
 
 		try:
-			if True:
+			if False:
 				# XXX: why? the output image seems to be generated at a wrong scale using a new renderer
 				filename, extent = createStralcioUsingCanvas(filename, size, scale, ext, factor)
 			else:
@@ -447,7 +448,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			#QgsRenderer.setSelectionColor( prevColor )
 			qgis.core.QgsMapRenderer().rendererContext().setSelectionColor( prevColor )
 			mainCanvas.setRenderFlag( prevRenderFlag )
-
+			
 		return filename, extent
 
 
