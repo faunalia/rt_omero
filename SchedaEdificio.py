@@ -126,8 +126,8 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 			# generate the HTML using outputPath as directory for the images/resources
 			html = self.toHtml( outputPath )
-			htmlFile = QDir( outputPath ).filePath( "index.html" )
-			with open( htmlFile.toUtf8(), 'w' ) as fout:
+			htmlFile = unicode( QDir( outputPath ).filePath( "index.html" ) )
+			with open( htmlFile, 'w' ) as fout:
 				fout.write( html )
 
 			self.onPrintFinished(True)
