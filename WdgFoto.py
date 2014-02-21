@@ -173,7 +173,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 			with open( filename, "wb" ) as fout:
 				fout.write( Porting.str( self.getValue(self.IMAGE) ) )
 
-		filename = Porting.str( QUrl.fromLocalFile( filename ) )
+		filename = QUrl.fromLocalFile( filename ).toString()
 
 		fronte_edificio = self.ZZ_FRONTE_EDIFICIOID.currentText() if self.getValue(self.ZZ_FRONTE_EDIFICIOID) >= 0 else ''
 		annotazione = self.getValue(self.ANNOTAZIONE)

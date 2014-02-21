@@ -500,7 +500,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			css = QDir( prefix ).filePath( "default.css" )
 			if not QFile.exists( css ) and not QFile.copy( css_orig, css ):
 				css = css_orig
-		css = QUrl.fromLocalFile(css)
+		css = QUrl.fromLocalFile(css).toString()
 
 		# path to the omero banner
 		banner_orig = os.path.join( currentPath, "docs", "banner_omero.gif" )
@@ -511,7 +511,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			banner = QDir( prefix ).filePath( "banner_omero.gif" )
 			if not QFile.exists( banner ) and not QFile.copy( banner_orig, banner ):
 				banner = banner_orig
-		banner = QUrl.fromLocalFile(banner)
+		banner = QUrl.fromLocalFile(banner).toString()
 
 		# path to the logo
 		if prefix is None:
@@ -524,7 +524,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			logo_orig = os.path.join( currentPath, "docs", "omero_stampa_logo.jpg" )
 			if not QFile.copy( logo_orig, logo ):
 				logo = logo_orig
-		logo = QUrl.fromLocalFile(logo)
+		logo = QUrl.fromLocalFile(logo).toString()
 
 		comune = AutomagicallyUpdater.Query( "SELECT NOME FROM ZZ_COMUNI WHERE ISTATCOM = ?", [AutomagicallyUpdater._getIDComune()] ).getFirstResult()
 
@@ -591,7 +591,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 
 		# create the image
 		filename, extent = self.creaStralcioCartografico( QSize(renderwidth, renderwidth), renderscale, "png", factor, outpath=prefix )
-		filename = QUrl.fromLocalFile(filename)
+		filename = QUrl.fromLocalFile(filename).toString()
 		if extent != None:
 			xmin = extent.xMinimum()
 			ymin = extent.yMinimum()
