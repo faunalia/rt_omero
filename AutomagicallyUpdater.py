@@ -32,7 +32,7 @@ from Utils import Porting
 
 class AutomagicallyUpdater:
 
-	DEBUG = False
+	DEBUG = True
 
 	DEFAULT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
@@ -829,8 +829,14 @@ class AutomagicallyUpdater:
 		# costruisci la query
 		insertStr = "INSERT INTO GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE (ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ABBINATO_A_SCHEDA, geometria)"
 
+# 		if wkb != None:
+# 			query.prepare( insertStr + " VALUES ( %s, ?, ?, '0', ST_GeomFromWKB(?, ?) )" % IDGeometria )
+# 			query.addBindValue( codice if codice != None else None )
+# 			query.addBindValue( stato if stato != None else self.VALORE_NON_INSERITO )
+# 			query.addBindValue( wkb )
+# 			query.addBindValue( srid )
 		if wkb != None:
-			query.prepare( insertStr + " VALUES ( %s, ?, ?, '0', ST_GeomFromWKB(?, ?) )" % IDGeometria )
+			query.prepare( insertStr + " VALUES ( %s, ?, ?, '0', ST_GeomFromText(?, ?) )" % IDGeometria )
 			query.addBindValue( codice if codice != None else None )
 			query.addBindValue( stato if stato != None else self.VALORE_NON_INSERITO )
 			query.addBindValue( wkb )
@@ -873,7 +879,8 @@ class AutomagicallyUpdater:
 		if query == None:
 			return
 
-		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = ST_GeomFromWKB(?, ?) WHERE ID_UV_NEW = ?" )
+		#query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = ST_GeomFromWKB(?, ?) WHERE ID_UV_NEW = ?" )
+		query.prepare( "UPDATE GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE SET geometria = ST_GeomFromText(?, ?) WHERE ID_UV_NEW = ?" )
 		query.addBindValue( wkb )
 		query.addBindValue( srid )
 		query.addBindValue( ID )

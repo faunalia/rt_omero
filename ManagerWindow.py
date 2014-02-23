@@ -309,14 +309,18 @@ WHERE
 		params = [ comuneID ]
 		params.extend( geomSubQuery.params )
 		for p in params:
+			
+			print ">>>>>>>>>>",p, type(p)
+			
 			query.addBindValue( p )
 
 		if not query.exec_() or not query.next():
 			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return False
 		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
-
-		ok = int( query.value(0) ) > 0
+		
+		numElements = query.value(0)
+		ok = int( numElements ) > 0
 
 		if not ok:
 			QMessageBox.warning( self.instance, "Azione non permessa", u"L'azione \"%s\" non è ammessa perché fuori dal confine del comune %s." % (actionName, comune) )
@@ -340,6 +344,14 @@ WHERE
 	def checkActionSpatialFromWkb(self, actionName, wkb, srid):
 		comune = AutomagicallyUpdater._getIDComune()
 		query = AutomagicallyUpdater.Query( "SELECT ST_GeomFromWkb(?, ?) AS edificio", [wkb, srid] )
+		return self._checkActionSpatial(actionName, query)
+
+
+	@classmethod
+	def checkActionSpatialFromWkt(self, actionName, wkt, srid):
+		comune = AutomagicallyUpdater._getIDComune()
+		#wkt = "'%s'" % wkt
+		query = AutomagicallyUpdater.Query( "SELECT ST_GeomFromText(?, ?) AS edificio", [wkt, srid] )
 		return self._checkActionSpatial(actionName, query)
 
 
@@ -510,8 +522,9 @@ WHERE
 		if line == None:
 			return self.lineDrawer.startCapture()
 
-		wkb = QByteArray(line.asWkb())
-
+		wkb = str( QByteArray(line.asWkb()).toHex() )
+		wkt = str( line.exportToWkt() )
+		
 		#TODO: fai qui i test sulla linea
 
 		try:
@@ -523,8 +536,10 @@ WHERE
 			if query == None:
 				return False
 
-			query.prepare( "SELECT CODICE, ST_AsText(geometria) FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND CODICE NOT IN (SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE)" )
-			query.addBindValue( wkb )
+			#query.prepare( "SELECT CODICE, ST_AsText(geometria) FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND CODICE NOT IN (SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE)" )
+			#query.addBindValue( wkb )
+			query.prepare( "SELECT CODICE, ST_AsText(geometria) FROM GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZA WHERE ST_Intersects(geometria, ST_GeomFromText(?, ?)) AND CODICE NOT IN (SELECT GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE)" )
+			query.addBindValue( wkt )
 			query.addBindValue( self.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
@@ -534,15 +549,19 @@ WHERE
 			while query.next():
 				ID = None
 				codice = Porting.str( query.value(0) )
-				wkt = Porting.str( query.value(1) )
-				featureList.append( (ID, codice, wkt) )
+				geomtext = Porting.str( query.value(1) )
+				
+				print "codice",codice
+				print "geomtext",geomtext
+				
+				featureList.append( (ID, codice, geomtext) )
 
-			for ID, codice, wkt in featureList:
+			for ID, codice, geomtext in featureList:
 				# escludi le geometrie esterne al comune
 				if not self.checkActionSpatialFromId( action, codice, False ):
 					continue
 
-				geom = QgsGeometry.fromWkt( wkt )
+				geom = QgsGeometry.fromWkt( geomtext )
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
 					continue
@@ -553,8 +572,10 @@ WHERE
 					return False
 
 			# recupera le geometrie modificate che intersecano la linea e non hanno scheda abbinata
-			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ST_AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND ABBINATO_A_SCHEDA = '0'" )
-			query.addBindValue( wkb )
+			#query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ST_AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ST_Intersects(geometria, ST_GeomFromWkb(?, ?)) AND ABBINATO_A_SCHEDA = '0'" )
+			#query.addBindValue( wkb )
+			query.prepare( "SELECT ID_UV_NEW, GEOMETRIE_UNITA_VOLUMETRICHE_ORIGINALI_DI_PARTENZACODICE, ZZ_STATO_GEOMETRIAID, ST_AsText(geometria) FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ST_Intersects(geometria, ST_GeomFromText(?, ?)) AND ABBINATO_A_SCHEDA = '0'" )
+			query.addBindValue( wkt )
 			query.addBindValue( self.srid )
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
@@ -565,15 +586,15 @@ WHERE
 				ID = Porting.str( query.value(0) )
 				codice = Porting.str( query.value(1) )
 				stato = Porting.str( query.value(2) )
-				wkt = Porting.str( query.value(3) )
-				featureList.append( (ID, codice, stato, wkt) )
+				geomtext = Porting.str( query.value(3) )
+				featureList.append( (ID, codice, stato, geomtext) )
 
-			for ID, codice, stato, wkt in featureList:
+			for ID, codice, stato, geomtext in featureList:
 				# escludi le geometrie esterne al comune
 				if not self.checkActionSpatialFromId( action, ID, True ):
 					continue
 
-				geom = QgsGeometry.fromWkt( wkt )
+				geom = QgsGeometry.fromWkt( geomtext )
 				(retval, newGeometries, topologyTestPoints) = geom.splitGeometry( line.asPolyline(), False )
 				if retval == 1:	# nessuna spezzatura
 					continue
@@ -582,13 +603,15 @@ WHERE
 					# imposta la geometria iniziale come spezzata
 					AutomagicallyUpdater._updateValue( { 'ZZ_STATO_GEOMETRIAID' : '2' }, 'GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE', 'ID_UV_NEW', ID )
 				# aggiorna la geometria iniziale con la nuova geometria
-				wkb = QByteArray( geom.asWkb() )
-				AutomagicallyUpdater._updateGeometria( ID, wkb, self.srid )
+				wkb = str( QByteArray(geom.asWkb()).toHex() )
+				wkt = str( geom.exportToWkt() )
+				AutomagicallyUpdater._updateGeometria( ID, wkt, self.srid )
 
 				# salva le nuove geometrie create dalla spezzatura
 				for geometry in newGeometries:
-					newWkb = QByteArray(geometry.asWkb())
-					newID = salvaGeometriaSpezzata(codice, stato, newWkb)
+					newWkb = str( QByteArray(geometry.asWkb()).toHex() )
+					newWkt = str( geometry.exportToWkt() )
+					newID = salvaGeometriaSpezzata(codice, stato, newWkt)
 					del geometry
 
 		except ConnectionManager.AbortedException, e:
@@ -615,10 +638,15 @@ WHERE
 		if polygon == None:
 			return self.polygonDrawer.startCapture()
 
-		wkb = QByteArray(polygon.asWkb())
+		wkb = str( QByteArray(polygon.asWkb()).toHex() )
+		wkt = str( polygon.exportToWkt() )
 
 		# TODO: fai qui i test sul poligono
-		if not self.checkActionSpatialFromWkb( action, wkb, self.srid ):
+# 		if not self.checkActionSpatialFromWkb( action, wkb, self.srid ):
+# 			self.btnCreaNuovaGeometria.setChecked(False)
+# 			return
+		if not self.checkActionSpatialFromWkt( action, wkt, self.srid ):
+			print "failed check"
 			self.btnCreaNuovaGeometria.setChecked(False)
 			return
 
@@ -627,7 +655,10 @@ WHERE
 			ConnectionManager.startTransaction()
 
 			# inserisce la nuova geometria nel layer
-			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb, self.srid ):
+# 			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb, self.srid ):
+# 				return False
+			if None == AutomagicallyUpdater._insertGeometriaNuova( wkt, self.srid ):
+				print "failed insert"
 				return False
 
 		except ConnectionManager.AbortedException, e:
@@ -1155,6 +1186,9 @@ WHERE
 		layerModif.dataProvider().setSubsetString( "" )	# trick! aggiorna l'extent del provider
 		layerModif.triggerRepaint()
 		layerModif.updateExtents()
+		
+		# aggiorna la canvas
+		ManagerWindow.instance.canvas.refresh()
 
 	def aggiornaLayerFoto(self):
 		layerFoto = QgsMapLayerRegistry.instance().mapLayer( ManagerWindow.VLID_FOTO )
