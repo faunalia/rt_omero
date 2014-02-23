@@ -229,8 +229,8 @@ class PySLQuery:
 			return int( value )
 		if isinstance(value, float):
 			return float( value )
-
-		return unicode( value )
+		
+		return value
 
 	def convertResult(self, value):
 		# do nothing because before there was QVariat => maintained to avoid code changes
