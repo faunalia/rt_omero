@@ -89,6 +89,7 @@ class MapTool(QObject):
 
 			self.rubberBand = qgis.gui.QgsRubberBand( self.canvas, self.isPolygon )
 			self.rubberBand.setColor( Qt.red )
+			self.rubberBand.setBrushStyle(Qt.DiagCrossPattern)
 			self.rubberBand.setWidth( 1 )
 
 			self.snapper = qgis.gui.QgsMapCanvasSnapper( self.canvas )
