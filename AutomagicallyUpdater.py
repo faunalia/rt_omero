@@ -914,7 +914,7 @@ class AutomagicallyUpdater:
 		# memorizza il rilevatore
 		query.prepare( "INSERT INTO RILEVATORE (ID, NOME, COGNOME) SELECT " + IDRilevatore + ", ?, ? FROM RILEVATORE WHERE ID LIKE '" + IDComune + "%'" )
 		query.addBindValue( unicode(nome).upper() )
-		query.addBindValue( unicode(cognome).lower() )
+		query.addBindValue( unicode(cognome).upper() )
 
 		if not query.exec_():
 			self._onQueryError( query.lastQuery(), query.lastError().text(), self )
