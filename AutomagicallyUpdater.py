@@ -32,7 +32,7 @@ from Utils import Porting
 
 class AutomagicallyUpdater:
 
-	DEBUG = True
+	DEBUG = False
 
 	DEFAULT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
 	EDIT_CONN_TYPE = 1	# usa la connessione tramite pyspatialite
