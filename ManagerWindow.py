@@ -309,9 +309,6 @@ WHERE
 		params = [ comuneID ]
 		params.extend( geomSubQuery.params )
 		for p in params:
-			
-			print ">>>>>>>>>>",p, type(p)
-			
 			query.addBindValue( p )
 
 		if not query.exec_() or not query.next():
@@ -550,10 +547,6 @@ WHERE
 				ID = None
 				codice = Porting.str( query.value(0) )
 				geomtext = Porting.str( query.value(1) )
-				
-				print "codice",codice
-				print "geomtext",geomtext
-				
 				featureList.append( (ID, codice, geomtext) )
 
 			for ID, codice, geomtext in featureList:
@@ -646,7 +639,6 @@ WHERE
 # 			self.btnCreaNuovaGeometria.setChecked(False)
 # 			return
 		if not self.checkActionSpatialFromWkt( action, wkt, self.srid ):
-			print "failed check"
 			self.btnCreaNuovaGeometria.setChecked(False)
 			return
 
@@ -658,7 +650,6 @@ WHERE
 # 			if None == AutomagicallyUpdater._insertGeometriaNuova( wkb, self.srid ):
 # 				return False
 			if None == AutomagicallyUpdater._insertGeometriaNuova( wkt, self.srid ):
-				print "failed insert"
 				return False
 
 		except ConnectionManager.AbortedException, e:
