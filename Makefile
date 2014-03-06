@@ -17,5 +17,5 @@ clean:
 	rm -f $(GEN_FILES) *.pyc
 
 package:
-	cd .. && rm -f rt_omero.zip && zip -r rt_omero.zip rt_omero -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\* -x \*docs/cache -x \*docs/cache\* -x \*docs/demo.db3\* -x \*.omero-cache\*
+	cd .. && rm -f rt_omero.zip && zip -r rt_omero.zip rt_omero -x \*.svn* -x \*.pyc -x \*~ -x \*entries\* -x \*.git\* -x \*docs/cache -x \*docs/cache\* -x \*docs/*.db3\* -x \*.omero-cache\*
 
