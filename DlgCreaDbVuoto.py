@@ -364,7 +364,7 @@ class CreateDbThread(QThread):
 
 			errors = []
 			for feat in shpvl.getFeatures( QgsFeatureRequest().setSubsetOfAttributes([fldindex]) ):
-				idval = Porting.str( feat.attribute(fldindex) )
+				idval = Porting.str( feat.attributes()[fldindex] )
 
 				newidval = u"%s%s" % (prefix, idval)
 				wkb = QByteArray( feat.geometry().asWkb() )

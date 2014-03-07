@@ -62,7 +62,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 		self.assegnaGeomEsistenteByUvID( ID )
 
 	def assegnaGeomEsistente(self, feat=None):
-		codice = Porting.str( feat.attribute(0) )
+		codice = Porting.str( feat.attributes()[0] )
 		self.assegnaGeomEsistenteByUvID( codice )
 
 	def assegnaGeomEsistenteByUvID(self, uvID=None):
@@ -121,7 +121,7 @@ class SezUnitaVolumetriche(MultiTabSection):
 				return self.startCapture()
 
 			# controlla se tale geometria ha qualche scheda associata
-			codice = str( feat.attribute(0) )
+			codice = Porting.str( feat.attributes()[0] )
 			ret = AutomagicallyUpdater.Query( "SELECT ABBINATO_A_SCHEDA FROM GEOMETRIE_RILEVATE_NUOVE_O_MODIFICATE WHERE ID_UV_NEW = ?", [codice] ).getFirstResult()
 			abbinato = (str(ret) == "1") if ret != None else 0
 			if abbinato:
