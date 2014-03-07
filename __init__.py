@@ -24,30 +24,6 @@ Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.h
  This script initializes the plugin, making it known to QGIS.
 """
 
-def name():
-	return "RT Omero"
-
-def description():
-	return "Omero is a plugin that allows to fill up a complex database of buildings, integrating data from surveys. It is in Italian, as it has been designed for specific use in Tuscany, but it can be programmatically extended to many similar real world applications. Developed with funding from Regione Toscana-SITA."
-
-def icon():
-	return "icons/rt_omero.png"
-
-def author():
-	return "Giuseppe Sucameli (Faunalia)"
-
-def email():
-	return "sucameli@faunalia.it"
-
-def authorName():
-	return author();
-
-def version():
-	return "Version 1.1.11"
-
-def qgisMinimumVersion():
-	return "1.7.0"
-
 def classFactory(iface):
 	from ManagerPlugin import ManagerPlugin
 	return ManagerPlugin(iface)

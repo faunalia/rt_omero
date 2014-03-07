@@ -29,7 +29,9 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 from qgis.core import QGis
-from rt_omero import version
+import ConfigParser
+import os.path
+
 from AutomagicallyUpdater import *
 
 class DlgAbout(QDialog, Ui_DlgAbout):
@@ -41,14 +43,17 @@ class DlgAbout(QDialog, Ui_DlgAbout):
 		self.connect(self.buttonBox, SIGNAL("helpRequested()"), self.help)
 
 	def help(self):
-		import os.path
 		path = os.path.join( os.path.dirname(__file__), 'docs', 'manuale_uso.pdf' )
 		QDesktopServices.openUrl( QUrl.fromLocalFile(path) )
 
 	def showVersions(self):
+		# read metadata from metadata.txt
+		config = ConfigParser.ConfigParser()
+		config.read( os.path.join( os.path.dirname(__file__), 'metadata.txt' ) )		
+		
 		text = self.txt.toHtml()
 
-		plugin_ver = version()[8:]
+		plugin_ver = config.get("general", "version")
 		text = text.replace( "$PLUGIN_VER$", plugin_ver )
 		text = text.replace( "$QGIS_VER$", QGis.QGIS_VERSION )
 		text = text.replace( "$DB_PATH$" , AutomagicallyUpdater._getPathToDb() )
