@@ -95,7 +95,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 				return
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e)
+			QMessageBox.critical(self, "Errore", Porting.str(e))
 			return False
 
 		finally:
@@ -114,7 +114,7 @@ class DlgSceltaRilevatore(QDialog, MappingOne2One, Ui_Dialog):
 			self._insertRilevatore(self.nomeEdit.text(), self.cognomeEdit.text(), self.getValue(self.comuneCombo))
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e)
+			QMessageBox.critical(self, "Errore", Porting.str(e))
 			return False
 
 		finally:
