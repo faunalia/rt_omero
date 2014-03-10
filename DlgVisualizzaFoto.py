@@ -73,7 +73,11 @@ class DlgVisualizzaFoto(QDialog, Ui_Dialog):
 		query = AutomagicallyUpdater.Query( "SELECT IMAGE, FILENAME FROM FOTO_GEOREF WHERE ROWID = ?", [rowid] ).getQuery()
 		if not query.exec_() or not query.next():
 			return
-		imgData = bytearray( query.value(0) )
+		imgData = query.value(0)
+		# control to allow cohesinstence of old 1.8 images db and new images db
+		# new images are saved as QByteArray.toHex
+		if isinstance(imgData, unicode):
+			imgData = QByteArray.fromHex(imgData)
 		ext = QFileInfo( query.value(1) ).suffix()
 
 		filename = Utils.TemporaryFile.salvaDati(imgData, tempKey, ext)

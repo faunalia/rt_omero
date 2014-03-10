@@ -121,7 +121,11 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 		if widget == self.IMAGE and self._ID != None:
 			imagestr = AutomagicallyUpdater.Query( "SELECT IMAGE FROM FOTO_GEOREF WHERE ID = ?", [self._ID] ).getFirstResult()
-			return QByteArray.fromHex(QByteArray(imagestr))
+			# control to allow cohesinstence of old 1.8 images db and new images db
+			# new images are saved as QByteArray.toHex
+			if isinstance(imagestr, unicode):
+				imagestr = QByteArray.fromHex(imagestr)
+			return QByteArray(imagestr)
 
 		if widget == self.GEOREF_EPSG4326_X or widget == self.GEOREF_EPSG4326_Y or \
 				widget == self.GEOREF_PROIET_X or widget == self.GEOREF_PROIET_Y:
@@ -145,6 +149,7 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 	def apriFoto(self):
 		ext = QFileInfo( self.getValue(self.FILENAME) ).suffix()
+		image = self.getValue(self.IMAGE)
 		filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO, ext )
 		if filename == None:
 			return False
