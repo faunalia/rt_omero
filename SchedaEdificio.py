@@ -128,7 +128,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			html = self.toHtml( outputPath )
 			htmlFile = unicode( QDir( outputPath ).filePath( "index.html" ) )
 			with open( htmlFile, 'w' ) as fout:
-				fout.write( html )
+				fout.write( html.encode('utf8') )
 
 			self.onPrintFinished(True)
 
@@ -472,7 +472,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			self.save()
 
 		except ConnectionManager.AbortedException, e:
-			QMessageBox.critical(self, "Errore", e)
+			QMessageBox.critical(self, "Errore", Porting.str(e))
 			return
 
 		finally:
@@ -542,6 +542,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 <html>
 <head>
 	<title>Scheda di rilevamento</title>
+	<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 	<link media="all" href="%s" type="text/css" rel="stylesheet">
 </head>
 <body>
