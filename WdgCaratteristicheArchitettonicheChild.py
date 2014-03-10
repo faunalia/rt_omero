@@ -98,8 +98,7 @@ class WdgCaratteristicheArchitettonicheChild(QWidget, MappingOne2One, Ui_Form):
 					del valori[i]
 					break
 			if self.getValue(self.ALTRO):
-				for v in self.getValue(self.ALTRO):
-					valori.append( v )
+				valori.append( self.getValue(self.ALTRO) )
 
 		incongruenze = self.getValue(self.DESCRIZIONI_INCONGRUENZE)
 
