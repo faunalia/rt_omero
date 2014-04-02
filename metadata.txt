@@ -21,6 +21,7 @@ email=sucameli@faunalia.it
 lang=it_IT
 
 changelog=1.3.0
+	Added speedup on db creation #216
 	Added features: create new empty db + merge two db 
 	1.2.6
 	fix html print error #211
