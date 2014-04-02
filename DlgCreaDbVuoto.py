@@ -244,7 +244,7 @@ class CreateDbThread(QThread):
 
 		# add spatial metadata
 		query = conn.getQuery()
-		query.exec_("SELECT InitSpatialMetadata()")
+		query.exec_("BEGIN; SELECT InitSpatialMetadata(); COMMIT;")
 		del query
 
 		# run the scripts
