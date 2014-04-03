@@ -36,6 +36,7 @@ from qgis.gui import QgsMessageViewer
 from osgeo import ogr
 from ManagerWindow import ManagerWindow
 
+import time
 import zipfile
 import os.path, sys
 currentPath = os.path.dirname(__file__)
@@ -152,9 +153,16 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		self.connect(self.mythread, SIGNAL("creationDone"), self.workDone)
 		self.connect(self.mythread, SIGNAL("finished()"), self.stop)
 		#self.mythread.run()	###DEBUG
+		self.finished = False
 		self.mythread.start()
-
+		#self.mythread.run()
+		
+		while not self.finished:
+			qApp.processEvents()
+			time.sleep(0.1)
+			
 	def workDone(self, ok, log):
+		self.finished = True
 		if ok:
 			title = u"<h3>Creazione database <em>'%s'</em> completata.</h3>" % self.outputPath
 		else:
@@ -207,11 +215,13 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		self.progressDlg.setValue( val if val is not None else self.progressDlg.value()+1 )
 
 
+#class CreateDbThread(QDialog):	###DEBUG
 #class CreateDbThread(QObject):	###DEBUG
 class CreateDbThread(QThread):
 
 	def __init__(self, dbpath, inputGroups, geomTables, parent=None):
 		#QObject.__init__(self, parent)	###DEBUG
+		#QDialog.__init__(self, parent)
 		QThread.__init__(self, parent)
 		self.dbpath = dbpath
 		self.inputGroups = inputGroups
@@ -244,7 +254,8 @@ class CreateDbThread(QThread):
 
 		# add spatial metadata
 		query = conn.getQuery()
-		query.exec_("BEGIN; SELECT InitSpatialMetadata(); COMMIT;")
+		if not query.exec_("SELECT InitSpatialMetadata(1);"):
+			query.exec_("SELECT InitSpatialMetadata();")
 		del query
 
 		# run the scripts
@@ -254,7 +265,10 @@ class CreateDbThread(QThread):
 			return
 
 		ok = self.runScriptsAndFill( scriptsPath, conn )
-		self.emit(SIGNAL("creationDone"), ok, "\n".join( self.log ))
+		log = u""
+		for line in  self.log:
+			log += u"%s\n" %line
+		self.emit(SIGNAL("creationDone"), ok, log )
 		return
 
 
@@ -326,7 +340,7 @@ class CreateDbThread(QThread):
 
 	def populateGeometryTables(self, conn):
 		geomOrigSrid = self.geomTables[ManagerWindow.TABLE_GEOM_ORIG][1]
-		insertSql = u"INSERT INTO %s (CODICE, geometria) VALUES (?, ST_GeomFromWKB(?, ?))" % ManagerWindow.TABLE_GEOM_ORIG
+		insertSql = u"INSERT INTO %s (CODICE, geometria) VALUES (?, ST_GeomFromText(?, ?))" % ManagerWindow.TABLE_GEOM_ORIG
 
 		query = conn.getQuery(False)	# disable autocommit
 
@@ -367,12 +381,13 @@ class CreateDbThread(QThread):
 				idval = Porting.str( feat.attributes()[fldindex] )
 
 				newidval = u"%s%s" % (prefix, idval)
-				wkb = QByteArray( feat.geometry().asWkb() )
+				#wkb = QByteArray( feat.geometry().asWkb() )
+				wkt = "%s" % feat.geometry().exportToWkt()
 
 				query.prepare( insertSql )
 				query.addBindValue( newidval )
-				query.addBindValue( wkb )
-				query.addBindValue( shpSrid )
+				query.addBindValue( wkt )
+				query.addBindValue( int(shpSrid) )
 
 				if not query.exec_():
 					errorCount += 1
@@ -383,7 +398,7 @@ class CreateDbThread(QThread):
 
 				self.emit(SIGNAL("updateProgress"))
 
-			if errors == "":
+			if len(errors) == 0:
 				self.log.append( "<p>completata correttamente.</p>" )
 			else:
 				self.log.append( errors )
