@@ -18,11 +18,25 @@ sys_tables = [ "geom_cols_ref_sys", "geometry_columns", "geometry_columns_auth",
 
 def get_tables(conn):
     tables = []
+    idx_tables = []
     c = conn.cursor()
+    # get the R*Tree tables
+    sql = u"SELECT f_table_name, f_geometry_column FROM geometry_columns WHERE spatial_index_enabled = 1"
+    c.execute(sql)        
+    for idx_item in c.fetchall():
+        idx_tables.append( 'idx_%s_%s' % idx_item )
+        idx_tables.append( 'idx_%s_%s_node' % idx_item )
+        idx_tables.append( 'idx_%s_%s_parent' % idx_item )
+        idx_tables.append( 'idx_%s_%s_rowid' % idx_item )
+    for tbl in c.fetchall():
+        if tbl[0] in idx_tables:
+            continue
+        tables.append( tbl )
+
     sql = u"SELECT name FROM sqlite_master WHERE type = 'table'"
     c.execute(sql)
     for tbl in c.fetchall():
-        if tbl[0] in sys_tables:
+        if tbl[0] in sys_tables or tbl[0] in idx_tables:
             continue
         tables.append( tbl )
     return tables  # row = [tablename]
@@ -30,6 +44,7 @@ def get_tables(conn):
 def get_table_fields(conn, table):
     """ return list of columns in table """
     c = conn.cursor()
+
     sql = u"PRAGMA table_info(%s)" % table
     c.execute(sql)  # row = [num, name, datatype, ...]
     return map(lambda x: x[1], c.fetchall())
@@ -43,7 +58,7 @@ def get_vector_tables(conn):
 
         # get the R*Tree tables
         sql = u"SELECT f_table_name, f_geometry_column FROM geometry_columns WHERE spatial_index_enabled = 1"
-        c.execute(sql)        
+        c.execute(sql)
         for idx_item in c.fetchall():
             idx_tables.append( 'idx_%s_%s' % idx_item )
             idx_tables.append( 'idx_%s_%s_node' % idx_item )
@@ -93,23 +108,29 @@ def merge_table(conn1, conn2, tblinfo, is_vector=False):
 
     c1 = conn1.cursor()
     sql1 = u"SELECT %s FROM %s" % (infldnames_str, tblname)
-    #print sql1
     c1.execute(sql1)
-
+    
 	# allow to change tables
     c2 = conn2.cursor()
     c2.execute("UPDATE ZZ_DISCLAIMER SET ATTIVO=1");
 	
 	# dump and delete triggers
+    triggersToMantain=["ZZ_COMUNI", "geometrie_unita_volumetriche_originali_di_partenza_geometria", "geometrie_rilevate_nuove_o_modificate_geometria"]
     triggers = []
     c2.execute(u"SELECT name, sql FROM sqlite_master WHERE lower(tbl_name) = lower('%s') AND type='trigger'" % tblname)
     for row in c2.fetchall():
+        name, sql = row
+        mantain = False
+        for mantainedTrigger in triggersToMantain:
+            if mantainedTrigger in name:
+                mantain = True
+        if mantain:
+            continue
         triggers.append(row)
     for name, sql in triggers:
         c2.execute(u'DROP TRIGGER "%s"' % name)
 	
     sql2 = u'INSERT OR IGNORE INTO "%s" (%s) VALUES (%s)' % (tblname, fldnames, valplaces_str)
-    #print sql2
     try:
         for row in c1.fetchall():
             c2.execute(sql2, row)
