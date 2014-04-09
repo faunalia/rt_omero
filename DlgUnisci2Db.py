@@ -127,6 +127,7 @@ class DlgUnisci2Db(QDialog, Ui_Dialog):
 			title = u"<h3>Unione dei database completata. <br>Nuovo database: <em>'%s'</em>.</h3>" % self.outputPath
 		else:
 			title = "<h3>Errore durante l'unione dei database selezionati.</h3>"
+		QApplication.restoreOverrideCursor()
 
 		# display the log
 		if log != "":
