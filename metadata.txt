@@ -12,7 +12,7 @@ qgisMinimumVersion=2.0
 category=Database
 
 author=Giuseppe Sucameli (Faunalia)
-email=sucameli@faunalia.it
+email=info@faunalia.eu
 
 ; end of mandatory metadata
 
@@ -53,7 +53,7 @@ changelog=1.3.1
 ; tags are in comma separated value format, spaces are allowed
 tags=surveys,buildings,RT,spatialite
 
-homepage=http://www.faunalia.com/
+homepage=http://www.faunalia.eu/
 tracker=http://hub.qgis.org/projects/rtomero
 repository=https://github.com/faunalia/rt_omero
 
