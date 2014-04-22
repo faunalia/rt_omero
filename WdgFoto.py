@@ -73,7 +73,13 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 
 	def caricaImmagine(self, filename):
 		# TODO: recupera metadati tramite osgeo.gdal
+		
+		# set projections config to "useProject" to avoid asking SR loading foto
+		settings = QSettings()
+		oldProjectionBehavious = settings.value("/Projections/defaultBehaviour", "useProject", type=str)
+		settings.setValue("/Projections/defaultBehaviour", "useProject")
 		rl = qgis.core.QgsRasterLayer( filename )
+		settings.setValue("/Projections/defaultBehaviour", oldProjectionBehavious)
 		if not rl.isValid():
 			return False
 
