@@ -5,7 +5,7 @@ description=Omero is a plugin that allows to fill up a complex database of build
     It is in Italian, as it has been designed for specific use in Tuscany, but it can be programmatically extended to many similar real world applications.
     Developed with funding from Regione Toscana-SITA.
 
-version=1.3.1
+version=1.3.2
 qgisMinimumVersion=2.0
 
 ; not used yet
@@ -20,7 +20,9 @@ email=info@faunalia.eu
 
 lang=it_IT
 
-changelog=1.3.1
+changelog=1.3.2 (22/04/2014)
+	Fix bug caricando foto - #210
+	1.3.1
 	Fix bug unione di due DB - #222
 	Fix bug gestione SL3 e SL4 nella creazione db vuoto: #220
 	1.3.0
