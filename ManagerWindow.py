@@ -274,7 +274,7 @@ WHERE
 		if not query.exec_() or not query.next():
 			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return False
-		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
+		AutomagicallyUpdater._onQueryExecuted( query.lastQuery(), None, [comuneID] )
 
 		comune = Porting.str( query.value(0) )
 		comune = u' "%s"' % comune if comune and len(comune) > 0 else ''
@@ -314,7 +314,7 @@ WHERE
 		if not query.exec_() or not query.next():
 			AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text(), self )
 			return False
-		AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
+		AutomagicallyUpdater._onQueryExecuted( query.lastQuery(), None, params )
 		
 		numElements = query.value(0)
 		ok = int( numElements ) > 0

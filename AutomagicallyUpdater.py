@@ -193,7 +193,7 @@ class AutomagicallyUpdater:
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text() )
 				return
-			AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
+			AutomagicallyUpdater._onQueryExecuted( query.lastQuery(), None, self.params )
 			# loop for select the row
 			for i in range(row+1):
 				if not query.next():
@@ -215,7 +215,7 @@ class AutomagicallyUpdater:
 			if not query.exec_():
 				AutomagicallyUpdater._onQueryError( query.lastQuery(), query.lastError().text() )
 				return
-			AutomagicallyUpdater._onQueryExecuted( query.lastQuery() )
+			AutomagicallyUpdater._onQueryExecuted( query.lastQuery(), None, self.params )
 			for i in range(row+1):
 				if not query.next():
 					return
@@ -930,10 +930,11 @@ class AutomagicallyUpdater:
 			ConnectionManager.abortTransaction( msg )
 
 	@classmethod
-	def _onQueryExecuted(self, query, widget=None):
+	def _onQueryExecuted(self, query, widget=None, params=None, ):
 		msg = u"DEBUG executed query:\n\tquery: %s\n\twidget: %s" % (query, widget)
 		if self.DEBUG:
 			print msg.encode('utf-8')
+			print "With params:", params
 
 
 class MappingOne2One(AutomagicallyUpdater):
