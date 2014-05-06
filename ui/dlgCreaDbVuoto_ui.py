@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/dlgCreaDbVuoto.ui'
 #
-# Created: Sat Oct 29 01:38:27 2011
-#      by: PyQt4 UI code generator 4.8.3
+# Created: Tue May  6 13:20:53 2014
+#      by: PyQt4 UI code generator 4.9.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(589, 363)
+        Dialog.resize(589, 370)
         self.verticalLayout = QtGui.QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.shape1Group = QtGui.QGroupBox(Dialog)
@@ -169,6 +169,59 @@ class Ui_Dialog(object):
         self.horizontalLayout_5.addWidget(self.prefix3Combo)
         self.verticalLayout_4.addLayout(self.horizontalLayout_5)
         self.verticalLayout.addWidget(self.shape3Group)
+        self.line = QtGui.QFrame(Dialog)
+        self.line.setFrameShape(QtGui.QFrame.HLine)
+        self.line.setFrameShadow(QtGui.QFrame.Sunken)
+        self.line.setObjectName(_fromUtf8("line"))
+        self.verticalLayout.addWidget(self.line)
+        self.confiniGroup = QtGui.QVBoxLayout()
+        self.confiniGroup.setObjectName(_fromUtf8("confiniGroup"))
+        self.horizontalLayout_6 = QtGui.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(_fromUtf8("horizontalLayout_6"))
+        self.label_10 = QtGui.QLabel(Dialog)
+        self.label_10.setObjectName(_fromUtf8("label_10"))
+        self.horizontalLayout_6.addWidget(self.label_10)
+        self.filenameConfiniEdit = QtGui.QLineEdit(Dialog)
+        self.filenameConfiniEdit.setObjectName(_fromUtf8("filenameConfiniEdit"))
+        self.horizontalLayout_6.addWidget(self.filenameConfiniEdit)
+        self.browseConfiniBtn = QtGui.QToolButton(Dialog)
+        self.browseConfiniBtn.setObjectName(_fromUtf8("browseConfiniBtn"))
+        self.horizontalLayout_6.addWidget(self.browseConfiniBtn)
+        self.confiniGroup.addLayout(self.horizontalLayout_6)
+        self.horizontalLayout_7 = QtGui.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
+        self.label_12 = QtGui.QLabel(Dialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_12.sizePolicy().hasHeightForWidth())
+        self.label_12.setSizePolicy(sizePolicy)
+        self.label_12.setObjectName(_fromUtf8("label_12"))
+        self.horizontalLayout_7.addWidget(self.label_12)
+        self.fieldComuneNameCombo = QtGui.QComboBox(Dialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.fieldComuneNameCombo.sizePolicy().hasHeightForWidth())
+        self.fieldComuneNameCombo.setSizePolicy(sizePolicy)
+        self.fieldComuneNameCombo.setObjectName(_fromUtf8("fieldComuneNameCombo"))
+        self.horizontalLayout_7.addWidget(self.fieldComuneNameCombo)
+        self.confiniGroup.addLayout(self.horizontalLayout_7)
+        self.horizontalLayout_8 = QtGui.QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
+        self.label_11 = QtGui.QLabel(Dialog)
+        self.label_11.setObjectName(_fromUtf8("label_11"))
+        self.horizontalLayout_8.addWidget(self.label_11)
+        self.comuneNameCombo = QtGui.QComboBox(Dialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comuneNameCombo.sizePolicy().hasHeightForWidth())
+        self.comuneNameCombo.setSizePolicy(sizePolicy)
+        self.comuneNameCombo.setObjectName(_fromUtf8("comuneNameCombo"))
+        self.horizontalLayout_8.addWidget(self.comuneNameCombo)
+        self.confiniGroup.addLayout(self.horizontalLayout_8)
+        self.verticalLayout.addLayout(self.confiniGroup)
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
@@ -206,4 +259,8 @@ class Ui_Dialog(object):
         self.prefix3Combo.setItemText(0, QtGui.QApplication.translate("Dialog", "RT020101", None, QtGui.QApplication.UnicodeUTF8))
         self.prefix3Combo.setItemText(1, QtGui.QApplication.translate("Dialog", "RT020202", None, QtGui.QApplication.UnicodeUTF8))
         self.prefix3Combo.setItemText(2, QtGui.QApplication.translate("Dialog", "RT020107", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_10.setText(QtGui.QApplication.translate("Dialog", "Filename", None, QtGui.QApplication.UnicodeUTF8))
+        self.browseConfiniBtn.setText(QtGui.QApplication.translate("Dialog", "...", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_12.setText(QtGui.QApplication.translate("Dialog", "Colonna nomi municipi ", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_11.setText(QtGui.QApplication.translate("Dialog", "Municipio", None, QtGui.QApplication.UnicodeUTF8))
 
