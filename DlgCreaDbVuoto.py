@@ -62,6 +62,7 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		}
 
 		# get all "input shapefile" groups
+		self.defaultComboValue = self.tr(u"Seleziona un valore")
 		i=1
 		self._groups = []
 		while hasattr(self, 'filename%dEdit'%i):
@@ -83,6 +84,15 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 
 			i += 1
 
+		# get comuni boundary
+		self._confiniGroup = (
+				self.filenameConfiniEdit,
+				self.browseConfiniBtn,
+				self.fieldComuneNameCombo,
+				self.comuneNameCombo,
+		)
+		self.connect(self.browseConfiniBtn, SIGNAL("clicked()"), self.confiniComunaliBrowseFile)
+		self.connect(self.fieldComuneNameCombo, SIGNAL("currentIndexChanged(int)"), self.readComuniNames)
 
 	def browseFile(self):
 		senderbtn = self.sender()
@@ -107,6 +117,48 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 			fldcombo.addItems(fields)
 			break
 
+	def confiniComunaliBrowseFile(self):
+		senderbtn = self.sender()
+
+		lastUsedDir = AutomagicallyUpdater._getLastUsedDir("importshape")
+		infile = QFileDialog.getOpenFileName(self, u"Seleziona uno shapefile di input", lastUsedDir, "Shapefile (*.shp)")
+		if infile == "":
+			return
+		AutomagicallyUpdater._setLastUsedDir("importshape", infile)
+
+		fields = self.getVectorFields(infile)
+		if fields == None:
+			QMessageBox.warning(self, "RT Omero", u"Il file selezionato non è uno shapefile valido")
+			return
+		fields = sorted(fields, key=str)
+		fields[:0] = [self.defaultComboValue]
+		
+		self.filenameConfiniEdit.setText(infile)
+		self.fieldComuneNameCombo.clear()
+		self.fieldComuneNameCombo.addItems(fields)
+		self.comuneNameCombo.clear()
+	
+	def readComuniNames(self):
+		# get selected field name for comuni
+		fieldName = self.fieldComuneNameCombo.currentText()
+		if fieldName == self.defaultComboValue or fieldName == "" or fieldName == None:
+			return
+		
+		# get values in the selected column
+		filename = self.filenameConfiniEdit.text()
+		driver = ogr.GetDriverByName("ESRI Shapefile")
+		dataSource = driver.Open( filename.encode('utf8') )
+		layer = dataSource.GetLayer()
+		
+		values = []
+		for feature in layer:
+			values.append( feature.GetField( str(fieldName) ) )
+		values = sorted(values, key=str)
+		values = [str(v) for v in values]
+		values[:0] = [self.defaultComboValue]
+		
+		self.comuneNameCombo.clear()
+		self.comuneNameCombo.addItems(values)
 
 	def getVectorFields(self, vectorFile):
 		hds = ogr.Open( unicode(vectorFile).encode('utf8') )
@@ -134,6 +186,11 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		return output
 
 	def accept(self):
+		# check if a comune name has bee selected
+		if self.comuneNameCombo.currentText() == self.defaultComboValue:
+			QMessageBox.warning(self, "RT Omero", u"Specificare il nome del comune")
+			return
+		
 		self.outputPath = self.getOutputPath()
 		if not self.outputPath:
 			return
@@ -145,7 +202,7 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		self.progressDlg.forceShow()
 
 		# run the work on a different thread
-		self.mythread = CreateDbThread(self.outputPath, self._groups, self.geomTables, self)
+		self.mythread = CreateDbThread(self.outputPath, self._groups, self.geomTables, self._confiniGroup, self)
 		self.connect(self.mythread, SIGNAL("messageSent"), self.onMessage)
 		self.connect(self.mythread, SIGNAL("exceptionRaised"), self.reRaiseExceptions)	# error handler
 		self.connect(self.mythread, SIGNAL("resetProgress"), self.resetProgress)
@@ -219,13 +276,14 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 #class CreateDbThread(QObject):	###DEBUG
 class CreateDbThread(QThread):
 
-	def __init__(self, dbpath, inputGroups, geomTables, parent=None):
+	def __init__(self, dbpath, inputGroups, geomTables, confiniGroup, parent=None):
 		#QObject.__init__(self, parent)	###DEBUG
 		#QDialog.__init__(self, parent)
 		QThread.__init__(self, parent)
 		self.dbpath = dbpath
 		self.inputGroups = inputGroups
 		self.geomTables = geomTables
+		self.filenameConfiniEdit, self.browseConfiniBtn, self.fieldComuneNameCombo, self.comuneNameCombo = confiniGroup
 		self.log = []
 
 	def run(self):
@@ -308,7 +366,7 @@ class CreateDbThread(QThread):
 
 					for tbl, geom in self.geomTables.iteritems():
 						geomcol, srid, geomtype, dim = geom[:4]
-						query = conn.getQuery()
+						query = conn.getQuery(False)
 						sql = u"SELECT AddGeometryColumn('%s', '%s', %d, '%s', '%s')" % (tbl, geomcol, srid, geomtype, dim)
 						if not query.exec_( sql ):
 							raise SqlException( u"Impossibile aggiungere una colonna geometrica alla tabella %s:\n%s" % (tbl, query.lastError().text()) )
@@ -322,10 +380,22 @@ class CreateDbThread(QThread):
 					if not self.populateGeometryTables(conn):
 						return False
 
-					# update the database creation date
-					query = conn.getQuery()
-					query.exec_( "UPDATE ZZ_DISCLAIMER DB_CREATION_DATE=%s" % QDate.currentDate().toString( 'dd/MM/yyyy' ) )
+			conn.commit()
 
+			# init ZZ_COMUNI and ZZ_DISCLAIMER with data related to selected Municipio
+			if not self.initZZ_COMUNI(conn):
+				return False
+
+			query = conn.getQuery(False)
+			sql = "UPDATE ZZ_DISCLAIMER SET TARGET='%s'" % self.comuneNameCombo.currentText()
+			query.exec_( sql )
+			
+			# update the database creation date
+			query = conn.getQuery(False)
+			sql = "UPDATE ZZ_DISCLAIMER SET DB_CREATION_DATE='%s'" % str( QDate.currentDate().toString( 'dd/MM/yyyy' ) )
+			query.exec_( sql )
+
+			conn.commit()
 
 		except (IOError, KeyError, zipfile.BadZipfile), e:
 			self.emit(SIGNAL("messageSent"), 2, u"Impossibile estrarre dall'archivio contenente gli scripts.\n\nError message: %s" % e.message )
@@ -407,6 +477,61 @@ class CreateDbThread(QThread):
 				self.log.append( u"<li><p><strong>Si sono verificati troppi errori, il processo sarà stato interrotto.</strong></p>" )
 				break
 
-		conn.commit()
 		return errorCount <= 0
 
+	def initZZ_COMUNI(self, conn):
+		query = conn.getQuery(False)	# disable autocommit
+		self.log.append( u"<li><p><strong>Inizializzazione confini comunali</strong></p>" )
+
+		comune = self.comuneNameCombo.currentText()
+		fieldName = self.fieldComuneNameCombo.currentText()
+		
+		# get srid of the current shape
+		geomOrigSrid = self.geomTables[ManagerWindow.TABLE_GEOM_ORIG][1]
+		filename = self.filenameConfiniEdit.text()
+		shpvl = QgsVectorLayer(filename, QFileInfo(filename).fileName(), 'ogr')
+		if not shpvl or not shpvl.isValid():
+			self.log.append( u"<p style='color:red'>Impossibile caricare il layer '%s': il layer non è valido ed è stato ignorato</p>" % filename )
+			return False
+
+		crs = shpvl.crs() if hasattr(shpvl, 'crs') else shpvl.srs()
+		shpSrid = crs.postgisSrid()
+		if shpSrid != geomOrigSrid:
+			self.log.append( u"<p style='color:red'>Il layer '%s' ha un sistema di riferimento differente da quanto richiesto: trovato %d, richiesto %d</p>" % (filename, shpSrid, geomOrigSrid) )
+			return False
+		
+		# get values in the selected column
+		driver = ogr.GetDriverByName("ESRI Shapefile")
+		dataSource = driver.Open( filename.encode('utf8') )
+		layer = dataSource.GetLayer()
+
+		# get geometry frm the first featur that match attribute filer
+		fieldFilter = str( "%s = '%s'" % (fieldName, comune) ) # <- cant use unicode to specify values in the filter
+		layer.SetAttributeFilter( fieldFilter.encode('utf8') )
+		geometry = None
+		for feature in layer:
+			geom = feature.GetGeometryRef()
+			geometry = geom.ExportToWkt()
+			break
+		
+		if geometry == None:
+			self.log.append( u"<p style='color:red'>Non trovo la la geometria nel file %s per il comune %s</p>" % (filename, comune) )
+			return False
+		
+
+		# add geometry for selected comune
+		#updateSql = u"UPDATE ZZ_COMUNI SET geometria=CastToMulti(ST_GeomFromText(?, ?)) WHERE ? = ?;"
+		updateSql = u"UPDATE ZZ_COMUNI SET geometria=CastToMulti(ST_GeomFromText('%s', %i)) WHERE %s = '%s';" % (geometry, int(shpSrid), fieldName, comune)
+		#self.log.append( updateSql )
+		query.prepare( updateSql )
+# 		query.addBindValue( "'%s'" % geometry )
+# 		query.addBindValue( int(shpSrid) )
+# 		query.addBindValue( fieldName )
+# 		query.addBindValue( "'%s'" % comune )
+
+		if not query.exec_():
+			self.log.append( u"<p style='color:red'>Errore aggiungendo la geometria ZZ_COMUNI [%s = %s]: %s</p>" % (fieldName, comune, query.lastError().text()) )
+			return False
+		
+		self.log.append( "<p>completata correttamente.</p>" )
+		return True
