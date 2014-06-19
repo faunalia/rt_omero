@@ -447,6 +447,8 @@ class CreateDbThread(QThread):
 			# check --------------> shpvl.select([fldindex])
 
 			errors = []
+			currentProgress = 0
+			emitStep = shpvl.dataProvider().featureCount() / 10
 			for feat in shpvl.getFeatures( QgsFeatureRequest().setSubsetOfAttributes([fldindex]) ):
 				idval = Porting.str( feat.attributes()[fldindex] )
 
@@ -466,7 +468,10 @@ class CreateDbThread(QThread):
 				if len(errors) >= 100:
 					break
 
-				self.emit(SIGNAL("updateProgress"))
+				# send progress update only evety tenth features to avoid QT crash on WIN7
+				currentProgress +=1
+				if (currentProgress % emitStep) == 0:
+					self.emit(SIGNAL("updateProgress"), currentProgress)
 
 			if len(errors) == 0:
 				self.log.append( "<p>completata correttamente.</p>" )
