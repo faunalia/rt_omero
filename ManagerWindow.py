@@ -715,6 +715,9 @@ WHERE
 		if uvID == None:
 			self.isApriScheda = True
 			return self.identificaSchedaEsistente()
+		else:
+			if not self.checkActionSpatialFromId( "Apri scheda", uvID, True ):
+				return
 
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 		self.chiudiSchedaAperta()
@@ -761,6 +764,9 @@ WHERE
 		if codice == None:
 			self.isApriScheda = False
 			return self.identificaSchedaEsistente()
+		else:
+			if not self.checkActionSpatialFromId( "Elimina scheda", codice, True ):
+				return
 
 		# se c'è una scheda aperta verifica se si stia per eliminare quella
 		if self.scheda != None:
