@@ -85,14 +85,19 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 			i += 1
 
 		# get comuni boundary
+		self._generalDataGroup = (
+				self.authorEdit,
+				self.projectNameEdit,
+				self.targetEdit,
+				self.bufferSpinBox,
+		)
 		self._confiniGroup = (
 				self.filenameConfiniEdit,
 				self.browseConfiniBtn,
-				self.fieldComuneNameCombo,
-				self.comuneNameCombo,
+				self.fieldCodiceIstatCombo,
 		)
 		self.connect(self.browseConfiniBtn, SIGNAL("clicked()"), self.confiniComunaliBrowseFile)
-		self.connect(self.fieldComuneNameCombo, SIGNAL("currentIndexChanged(int)"), self.readComuniNames)
+		#self.connect(self.fieldCodiceIstatCombo, SIGNAL("currentIndexChanged(int)"), self.readCodiciIstat)
 
 	def browseFile(self):
 		senderbtn = self.sender()
@@ -134,32 +139,9 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		fields[:0] = [self.defaultComboValue]
 		
 		self.filenameConfiniEdit.setText(infile)
-		self.fieldComuneNameCombo.clear()
-		self.fieldComuneNameCombo.addItems(fields)
-		self.comuneNameCombo.clear()
+		self.fieldCodiceIstatCombo.clear()
+		self.fieldCodiceIstatCombo.addItems(fields)
 	
-	def readComuniNames(self):
-		# get selected field name for comuni
-		fieldName = self.fieldComuneNameCombo.currentText()
-		if fieldName == self.defaultComboValue or fieldName == "" or fieldName == None:
-			return
-		
-		# get values in the selected column
-		filename = self.filenameConfiniEdit.text()
-		driver = ogr.GetDriverByName("ESRI Shapefile")
-		dataSource = driver.Open( filename.encode('utf8') )
-		layer = dataSource.GetLayer()
-		
-		values = []
-		for feature in layer:
-			values.append( feature.GetField( str(fieldName) ) )
-		values = sorted(values, key=str)
-		values = [str(v) for v in values]
-		values[:0] = [self.defaultComboValue]
-		
-		self.comuneNameCombo.clear()
-		self.comuneNameCombo.addItems(values)
-
 	def getVectorFields(self, vectorFile):
 		hds = ogr.Open( unicode(vectorFile).encode('utf8') )
 		if hds == None:
@@ -186,9 +168,22 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		return output
 
 	def accept(self):
-		# check if a comune name has bee selected
-		if self.comuneNameCombo.currentText() == self.defaultComboValue:
-			QMessageBox.warning(self, "RT Omero", u"Specificare il nome del comune")
+		# check input data
+		if self.authorEdit.text() == "":
+			QMessageBox.warning(self, "RT Omero", u"Specificare l'autore del progetto")
+			return
+
+		if self.projectNameEdit.text() == "":
+			QMessageBox.warning(self, "RT Omero", u"Specificare il nome progetto")
+			return
+
+		if self.targetEdit.text() == "":
+			QMessageBox.warning(self, "RT Omero", u"Specificare il target del progetto")
+			return
+
+		# check if a codiceIstat name has bee selected
+		if self.fieldCodiceIstatCombo.currentText() == self.defaultComboValue or self.fieldCodiceIstatCombo.currentText() == "":
+			QMessageBox.warning(self, "RT Omero", u"Specificare il nome della colonna Codici Istat")
 			return
 		
 		self.outputPath = self.getOutputPath()
@@ -202,7 +197,7 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 		self.progressDlg.forceShow()
 
 		# run the work on a different thread
-		self.mythread = CreateDbThread(self.outputPath, self._groups, self.geomTables, self._confiniGroup, self)
+		self.mythread = CreateDbThread(self.outputPath, self._groups, self.geomTables, self._confiniGroup, self._generalDataGroup, self)
 		self.connect(self.mythread, SIGNAL("messageSent"), self.onMessage)
 		self.connect(self.mythread, SIGNAL("exceptionRaised"), self.reRaiseExceptions)	# error handler
 		self.connect(self.mythread, SIGNAL("resetProgress"), self.resetProgress)
@@ -276,14 +271,15 @@ class DlgCreaDbVuoto(QDialog, Ui_Dialog):
 #class CreateDbThread(QObject):	###DEBUG
 class CreateDbThread(QThread):
 
-	def __init__(self, dbpath, inputGroups, geomTables, confiniGroup, parent=None):
+	def __init__(self, dbpath, inputGroups, geomTables, confiniGroup, generalDataGroup, parent=None):
 		#QObject.__init__(self, parent)	###DEBUG
 		#QDialog.__init__(self, parent)
 		QThread.__init__(self, parent)
 		self.dbpath = dbpath
 		self.inputGroups = inputGroups
 		self.geomTables = geomTables
-		self.filenameConfiniEdit, self.browseConfiniBtn, self.fieldComuneNameCombo, self.comuneNameCombo = confiniGroup
+		self.authorEdit, self.projectNameEdit, self.targetEdit, self.bufferSpinBox = generalDataGroup
+		self.filenameConfiniEdit, self.browseConfiniBtn, self.fieldCodiceIstatCombo = confiniGroup
 		self.log = []
 
 	def run(self):
@@ -386,14 +382,9 @@ class CreateDbThread(QThread):
 			if not self.initZZ_COMUNI(conn):
 				return False
 
-			query = conn.getQuery(False)
-			sql = "UPDATE ZZ_DISCLAIMER SET TARGET='%s'" % self.comuneNameCombo.currentText()
-			query.exec_( sql )
-			
-			# update the database creation date
-			query = conn.getQuery(False)
-			sql = "UPDATE ZZ_DISCLAIMER SET DB_CREATION_DATE='%s'" % str( QDate.currentDate().toString( 'dd/MM/yyyy' ) )
-			query.exec_( sql )
+			# set ZZ_DISCLAIMER values
+			if not self.initZZ_DISCLAIMER(conn):
+				return False
 
 			conn.commit()
 
@@ -488,8 +479,14 @@ class CreateDbThread(QThread):
 		query = conn.getQuery(False)	# disable autocommit
 		self.log.append( u"<li><p><strong>Inizializzazione confini comunali</strong></p>" )
 
-		comune = self.comuneNameCombo.currentText()
-		fieldName = self.fieldComuneNameCombo.currentText()
+		# get values
+		codiciIstat = self.readCodiciIstat()
+		fieldName = self.fieldCodiceIstatCombo.currentText()
+		
+		# check if only one codiciIstat
+		if len(codiciIstat) != 1:
+			self.log.append( u"<p style='color:red'>Trovati %i codici istat. Solo uno e' ammesso</p>" % len(codiciIstat) )
+			return False
 		
 		# get srid of the current shape
 		geomOrigSrid = self.geomTables[ManagerWindow.TABLE_GEOM_ORIG][1]
@@ -507,36 +504,87 @@ class CreateDbThread(QThread):
 		
 		# get values in the selected column
 		driver = ogr.GetDriverByName("ESRI Shapefile")
-		dataSource = driver.Open( filename.encode('utf8') )
+		dataSource = driver.Open( str(filename).encode('utf8') )
 		layer = dataSource.GetLayer()
 
-		# get geometry frm the first featur that match attribute filer
-		fieldFilter = str( "%s = '%s'" % (fieldName, comune) ) # <- cant use unicode to specify values in the filter
-		layer.SetAttributeFilter( fieldFilter.encode('utf8') )
-		geometry = None
+		# for each codiceIstat (should be only ONE!!!!)
+		for codiceIstat in codiciIstat:
+			# get geometry from the first feature that match attribute filter
+			fieldFilter = str( "%s = '%s'" % (fieldName, codiceIstat) ) # <- can't use unicode to specify values in the filter
+			layer.SetAttributeFilter( fieldFilter.encode('utf8') )
+			wkt = None
+			for feature in layer:
+				geom = feature.GetGeometryRef()
+				# if not convert in multipart
+				wkt = geom.ExportToWkt()
+				break
+			
+			if wkt == None:
+				self.log.append( u"<p style='color:red'>Non trovo la la geometria nel file %s per il codice istat %s</p>" % (filename, codiceIstat) )
+				return False
+			
+			# check if record is available in zz_comuni
+			selectSql = u"SELECT * FROM ZZ_COMUNI WHERE ISTATCOM = '%s';" % codiceIstat
+			query.prepare( selectSql )
+			if not query.exec_():
+				self.log.append( u"<p style='color:red'>Errore aggiungendo la geometria ZZ_COMUNI [ISTATCOM = %s]: %s</p>" % (codiceIstat, query.lastError().text()) )
+				return False
+ 			if not query.next():
+ 				self.log.append( u"<p style='color:red'>Non trovo il record in ZZ_COMUNI da aggiornare [ISTATCOM = %s]</p>" % codiceIstat )
+ 				return False
+			
+			# add geometry for selected codiceIstat
+			updateSql = u"UPDATE ZZ_COMUNI SET geometria=CastToMulti(ST_GeomFromText('%s', %i)) WHERE ISTATCOM = '%s';" % (wkt, int(shpSrid), codiceIstat)
+			query.prepare( updateSql )
+	
+			if not query.exec_():
+				self.log.append( u"<p style='color:red'>Errore aggiungendo la geometria ZZ_COMUNI [ISTATCOM = %s]: %s</p>" % (codiceIstat, query.lastError().text()) )
+				return False
+			
+		self.log.append( "<p>completata correttamente.</p>" )
+		return True
+
+
+	def readCodiciIstat(self):
+		# get selected field name for comuni
+		fieldName = self.fieldCodiceIstatCombo.currentText()
+		
+		# get values in the selected column
+		filename = self.filenameConfiniEdit.text()
+		driver = ogr.GetDriverByName("ESRI Shapefile")
+		dataSource = driver.Open( str(filename).encode('utf8') )
+		layer = dataSource.GetLayer()
+		
+		values = []
 		for feature in layer:
-			geom = feature.GetGeometryRef()
-			geometry = geom.ExportToWkt()
-			break
-		
-		if geometry == None:
-			self.log.append( u"<p style='color:red'>Non trovo la la geometria nel file %s per il comune %s</p>" % (filename, comune) )
-			return False
-		
+			values.append( feature.GetField( str(fieldName) ) )
+		values = sorted(values, key=str)
+		return [str(v) for v in values]
 
-		# add geometry for selected comune
-		#updateSql = u"UPDATE ZZ_COMUNI SET geometria=CastToMulti(ST_GeomFromText(?, ?)) WHERE ? = ?;"
-		updateSql = u"UPDATE ZZ_COMUNI SET geometria=CastToMulti(ST_GeomFromText('%s', %i)) WHERE %s = '%s';" % (geometry, int(shpSrid), fieldName, comune)
-		#self.log.append( updateSql )
-		query.prepare( updateSql )
-# 		query.addBindValue( "'%s'" % geometry )
-# 		query.addBindValue( int(shpSrid) )
-# 		query.addBindValue( fieldName )
-# 		query.addBindValue( "'%s'" % comune )
 
+	def initZZ_DISCLAIMER(self, conn):
+		self.log.append( u"<li><p><strong>Inizializzazione dati di progetto</strong></p>" )
+
+		# for each codiceIstat (should be only ONE!!!!)
+		values = (
+			self.projectNameEdit.text(), 
+			self.targetEdit.text(), 
+			self.authorEdit.text(), 
+			self.bufferSpinBox.value(), 
+			str( QDate.currentDate().toString( 'dd/MM/yyyy' ) ),
+		)
+
+		query = conn.getQuery(False)	# disable autocommit
+		sql = "UPDATE ZZ_DISCLAIMER SET DATABASE = ?, TARGET = ?, AUTHOR = ?,  BUFFER = ?, DB_CREATION_DATE = ? ;"
+		query.prepare( sql )
+		for value in values:
+			query.addBindValue( value )
+			
 		if not query.exec_():
-			self.log.append( u"<p style='color:red'>Errore aggiungendo la geometria ZZ_COMUNI [%s = %s]: %s</p>" % (fieldName, comune, query.lastError().text()) )
+			self.log.append( u"<p style='color:red'>Errore aggiornando la tabella ZZ_DISCLAIMER: %s</p>" % query.lastError().text() )
 			return False
 		
 		self.log.append( "<p>completata correttamente.</p>" )
 		return True
+
+
