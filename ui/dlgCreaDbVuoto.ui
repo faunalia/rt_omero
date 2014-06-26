@@ -6,14 +6,139 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>589</width>
-    <height>370</height>
+    <width>787</width>
+    <height>702</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Creazione database vuoto</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_7">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QLabel" name="label_13">
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>!!! ATTENZIONE !!! Gli shapefile devono possedere il file '.prj' indicante il sistema di riferimento (epsg:3003)</string>
+       </property>
+       <property name="wordWrap">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout_5">
+     <item>
+      <widget class="QLabel" name="label_19">
+       <property name="text">
+        <string>Dati generali del progetto</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="margin">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_10">
+       <item>
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Autore</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="authorEdit">
+         <property name="toolTip">
+          <string extracomment="Un nome per il creatore del DB"/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item>
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Progetto</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="projectNameEdit">
+         <property name="toolTip">
+          <string extracomment="Nome del progetto"/>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_9">
+       <item>
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>Target</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="targetEdit">
+         <property name="toolTip">
+          <string extracomment="Target del progetto"/>
+         </property>
+         <property name="readOnly">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_11">
+       <item>
+        <widget class="QLabel" name="label_16">
+         <property name="text">
+          <string>Buffer</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSpinBox" name="bufferSpinBox">
+         <property name="toolTip">
+          <string extracomment="buffer di controllo se un punto rientra in unpoligono"/>
+         </property>
+         <property name="minimum">
+          <number>-9999</number>
+         </property>
+         <property name="maximum">
+          <number>9999</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
    <item>
     <widget class="QGroupBox" name="shape1Group">
      <property name="title">
@@ -318,6 +443,19 @@
    <item>
     <layout class="QVBoxLayout" name="confiniGroup">
      <item>
+      <widget class="QLabel" name="label_18">
+       <property name="text">
+        <string>Shape contenente i confini comunali</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="margin">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_6">
        <item>
         <widget class="QLabel" name="label_10">
@@ -349,33 +487,12 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Colonna nomi municipi </string>
+          <string>Colonna codice ISTAT del comune (es: 09048050)</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="fieldComuneNameCombo">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_8">
-       <item>
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>Municipio</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="comuneNameCombo">
+        <widget class="QComboBox" name="fieldCodiceIstatCombo">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
            <horstretch>0</horstretch>
