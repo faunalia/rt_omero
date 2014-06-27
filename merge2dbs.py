@@ -13,30 +13,39 @@ sys_tables = [ "geom_cols_ref_sys", "geometry_columns", "geometry_columns_auth",
         "sqlite_sequence", #"tableprefix_metadata", "tableprefix_rasters", 
         "layer_params","layer_statistics", "layer_sub_classes", "layer_table_layout", 
         "pattern_bitmaps","symbol_bitmaps", "project_defs", "raster_pyramids", 
-        "sqlite_stat1", "sqlite_stat2", "spatialite_history" ]
+        "sqlite_stat1", "sqlite_stat2", "spatialite_history", 
+        "SpatialIndex" ]
 
 
 def get_tables(conn):
     tables = []
+    vectables = []
     idx_tables = []
     c = conn.cursor()
     # get the R*Tree tables
-    sql = u"SELECT f_table_name, f_geometry_column FROM geometry_columns WHERE spatial_index_enabled = 1"
+    sql = u"SELECT f_table_name, f_geometry_column FROM geometry_columns"
     c.execute(sql)        
     for idx_item in c.fetchall():
         idx_tables.append( 'idx_%s_%s' % idx_item )
         idx_tables.append( 'idx_%s_%s_node' % idx_item )
         idx_tables.append( 'idx_%s_%s_parent' % idx_item )
         idx_tables.append( 'idx_%s_%s_rowid' % idx_item )
+    # get geometry info from geometry_columns if exists
+    sql = u"""SELECT m.name, g.f_table_name, g.f_geometry_column, g.type, g.coord_dimension, g.srid 
+    FROM sqlite_master AS m JOIN geometry_columns AS g ON lower(m.name) = lower(g.f_table_name)
+    WHERE m.type = 'table'"""
+    c.execute(sql)
     for tbl in c.fetchall():
         if tbl[0] in idx_tables:
             continue
-        tables.append( tbl )
+        vectables.append( tbl[0] )
 
     sql = u"SELECT name FROM sqlite_master WHERE type = 'table'"
     c.execute(sql)
     for tbl in c.fetchall():
-        if tbl[0] in sys_tables or tbl[0] in idx_tables:
+        if ( tbl[0] in sys_tables or 
+             tbl[0] in idx_tables or 
+             tbl[0] in vectables ):
             continue
         tables.append( tbl )
     return tables  # row = [tablename]
@@ -57,7 +66,7 @@ def get_vector_tables(conn):
         c = conn.cursor()
 
         # get the R*Tree tables
-        sql = u"SELECT f_table_name, f_geometry_column FROM geometry_columns WHERE spatial_index_enabled = 1"
+        sql = u"SELECT f_table_name, f_geometry_column FROM geometry_columns"
         c.execute(sql)
         for idx_item in c.fetchall():
             idx_tables.append( 'idx_%s_%s' % idx_item )
@@ -85,7 +94,10 @@ def merge(db1, db2):
     conn2 = connect(db2)
     
     for tblinfo in get_vector_tables(conn1):
-        merge_table(conn1, conn2, tblinfo, True)
+        if tblinfo[0] == "ZZ_COMUNI":
+            merge_zz_comuni(conn1, conn2, tblinfo)
+        else:
+            merge_table(conn1, conn2, tblinfo, True)
 
     for tblinfo in get_tables(conn1):
         merge_table(conn1, conn2, tblinfo, False)
@@ -144,6 +156,61 @@ def merge_table(conn1, conn2, tblinfo, is_vector=False):
         # no more changes allowed
         c2.execute("UPDATE ZZ_DISCLAIMER SET ATTIVO=0");
         conn2.commit()
+
+def merge_zz_comuni(conn1, conn2, tblinfo):
+    tblname = tblinfo[0]
+    indexname = "ISTATCOM"
+
+    fields = get_table_fields(conn1, tblname)
+    fldnames = '"' + u'","'.join(fields) + '"'
+
+    pos = fields.index(tblinfo[2])
+    infldnames_str = '"' + u'","'.join(fields[:pos] + fields[pos+1:]) + '"' + u', ST_AsText("%(geom)s"), ST_SRID("%(geom)s")' % {'geom':tblinfo[2]}
+    valplaces_str = u",".join("?" * pos) + u",ST_GeomFromText(?, ?)"
+    
+    fldnames_arr = fldnames.split(",")
+    valplaces_arr = ["?"] * pos
+    valplaces_arr.append("ST_GeomFromText(?, ?)")
+
+    c1 = conn1.cursor()
+    sql1 = u"SELECT %s FROM %s" % (infldnames_str, tblname)
+    c1.execute(sql1)
+    
+    # allow to change tables
+    c2 = conn2.cursor()
+    c2.execute("UPDATE ZZ_DISCLAIMER SET ATTIVO=1");
+    
+    # prepare sql
+    insertSql = u'INSERT INTO "%s" (%s) VALUES (%s)' % (tblname, fldnames, valplaces_str)    
+    updateSql = 'UPDATE "%s" SET ' %  tblname
+    fielnameindex = '"%s"' % indexname
+    for fieldname, valplace in zip(fldnames_arr, valplaces_arr):
+        if fieldname == fielnameindex:
+            continue
+        updateSql += '%s = %s, ' % (fieldname, valplace)
+    updateSql = updateSql[:-2]
+    updateSql += ' WHERE "%s" = ? ;' % indexname
+
+    for row in c1.fetchall():
+        # skip null geometry
+        if row[pos] == None:
+            continue
+        
+        try:
+            # try insert
+            c2.execute(insertSql, row)
+        except sqlite.IntegrityError:
+            # record already exist... do update
+            row = row[1:] + (row[0],)
+            c2.execute(updateSql, row)
+        except sqlite.Error:
+            conn2.rollback()
+            raise
+
+    # no more changes allowed
+    c2.execute("UPDATE ZZ_DISCLAIMER SET ATTIVO=0");
+    conn2.commit()
+
 
 if __name__ == '__main__':
     import sys
