@@ -483,11 +483,6 @@ class CreateDbThread(QThread):
 		codiciIstat = self.readCodiciIstat()
 		fieldName = self.fieldCodiceIstatCombo.currentText()
 		
-		# check if only one codiciIstat
-		if len(codiciIstat) != 1:
-			self.log.append( u"<p style='color:red'>Trovati %i codici istat. Solo uno e' ammesso</p>" % len(codiciIstat) )
-			return False
-		
 		# get srid of the current shape
 		geomOrigSrid = self.geomTables[ManagerWindow.TABLE_GEOM_ORIG][1]
 		filename = self.filenameConfiniEdit.text()
@@ -507,34 +502,49 @@ class CreateDbThread(QThread):
 		dataSource = driver.Open( str(filename).encode('utf8') )
 		layer = dataSource.GetLayer()
 
-		# for each codiceIstat (should be only ONE!!!!)
+		# for each codiceIstat
 		for codiceIstat in codiciIstat:
+			# check if record is available in zz_comuni
+			selectSql = u"SELECT * FROM ZZ_COMUNI WHERE ISTATCOM = '%s';" % codiceIstat
+			query.prepare( selectSql )
+			if not query.exec_():
+				self.log.append( u"<p style='color:red'>Errore cercando il record ZZ_COMUNI [ISTATCOM = %s]: %s</p>" % (codiceIstat, query.lastError().text()) )
+				return False
+ 			if not query.next():
+ 				self.log.append( u"<p style='color:orange'>Non trovo il record in ZZ_COMUNI da aggiornare [ISTATCOM = %s]</p>" % codiceIstat )
+			 	continue
+			 	
 			# get geometry from the first feature that match attribute filter
 			fieldFilter = str( "%s = '%s'" % (fieldName, codiceIstat) ) # <- can't use unicode to specify values in the filter
 			layer.SetAttributeFilter( fieldFilter.encode('utf8') )
+			newgeom = None
 			wkt = None
 			for feature in layer:
 				geom = feature.GetGeometryRef()
 				# if not convert in multipart
 				wkt = geom.ExportToWkt()
-				break
+				if wkt == None:
+					self.log.append( u"<p style='color:red'>Non trovo la la geometria nel file %s per il codice istat %s</p>" % (filename, codiceIstat) )
+					return False
+				
+				tempgeom = QgsGeometry.fromWkt(wkt)
+				if not tempgeom:
+					self.log.append( u"<p style='color:red'>Non posso convertire la geometria da Wkt per il codice istat %s</p>" % codiceIstat )
+					return False
+				if newgeom:
+					newgeom = newgeom.combine(tempgeom)
+					if not newgeom:
+						self.log.append( u"<p style='color:red'>Non posso fare la union delle geometrie per il codice istat %s</p>" % codiceIstat )
+						return False
+				else:
+					newgeom = tempgeom
 			
-			if wkt == None:
-				self.log.append( u"<p style='color:red'>Non trovo la la geometria nel file %s per il codice istat %s</p>" % (filename, codiceIstat) )
+			if not newgeom:
+				self.log.append( u"<p style='color:red'>Nessuna geometria trovata per il codice istat %s</p>" % codiceIstat )
 				return False
-			
-			# check if record is available in zz_comuni
-			selectSql = u"SELECT * FROM ZZ_COMUNI WHERE ISTATCOM = '%s';" % codiceIstat
-			query.prepare( selectSql )
-			if not query.exec_():
-				self.log.append( u"<p style='color:red'>Errore aggiungendo la geometria ZZ_COMUNI [ISTATCOM = %s]: %s</p>" % (codiceIstat, query.lastError().text()) )
-				return False
- 			if not query.next():
- 				self.log.append( u"<p style='color:red'>Non trovo il record in ZZ_COMUNI da aggiornare [ISTATCOM = %s]</p>" % codiceIstat )
- 				return False
 			
 			# add geometry for selected codiceIstat
-			updateSql = u"UPDATE ZZ_COMUNI SET geometria=CastToMulti(ST_GeomFromText('%s', %i)) WHERE ISTATCOM = '%s';" % (wkt, int(shpSrid), codiceIstat)
+			updateSql = u"UPDATE ZZ_COMUNI SET geometria=CastToMulti(ST_GeomFromText('%s', %i)) WHERE ISTATCOM = '%s';" % (newgeom.exportToWkt(), int(shpSrid), codiceIstat)
 			query.prepare( updateSql )
 	
 			if not query.exec_():
