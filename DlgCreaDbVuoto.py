@@ -379,10 +379,12 @@ class CreateDbThread(QThread):
 			conn.commit()
 
 			# init ZZ_COMUNI and ZZ_DISCLAIMER with data related to selected Municipio
+			self.emit(SIGNAL("resetProgress"), None, "Inizializializzazione ZZ_COMUNI" )
 			if not self.initZZ_COMUNI(conn):
 				return False
 
 			# set ZZ_DISCLAIMER values
+			self.emit(SIGNAL("resetProgress"), None, "Inizializializzazione ZZ_DISCLAIMER" )
 			if not self.initZZ_DISCLAIMER(conn):
 				return False
 
