@@ -11,7 +11,7 @@ qgisMinimumVersion=2.0
 ; not used yet
 category=Database
 
-author=Giuseppe Sucameli (Faunalia)
+author=Giuseppe Sucameli - Luigi Pirelli (Faunalia)
 email=info@faunalia.eu
 
 ; end of mandatory metadata
