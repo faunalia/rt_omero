@@ -179,8 +179,6 @@ class FeatureFinder(MapTool):
 			mapSettings = MapTool.canvas.mapSettings()
 			context = QgsRenderContext.fromMapSettings( mapSettings )
 			radius = qgis.gui.QgsMapTool.searchRadiusMU(context)
-			
-			print radius
 
 		# crea il rettangolo da usare per la ricerca
 		rect = QgsRectangle()
