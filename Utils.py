@@ -166,13 +166,21 @@ class FeatureFinder(MapTool):
 
 		# recupera il valore del raggio di ricerca
 		settings = QSettings()
-		radius = settings.value( "/Map/identifyRadius", QGis.DEFAULT_IDENTIFY_RADIUS, type=float )
-		if radius and radius <= 0:
-			# XXX: in QGis 1.8 QGis.DEFAULT_IDENTIFY_RADIUS is 0, 
-			# this cause the rectangle is empty and the select 
-			# returns all the features...
-			radius = 0.5	# it means 0.50% of the canvas extent
-		radius = MapTool.canvas.extent().width() * radius/100
+		if QGis.QGIS_VERSION_INT < 10900:
+			radius = settings.value( "/Map/identifyRadius", QGis.DEFAULT_IDENTIFY_RADIUS, type=float )
+			if radius and radius <= 0:
+				# XXX: in QGis 1.8 QGis.DEFAULT_IDENTIFY_RADIUS is 0, 
+				# this cause the rectangle is empty and the select 
+				# returns all the features...
+				radius = 0.5	# it means 0.50% of the canvas extent
+			radius = MapTool.canvas.extent().width() * radius/100
+			
+		else:
+			mapSettings = MapTool.canvas.mapSettings()
+			context = QgsRenderContext.fromMapSettings( mapSettings )
+			radius = qgis.gui.QgsMapTool.searchRadiusMU(context)
+			
+			print radius
 
 		# crea il rettangolo da usare per la ricerca
 		rect = QgsRectangle()
