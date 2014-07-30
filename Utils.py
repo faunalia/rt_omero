@@ -176,9 +176,12 @@ class FeatureFinder(MapTool):
 			radius = MapTool.canvas.extent().width() * radius/100
 			
 		else:
-			mapSettings = MapTool.canvas.mapSettings()
-			context = QgsRenderContext.fromMapSettings( mapSettings )
-			radius = qgis.gui.QgsMapTool.searchRadiusMU(context)
+			unit = layer.crs().mapUnits()
+			if unit == QGis.Feet:
+				radius = (qgis.gui.QgsMapTool.searchRadiusMM()/1000.0)*3.28084
+			else:
+				# meters or unknow
+				radius = qgis.gui.QgsMapTool.searchRadiusMM()/1000.0
 
 		# crea il rettangolo da usare per la ricerca
 		rect = QgsRectangle()
@@ -188,16 +191,16 @@ class FeatureFinder(MapTool):
 		rect.setYMaximum(point.y() + radius)
 
 		# recupera le feature che intersecano il rettangolo
-		layer.select( rect, True )
-
 		ret = None
-
+		request = QgsFeatureRequest(rect)
+		request.setFlags(QgsFeatureRequest.ExactIntersect)
+		
 		if onlyTheClosestOne:
 			minDist = -1
 			featureId = None
 			rectClosest = QgsGeometry.fromRect(rect)
 
-			for f in layer.getFeatures(QgsFeatureRequest(rect)):
+			for f in layer.getFeatures(request):
 				if onlyTheClosestOne:
 					geom = f.geometry()
 					distance = geom.distance(rectClosest)
@@ -212,7 +215,7 @@ class FeatureFinder(MapTool):
 				ret = f.next()
 
 		else:
-			IDs = [f.id() for f in layer.getFeatures(QgsFeatureRequest(rect))]
+			IDs = [f.id() for f in layer.getFeatures(request)]
 
 			if onlyIds:
 				ret = IDs
