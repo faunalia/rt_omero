@@ -431,7 +431,7 @@ class SchedaEdificio(QMainWindow, MappingOne2One, Ui_SchedaEdificio):
 			ManagerWindow.instance.iface.legendInterface().setLayerVisible( layerModif, True )
 
 		try:
-			if False:
+			if True:
 				# XXX: why? the output image seems to be generated at a wrong scale using a new renderer
 				filename, extent = createStralcioUsingCanvas(filename, size, scale, ext, factor)
 			else:
