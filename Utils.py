@@ -166,7 +166,7 @@ class FeatureFinder(MapTool):
 
 		# recupera il valore del raggio di ricerca
 		settings = QSettings()
-		if QGis.QGIS_VERSION_INT < 10900:
+		if QGis.QGIS_VERSION_INT < 10900 or (getattr(qgis.gui.QgsMapTool, "searchRadiusMM", None) is None):
 			radius = settings.value( "/Map/identifyRadius", QGis.DEFAULT_IDENTIFY_RADIUS, type=float )
 			if radius and radius <= 0:
 				# XXX: in QGis 1.8 QGis.DEFAULT_IDENTIFY_RADIUS is 0, 
