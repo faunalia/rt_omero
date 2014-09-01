@@ -483,7 +483,7 @@ WHERE
 			self.btnSelFoto.setChecked(False)
 			return
 
-		featIds = self.fotoPointEmitter.findAtPoint(layerFoto, point, False, True)
+		featIds = self.fotoPointEmitter.findAtPoint(layerFoto, point, False, True, overrideSearchRadius=True)
 		if len(featIds) > 0:
 			from DlgVisualizzaFoto import DlgVisualizzaFoto
 			dlg = DlgVisualizzaFoto(self)

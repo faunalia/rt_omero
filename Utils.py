@@ -159,7 +159,7 @@ class FeatureFinder(MapTool):
 		self.emit( SIGNAL("pointEmitted"), point, button )
 
 	@classmethod
-	def findAtPoint(self, layer, point, onlyTheClosestOne=True, onlyIds=False):
+	def findAtPoint(self, layer, point, onlyTheClosestOne=True, onlyIds=False, overrideSearchRadius=False):
 		QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
 		point = MapTool.canvas.mapRenderer().mapToLayerCoordinates(layer, point)
@@ -174,7 +174,11 @@ class FeatureFinder(MapTool):
 				# returns all the features...
 				radius = 0.5	# it means 0.50% of the canvas extent
 			radius = MapTool.canvas.extent().width() * radius/100
-			
+		
+		elif overrideSearchRadius == True:
+			radius = 0.5
+			radius = MapTool.canvas.extent().width() * radius/100
+					
 		else:
 			unit = layer.crs().mapUnits()
 			if unit == QGis.Feet:
