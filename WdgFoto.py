@@ -27,6 +27,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 import qgis.core
+import random
+import string
 
 from ui.wdgFoto_ui import Ui_Form
 from AutomagicallyUpdater import *
@@ -180,7 +182,12 @@ class WdgFoto(QWidget, MappingOne2One, Ui_Form):
 		if prefix is None:
 			filename = TemporaryFile.salvaDati( self.getValue(self.IMAGE), TemporaryFile.KEY_SCHEDAEDIFICIO2HTML, ext )
 		else:
-			filename = u"%s/img_%s.%s" % (prefix, self._ID, ext)
+			suffix = self._ID
+			print suffix
+			if not suffix:
+				suffix = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(4))
+				
+			filename = u"%s/img_%s.%s" % (prefix, suffix, ext)
 			with open( filename, "wb" ) as fout:
 				fout.write( Porting.str( self.getValue(self.IMAGE) ) )
 
