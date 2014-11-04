@@ -25,6 +25,7 @@ Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.h
 import re
 import os
 import inspect
+import gdal
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -229,7 +230,15 @@ class DlgWmsLayersManager(DlgWaiting):
 					saved = out_image.save( out_path, "PNG" )
 				else:
 					# create the catalog from tiles
-					cmd = ["gdalbuildvrt", "-overwrite", unicode(out_path)]
+					cmd = ["gdalbuildvrt", "-overwrite"]
+					
+					# force srs to avoid warning message on loading vrt raster - fix #237 
+					if int(gdal.VersionInfo('VERSION_NUM')) >= 1100000:
+						srs = ManagerWindow.instance.DEFAULT_SRID
+						srsCmd = [ "-a_srs", "epsg:%d" % srs ]
+						cmd.extend( srsCmd )
+					cmd.extend( [ unicode(out_path) ] )
+
 					cmd.extend( in_images )
 					import subprocess
 					saved = (0 == subprocess.call( cmd ))
