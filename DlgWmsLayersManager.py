@@ -25,7 +25,7 @@ Toscana - S.I.T.A. (http://www.regione.toscana.it/territorio/cartografia/index.h
 import re
 import os
 import inspect
-import gdal
+from osgeo import gdal
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
